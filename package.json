@@ -1,0 +1,18 @@
+{
+  "name": "@entity-access/server-pages",
+  "version": "1.0.0",
+  "description": "HTTP(s) Web Server for NodeJS",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.11.0"
+  },
+  "dependencies": {
+    "@entity-access/entity-access": "^1.0.240",
+    "express": "^4.18.2"
+  }
+}
