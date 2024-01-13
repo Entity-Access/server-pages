@@ -1,10 +1,10 @@
 /* eslint-disable no-console */
 import { File } from "buffer";
 import { Response } from "express";
-import XNode from "../html/XNode.js";
-import { LocalFile } from "../server/storage/LocalFile.js";
-import SessionUser from "../server/middleware/auth/SessionUser.js";
+import XNode from "./html/XNode.js";
 import { parse } from "path";
+import { LocalFile } from "./core/LocalFile.js";
+import SessionUser from "./core/SessionUser.js";
 
 export interface IPageResult {
     send(res: Response): Promise<any>;

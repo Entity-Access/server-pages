@@ -37,6 +37,9 @@ export default class XNode {
                     children.push(child);
                     continue;
                 }
+                if (!child) {
+                    continue;
+                }
                 children.push(child.render(nest + "\t"));
             }
         }

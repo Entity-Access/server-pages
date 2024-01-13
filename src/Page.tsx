@@ -2,13 +2,22 @@ import busboy from "busboy";
 import HtmlDocument from "./html/HtmlDocument.js";
 import XNode from "./html/XNode.js";
 import Content, { IPageResult, Redirect } from "./Content.js";
-import SessionUser from "../server/middleware/auth/SessionUser.js";
-import TempFileService from "../server/storage/TempFileService.js";
-import { LocalFile } from "../server/storage/LocalFile.js";
 import { ServiceProvider } from "@entity-access/entity-access/dist/di/di.js";
 import { Request } from "express";
+import { LocalFile } from "./core/LocalFile.js";
+import TempFolder from "./core/TempFolder.js";
+import SessionUser from "./core/SessionUser.js";
 
 export const isPage = Symbol("isPage");
+
+
+export interface IRouteCheck {
+    method: string;
+    current: string;
+    path: string[];
+    sessionUser: SessionUser;
+    params: any;
+}
 
 export interface IPageContext {
     /**
@@ -58,6 +67,8 @@ export interface IPageContext {
      * Actual file path of the page
      */
     filePath: string;
+
+    disposables: Disposable[];
 }
 
 export interface IFormData {
@@ -78,7 +89,7 @@ export default class Page implements IPageContext {
      * @param pageContext page related items
      * @returns true if it can handle the path, default is true
      */
-    static canHandle(pageContext: IPageContext) {
+    static canHandle(pageContext: IRouteCheck) {
         return true;
     }
 
@@ -111,6 +122,8 @@ export default class Page implements IPageContext {
 
     cacheControl: string;
 
+    disposables: Disposable[] = [];
+
     private formDataPromise;
 
     constructor() {
@@ -123,13 +136,13 @@ export default class Page implements IPageContext {
 
     readFormData(): Promise<IFormData> {
         this.formDataPromise ??= (async () => {
+            let tempFolder: TempFolder;
             const result: IFormData = {
                 fields: {},
                 files: []
             };
             const req = (this as any).req as Request;
             const bb = busboy({ headers: req.headers , defParamCharset: "utf8" });
-            const tfs = ServiceProvider.resolve(this, TempFileService);
             const tasks = [];
             await new Promise((resolve, reject) => {
 
@@ -138,8 +151,13 @@ export default class Page implements IPageContext {
                 });
 
                 bb.on("file", (name, file, info) => {
-                    tasks.push(tfs.createFrom(info.filename, file, info.mimeType).then((f) => {
-                        result.files.push(f);
+                    if(!tempFolder) {
+                        tempFolder = new TempFolder();
+                        this.disposables.push(tempFolder);
+                    }
+                    const tf = tempFolder.get(info.filename, info.mimeType);
+                    tasks.push(tf.writeAll(file).then(() => {
+                        result.files.push(tf);
                     }));
                 });
                 bb.on("error", reject);

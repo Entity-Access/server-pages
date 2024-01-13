@@ -1,0 +1,66 @@
+{
+    "terminal.integrated.profiles.windows": {
+        "PowerShell": {
+            "source": "PowerShell",
+            "args": [
+                "-ExecutionPolicy",
+                "Bypass"
+            ]
+        }
+   },
+   "terminal.integrated.defaultProfile.windows": "PowerShell",
+   "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+	"eslint.format.enable": true,
+	"emmet.showSuggestionsAsSnippets": false,
+	"emmet.showAbbreviationSuggestions": false,
+	"emmet.excludeLanguages": [
+		"markdown",
+		"typescript",
+		"typescriptreact"
+    ],
+    "[typescript]": {
+        "editor.defaultFormatter": "vscode.typescript-language-features"
+    },
+    "cSpell.words": [
+        "Akash",
+        "autoload",
+        "bigserial",
+        "bytea",
+        "Certbot",
+        "clamav",
+        "clamd",
+        "clamscan",
+        "datname",
+        "domainkey",
+        "dompurify",
+        "fileupload",
+        "grapesjs",
+        "Greenlock",
+        "IDKIM",
+        "INTERNALDATE",
+        "letsencrypt",
+        "mailparser",
+        "Millis",
+        "mutler",
+        "neurospeech",
+        "nvarchar",
+        "PGDATABASE",
+        "PGHOST",
+        "PGPASSWORD",
+        "PGPORT",
+        "PGUSER",
+        "quasis",
+        "runc",
+        "socialmail",
+        "sysdatabases",
+        "Textboxes",
+        "varbinary",
+        "Visio",
+        "workdir",
+        "Yaaaa",
+        "Ybbd"
+    ],
+    "[json]": {
+        "editor.defaultFormatter": "vscode.json-language-features"
+    }
+}
