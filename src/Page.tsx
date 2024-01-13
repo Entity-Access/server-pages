@@ -1,6 +1,6 @@
 import busboy from "busboy";
-import HtmlDocument from "../html/HtmlDocument.js";
-import XNode from "../html/XNode.js";
+import HtmlDocument from "./html/HtmlDocument.js";
+import XNode from "./html/XNode.js";
 import Content, { IPageResult, Redirect } from "./Content.js";
 import SessionUser from "../server/middleware/auth/SessionUser.js";
 import TempFileService from "../server/storage/TempFileService.js";
@@ -72,6 +72,7 @@ export default class Page implements IPageContext {
 
     static [isPage] = true;
 
+    
     /**
      * This static method determines if the path can be handled by this page or not.
      * @param pageContext page related items
