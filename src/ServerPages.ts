@@ -61,7 +61,6 @@ export default class ServerPages {
             let socketServer = null as Server;
             if (createSocketService) {
                 socketServer = new Server();
-                socketServer.attachApp(app);
                 const ss = ServiceProvider.resolve(this, SocketService as any) as SocketService;
                 (ss as any).attach(socketServer);
             }
