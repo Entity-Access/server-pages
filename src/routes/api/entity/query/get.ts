@@ -1,13 +1,12 @@
 import Inject from "@entity-access/entity-access/dist/di/di.js";
-import EntityAccessServer from "../../../../../ea-server/EntityAccessServer.js";
-import Content from "../../../../../page/Content.js";
-import Page from "../../../../../page/Page.js";
-import SocialMailContext from "../../../../../server/model/SocialMailContext.js";
+import EntityContext from "@entity-access/entity-access/dist/model/EntityContext.js";
+import Page from "../../../../Page.js";
+import EntityAccessServer from "../../../../services/EntityAccessServer.js";
 
 export default class extends Page {
 
     @Inject
-    private db: SocialMailContext;
+    private db: EntityContext;
 
     async all(params: any) {
         const entity = this.childPath[0];

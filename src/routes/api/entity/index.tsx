@@ -3,8 +3,8 @@ import Inject from "@entity-access/entity-access/dist/di/di.js";
 import EntityContext from "@entity-access/entity-access/dist/model/EntityContext.js";
 import SchemaRegistry from "@entity-access/entity-access/dist/decorators/SchemaRegistry.js";
 import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAccessError.js";
-import Page, { IPageContext, IRouteCheck } from "../../Page.js";
-import GraphService from "../../services/GraphService.js";
+import Page, { IRouteCheck } from "../../../Page.js";
+import GraphService from "../../../services/GraphService.js";
 
 const added = Symbol("added");
 

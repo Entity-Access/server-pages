@@ -1,12 +1,12 @@
 import Inject from "@entity-access/entity-access/dist/di/di.js";
-import Page from "../../../../../page/Page.js";
-import SocialMailContext from "../../../../../server/model/SocialMailContext.js";
-import ModelService from "../../../../../ea-server/ModelService.js";
+import EntityContext from "@entity-access/entity-access/dist/model/EntityContext.js";
+import Page from "../../../../Page.js";
+import ModelService from "../../../../services/ModelService.js";
 
 export default class extends Page {
 
     @Inject
-    db: SocialMailContext;
+    db: EntityContext;
 
     all(params: any) {
 
