@@ -16,7 +16,7 @@ jobs:
         with:
           node-version: 20
           registry-url: https://registry.npmjs.org/
-      - run: npm ci
+      - run: npm install --omit=dev
       - run: npm install -D typescript
       - run: tsc
       - run: npm publish --access public
