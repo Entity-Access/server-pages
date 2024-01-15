@@ -12,7 +12,6 @@ import SocketNamespace from "./SocketNamespace.js";
 import { camelToChain } from "../core/camelToChain.js";
 import SessionUser from "../core/SessionUser.js";
 
-@RegisterSingleton
 export default abstract class SocketService {
 
     @Inject

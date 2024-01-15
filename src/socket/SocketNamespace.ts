@@ -27,7 +27,6 @@ export function Send(target: SocketNamespace, key) {
     };
 }
 
-@RegisterSingleton
 export default abstract class SocketNamespace {
 
     protected namespace: string;
