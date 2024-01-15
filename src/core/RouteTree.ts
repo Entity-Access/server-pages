@@ -57,7 +57,7 @@ export default class RouteTree {
 
         const { method } = rc;
 
-        const pageClassPromise = this.handler[method] ?? this.handler["index"];
+        const pageClassPromise = (this.handler[method] ??= this.handler[method.toLowerCase()]) ?? this.handler["index"];
         if (pageClassPromise) {
             const pageClass = await pageClassPromise;
             if(pageClass.canHandle(rc)) {
