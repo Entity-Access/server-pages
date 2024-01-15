@@ -11,7 +11,6 @@ import bodyParser from "body-parser";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { Server, Socket } from "socket.io";
-import { SocketNamespaceClient } from "./socket/SocketNamespace.js";
 import SocketService from "./socket/SocketService.js";
 
 RegisterSingleton

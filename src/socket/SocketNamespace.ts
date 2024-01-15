@@ -27,8 +27,10 @@ export function Send(target: SocketNamespace, key) {
     };
 }
 
-@RegisterScoped
-export abstract class SocketNamespaceClient {
+@RegisterSingleton
+export default abstract class SocketNamespace {
+
+    protected namespace: string;
 
     protected socket: Socket;
 
@@ -40,21 +42,11 @@ export abstract class SocketNamespaceClient {
 
     }
 
-    abstract join(... a: any[]);
+    join(... a: any[]) {
+        return this.socket.join(this.room);
+    }
 
     leave() {
         return this.socket.leave(this.room);
     }
-}
-
-export default class SocketNamespace {
-
-    public namespace: string;
-
-    public server: Namespace;
-
-    public send(room: string, message, ... args: any[]) {
-        return this.server?.to(room)?.emit(message, ... args);
-    }
-
 }

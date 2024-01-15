@@ -8,7 +8,7 @@ import { parse } from "cookie";
 import { Server, Socket } from "socket.io";
 import CookieService from "../services/CookieService.js";
 import TokenService from "../services/TokenService.js";
-import SocketNamespace, { SocketNamespaceClient } from "./SocketNamespace.js";
+import SocketNamespace from "./SocketNamespace.js";
 import { camelToChain } from "../core/camelToChain.js";
 import SessionUser from "../core/SessionUser.js";
 
@@ -27,20 +27,23 @@ export default abstract class SocketService {
         this.server = new Server();
     }
 
-    protected abstract namespaces(): Array<typeof SocketNamespaceClient>;
-
     private attach(
         server: Server): Server {
 
         this.server = server;
-        for (const iterator of this.namespaces()) {
-            this.attachNamespace(iterator);
+        for (const key in this) {
+            if (Object.prototype.hasOwnProperty.call(this, key)) {
+                const element = this[key];
+                if (element instanceof SocketNamespace) {
+                    this.attachNamespace(element);
+                }
+            }
         }
         return this.server;
     }
-    private attachNamespace(iterator: typeof SocketNamespaceClient, name?) {
+    private attachNamespace(sns: SocketNamespace, name?) {
         if (!name) {
-            name = iterator.name;
+            name = sns.constructor.name;
             if (name.endsWith("Namespace")) {
                 name = name.substring(0, name.length - "Namespace".length);
             }
@@ -48,10 +51,9 @@ export default abstract class SocketService {
         }
         console.log(`Listening Sockets on /${name}`);
         const s = this.server.of("/" + name);
+        (sns as any).namespace = name;
+        (sns as any).server = s;
         const { tokenService, cookieService } = this;
-        const sns = ServiceProvider.create(this, SocketNamespace);
-        sns.namespace = name;
-        sns.server = s;
         s.on("connection", (socket) => {
             socket.onAny(async (methodName, ... args: any[]) => {
                 const cookies = parse(socket.request.headers.cookie);
@@ -60,10 +62,8 @@ export default abstract class SocketService {
                 const scope = ServiceProvider.createScope(this);
                 try {
                     scope.add(SessionUser, sessionUser);
-                    const socketEvent = scope.create(iterator as any) as SocketNamespaceClient;
-                    (socketEvent as any).socket = socket;
-                    (socketEvent as any).server = s;
-                    const method = socketEvent[methodName];
+                    scope.add(Socket, socket);
+                    const method = sns[methodName];
                     const types = method[injectServiceKeysSymbol] as any[];
                     if (types) {
                         for (let index = args.length; index < types.length; index++) {
@@ -71,7 +71,7 @@ export default abstract class SocketService {
                             args.push(element);
                         }
                     }
-                    await socketEvent[methodName](... args);
+                    await sns[methodName](... args);
                 } catch (error) {
                     console.error(error);
                 } finally {
