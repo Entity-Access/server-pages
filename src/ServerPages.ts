@@ -10,6 +10,9 @@ import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { Server, Socket } from "socket.io";
+import { SocketNamespaceClient } from "./socket/SocketNamespace.js";
+import SocketService from "./socket/SocketService.js";
 
 RegisterSingleton
 export default class ServerPages {
@@ -43,7 +46,7 @@ export default class ServerPages {
      * All services should be registered before calling build
      * @param app Express App
      */
-    public build(app = express()) {
+    public build(app = express(), createSocketService = true) {
         try {
             const cookieService = ServiceProvider.resolve(this, CookieService);
 
@@ -55,11 +58,19 @@ export default class ServerPages {
 
             app.use(bodyParser.json());
 
+            let socketServer = null as Server;
+            if (createSocketService) {
+                socketServer = new Server();
+                socketServer.attachApp(app);
+                const ss = ServiceProvider.resolve(this, SocketService as any) as SocketService;
+                (ss as any).attach(socketServer);
+            }
             app.all(/./, (req, res, next) => this.process(req, res).then(next, next));
             return app;
         } catch (error) {
             console.error(error);
         }
+        return null;
     }
 
     protected async process(req: Request, resp: Response) {

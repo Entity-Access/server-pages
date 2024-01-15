@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
-import { ServiceProvider, injectServiceKeysSymbol } from "@entity-access/entity-access/dist/di/di.js";
-import { Namespace, Socket } from "socket.io";
+import { RegisterScoped, RegisterSingleton, RegisterTransient, ServiceProvider, injectServiceKeysSymbol } from "@entity-access/entity-access/dist/di/di.js";
+import { Namespace, Server, Socket } from "socket.io";
+import ServerPages from "../ServerPages.js";
 
 
 export function Receive(target, key) {
@@ -17,7 +18,7 @@ export function Receive(target, key) {
     };
 }
 
-export function Send(target: typeof SocketNamespace, key) {
+export function Send(target: SocketNamespace, key) {
     const value = function(this: SocketNamespace, room, ... args: any[]) {
         return target.server?.to(room)?.emit(key, ... args);
     };
@@ -26,20 +27,34 @@ export function Send(target: typeof SocketNamespace, key) {
     };
 }
 
-export default abstract class SocketNamespace {
+@RegisterScoped
+export abstract class SocketNamespaceClient {
 
-    public static namespace: string;
+    protected socket: Socket;
 
-    public static server: Namespace;
+    protected server: Namespace;
 
     protected room: string;
 
-    protected socket: Socket;
+    constructor() {
+
+    }
 
     abstract join(... a: any[]);
 
     leave() {
         return this.socket.leave(this.room);
+    }
+}
+
+export default class SocketNamespace {
+
+    public namespace: string;
+
+    public server: Namespace;
+
+    public send(room: string, message, ... args: any[]) {
+        return this.server?.to(room)?.emit(message, ... args);
     }
 
 }
