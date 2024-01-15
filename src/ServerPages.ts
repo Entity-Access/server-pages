@@ -8,6 +8,8 @@ import RouteTree from "./core/RouteTree.js";
 import CookieService from "./services/CookieService.js";
 import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
 
 RegisterSingleton
 export default class ServerPages {
@@ -31,6 +33,10 @@ export default class ServerPages {
             root = root.getOrCreate(iterator);
         }
         root.register(folder);
+    }
+
+    public registerEntityRoutes() {
+        this.registerRoutes(join(fileURLToPath(dirname(import.meta.url)), "./routes"))
     }
 
     /**
