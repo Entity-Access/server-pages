@@ -11,6 +11,7 @@ import bodyParser from "body-parser";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { Server, Socket } from "socket.io";
+import * as http from "http";
 import SocketService from "./socket/SocketService.js";
 
 RegisterSingleton
@@ -45,7 +46,7 @@ export default class ServerPages {
      * All services should be registered before calling build
      * @param app Express App
      */
-    public build(app = express(), createSocketService = true) {
+    public build(app = express(), { createSocketService = true, port = 80 } = {}) {
         try {
             const cookieService = ServiceProvider.resolve(this, CookieService);
 
@@ -65,7 +66,12 @@ export default class ServerPages {
                 (ss as any).attach(socketServer);
             }
             app.all(/./, (req, res, next) => this.process(req, res).then(next, next));
-            return app;
+            return new Promise<http.Server>((resolve, reject) => {
+                const server = app.listen(port, () => {
+                    resolve(server);
+                });
+                socketServer?.attach(server);
+            });
         } catch (error) {
             console.error(error);
         }
