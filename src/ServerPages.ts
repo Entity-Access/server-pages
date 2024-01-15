@@ -95,7 +95,7 @@ export default class ServerPages {
         try {
             const sessionUser = (req as any).user;
             scope.add(SessionUser, sessionUser);
-            const path = req.path.substring(1).split("/");
+            const path = req.path.split("/").filter((x) => x);
             const method = req.method;
             const params = { ... req.params, ... req.query, ... req.body ?? {} };
             const { pageClass, childPath } = (await this.root.getRoute({
