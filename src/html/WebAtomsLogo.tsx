@@ -1,6 +1,6 @@
 import XNode from "./XNode.js";
 
-export const WebAtomsLogo = () => XNode.create("", {}, `<!--
+const WebAtomsLogo = () => XNode.create("", {}, `<!--
 
 I8,        8        ,8I            88                     db
 \`8b       d8b       d8'            88                    d88b        ,d
@@ -18,3 +18,5 @@ I8,        8        ,8I            88                     db
 
 
 -->`);
+
+export default WebAtomsLogo;
