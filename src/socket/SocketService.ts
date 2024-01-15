@@ -26,6 +26,10 @@ export default abstract class SocketService {
         this.server = new Server();
     }
 
+    protected async init() {
+
+    }
+
     private attach(
         server: Server): Server {
 

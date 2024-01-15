@@ -46,7 +46,7 @@ export default class ServerPages {
      * All services should be registered before calling build
      * @param app Express App
      */
-    public build(app = express(), { createSocketService = true, port = 80 } = {}) {
+    public async build(app = express(), { createSocketService = true, port = 80 } = {}) {
         try {
             const cookieService = ServiceProvider.resolve(this, CookieService);
 
@@ -63,6 +63,7 @@ export default class ServerPages {
                 socketServer = new Server();
                 const ss = ServiceProvider.resolve(this, SocketService as any) as SocketService;
                 (ss as any).attach(socketServer);
+                await (ss as any).init();
             }
             app.all(/./, (req, res, next) => this.process(req, res).then(next, next));
             return new Promise<http.Server>((resolve, reject) => {
