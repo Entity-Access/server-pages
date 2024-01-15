@@ -38,13 +38,15 @@ export default class RouteTree {
     }
 
     public async getRoute(rc: IRouteCheck): Promise<{ pageClass: typeof Page, childPath: string[] }> {
-        const { method, path: [current, ... rest] } = rc;
-        const childRouteCheck = { ... rc, current, path: rest };
-        const childRoute = this.children.get(current);
-        if (childRoute) {
-            const nested = await childRoute.getRoute(childRouteCheck);
-            if (nested) {
-                return nested;
+        if (rc.path.length > 0) {
+            const { path: [current, ... rest] } = rc;
+            const childRouteCheck = { ... rc, current, path: rest };
+            const childRoute = this.children.get(current);
+            if (childRoute) {
+                const nested = await childRoute.getRoute(childRouteCheck);
+                if (nested) {
+                    return nested;
+                }
             }
         }
 
@@ -52,6 +54,8 @@ export default class RouteTree {
             // we will not be able to handle this route
             return;
         }
+
+        const { method } = rc;
 
         const pageClassPromise = this.handler[method] ?? this.handler["index"];
         if (pageClassPromise) {
