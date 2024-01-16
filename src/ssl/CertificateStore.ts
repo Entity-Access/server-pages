@@ -24,9 +24,10 @@ export default class CertificateStore {
     }
 
     public async getAccountKey() {
-        const keyPath = join(folder, "keys");
+        const keyFolder = join(folder, "keys");
         let key: Buffer;
-        ensureDir(keyPath);
+        ensureDir(keyFolder);
+        const keyPath = join(keyFolder, "private.key");
         if (!existsSync(keyPath)) {
             key = await acme.crypto.createPrivateRsaKey();
             writeFileSync(keyPath, key);
