@@ -1,4 +1,4 @@
-import Inject, { RegisterSingleton, ServiceProvider } from "@entity-access/entity-access/dist/di/di.js";
+import Inject, { RegisterScoped, RegisterSingleton, ServiceProvider } from "@entity-access/entity-access/dist/di/di.js";
 import TokenService, { IAuthCookie } from "./TokenService.js";
 import TimedCache from "@entity-access/entity-access/dist/common/cache/TimedCache.js";
 import { BaseDriver } from "@entity-access/entity-access/dist/drivers/base/BaseDriver.js";
@@ -22,7 +22,39 @@ const cacheFR = new FinalizationRegistry<number>((heldValue) => {
     userCookies.delete(heldValue);
 });
 
-@RegisterSingleton
+const clearCache = (userID, broadcast = true) => {
+    const cookie = userCookies.get(userID);
+    if (cookie) {
+        sessionCache.delete(cookie);
+    }
+    if (!broadcast) {
+        return;
+    }
+    const clearMessage = {
+        type: "cookie-service-clear-cache",
+        userID
+    };
+    if (cluster.isWorker) {
+        process.send(clearMessage);
+    } else {
+        if(cluster.workers) {
+            for (const key in cluster.workers) {
+                if (Object.prototype.hasOwnProperty.call(cluster.workers, key)) {
+                    const element = cluster.workers[key];
+                    element.send(clearMessage);
+                }
+            }
+        }
+    }
+};
+
+process.on("message", (msg: any) => {
+    if (msg.type === "cookie-service-clear-cache") {
+        clearCache(msg.userID, false);
+    }
+});
+
+@RegisterScoped
 export default class CookieService {
 
     @Inject
@@ -31,44 +63,12 @@ export default class CookieService {
     @Inject
     private userSessionProvider: UserSessionProvider;
 
-    constructor() {
-        process.on("message", (msg: any) => {
-            if (msg.type === "cookie-service-clear-cache") {
-                this.clearCache(msg.userID, false);
-            }
-        });
-    }
-
-    public clearCache(userID: number, broadcast = true) {
-        const cookie = userCookies.get(userID);
-        if (cookie) {
-            sessionCache.delete(cookie);
-        }
-        if (!broadcast) {
-            return;
-        }
-        const clearMessage = {
-            type: "cookie-service-clear-cache",
-            userID
-        };
-        if (cluster.isWorker) {
-            process.send(clearMessage);
-        } else {
-            if(cluster.workers) {
-                for (const key in cluster.workers) {
-                    if (Object.prototype.hasOwnProperty.call(cluster.workers, key)) {
-                        const element = cluster.workers[key];
-                        element.send(clearMessage);
-                    }
-                }
-            }
-        }
-}
+    public clearCache = clearCache;
 
     async createSessionUser(req: Request, resp: Response) {
         cookieName ??= this.tokenService.authCookieName;
         const sessionCookie = req.cookies[cookieName];
-        req.user = await this.createSessionUserFromCookie(sessionCookie, req.ip, resp);
+        return req.user = await this.createSessionUserFromCookie(sessionCookie, req.ip, resp);
     }
 
     async createSessionUserFromCookie(cookie: string, ip: string, resp?: Response) {
@@ -116,13 +116,13 @@ export default class CookieService {
                 };
             }
 
-            const r = await this.createUserInfo(parsedCookie.id, cookie);
+            const r = await this.createUserInfo(parsedCookie.id, cookie, parsedCookie.expiry);
             return r;
         });
     }
 
-    private async createUserInfo(id: number, cookie: string) {
-        const r = await this.userSessionProvider.getUserSession(id);
+    private async createUserInfo(id: number, cookie: string, expiry: Date) {
+        const r = await this.userSessionProvider.getUserSession(id, expiry);
         if (r === null) {
             return {};
         }

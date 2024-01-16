@@ -48,14 +48,10 @@ export default class ServerPages {
      */
     public async build(app = express(), { createSocketService = true, port = 80 } = {}) {
         try {
-            const cookieService = ServiceProvider.resolve(this, CookieService);
-
             // etag must be set by individual request processors if needed.
             app.set("etag", false);
 
             app.use(cookieParser());
-            app.use((req, res, next) => cookieService.createSessionUser(req, res).then(next, next));
-
             app.use(bodyParser.json());
 
             let socketServer = null as Server;
@@ -93,6 +89,15 @@ export default class ServerPages {
         let sent = false;
         const acceptJson = req.accepts().some((s) => /\/json$/i.test(s));
         try {
+
+            const cookieService = scope.resolve(CookieService);
+
+            try {
+                await cookieService.createSessionUser(req, resp);
+            } catch (error) {
+                console.error(error);
+            }
+
             const sessionUser = (req as any).user;
             scope.add(SessionUser, sessionUser);
             const path = req.path.split("/").filter((x) => x);

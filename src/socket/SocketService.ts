@@ -17,9 +17,6 @@ export default abstract class SocketService {
     @Inject
     private tokenService: TokenService;
 
-    @Inject
-    private cookieService: CookieService;
-
     protected server: Server;
 
     constructor() {
@@ -56,14 +53,15 @@ export default abstract class SocketService {
         const s = this.server.of("/" + name);
         (sns as any).namespace = name;
         (sns as any).server = s;
-        const { tokenService, cookieService } = this;
+        const { tokenService } = this;
         s.on("connection", (socket) => {
             socket.onAny(async (methodName, ... args: any[]) => {
                 const cookies = parse(socket.request.headers.cookie);
-                const cookie = cookies[tokenService.authCookieName];
-                const sessionUser = await cookieService.createSessionUserFromCookie(cookie, socket.handshake.address);
                 const scope = ServiceProvider.createScope(this);
                 try {
+                    const cookieService = scope.resolve(CookieService);
+                    const cookie = cookies[tokenService.authCookieName];
+                    const sessionUser = await cookieService.createSessionUserFromCookie(cookie, socket.handshake.address);
                     scope.add(SessionUser, sessionUser);
                     scope.add(Socket, socket);
                     const method = sns[methodName];
