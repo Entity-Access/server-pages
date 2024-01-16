@@ -9,9 +9,9 @@ import { Server } from "socket.io";
 import * as http from "http";
 import * as http2 from "http2";
 import SocketService from "./socket/SocketService.js";
-import { Wrapped, WrappedRequest, WrappedResponse } from "./core/Wrapped.js";
-import { SecureContext, createSecureContext } from "node:tls";
-import { SelfSigned } from "./ssl/SelfSigned.js";
+import { Wrapped } from "./core/Wrapped.js";
+import { SecureContext } from "node:tls";
+import  ACME, { IAcmeOptions } from "./ssl/ACME.js";
 
 RegisterSingleton
 export default class ServerPages {
@@ -50,13 +50,15 @@ export default class ServerPages {
         port = 8080,
         protocol = "http",
         disableHttp2Warning = false,
-        SNICallback
+        SNICallback,
+        acmeOptions
     }:{
         createSocketService?: boolean,
         port: number,
         disableHttp2Warning?: boolean,
         protocol: "http" | "http2" | "https2",
-        SNICallback: (servername: string, cb: (err: Error | null, ctx?: SecureContext) => void) => void
+        SNICallback?: (servername: string, cb: (err: Error | null, ctx?: SecureContext) => void) => void,
+        acmeOptions?: IAcmeOptions
     }) {
         try {
 
@@ -77,12 +79,10 @@ export default class ServerPages {
                 case "https2":
                     let sc = null;
                     SNICallback ??= (name, cb) => {
-                        if (sc) {
-                            return cb(null, sc);
-                        }
-                        const { key, cert } = SelfSigned.setupSelfSigned();
-                        sc = createSecureContext({ key, cert });
-                        cb(null, sc);
+                        const acme = ServiceProvider.resolve(this, ACME);
+                        acme.getSecureContext({ ... ( acmeOptions ?? {}),  host: name }).then((v) => {
+                            cb(null, v);
+                        },cb);
                     };
                     httpServer = http2.createSecureServer({
                         SNICallback

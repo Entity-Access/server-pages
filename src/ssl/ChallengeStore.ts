@@ -1,19 +1,26 @@
 import { RegisterSingleton } from "@entity-access/entity-access/dist/di/di.js";
+import ensureDir from "../core/FileApi.js";
+import { readFileSync, unlinkSync, writeFileSync } from "fs";
+import { join } from "node:path";
+
+const path = "./challenges";
 
 @RegisterSingleton
 export default class ChallengeStore {
 
-    map = new Map<string,string>();
+    constructor() {
+        ensureDir(path);
+    }
 
     async get(name: string) {
-        return this.map.get(name);
+        return readFileSync(join(path, name));
     }
 
     async save(name: string, value: string) {
-        this.map.set(name, value);
+        writeFileSync(join(path, name), value, "utf8");
     }
 
     async remove(name: string) {
-        this.map.delete(name);
+        unlinkSync(join(path, name));
     }
 }

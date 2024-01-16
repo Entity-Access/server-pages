@@ -8,12 +8,42 @@ import { join } from "path"
 import ensureDir, { deleteIfExists } from "../core/FileApi.js";
 import Inject, { RegisterSingleton } from "@entity-access/entity-access/dist/di/di.js";
 import ChallengeStore from "./ChallengeStore.js";
+import * as tls from "node:tls";
+
+export interface IAcmeOptions {
+    sslMode?: string,
+    accountPrivateKeyPath?: string,
+    emailAddress?: string,
+    mode?:  "production" | "self-signed" | "staging",
+    endPoint?: string,
+    eabKid?: string,
+    eabHmac?: string   
+}
+
+export interface ICertOptions extends IAcmeOptions {
+    host: string,
+};
 
 @RegisterSingleton
 export default class ACME {
 
     @Inject
     private challengeStore: ChallengeStore;
+
+    private map = new Map<string, tls.SecureContext>();
+
+    public async getSecureContext(options: ICertOptions) {
+        const { host } = options;
+        let sc = this.map.get(host);
+        if (sc) {
+            return sc;
+        }
+        
+        const { key , cert } = await this.setup(options)
+        sc = tls.createSecureContext({ cert, key });
+        this.map.set(host, sc);
+        return sc;
+    }
 
     public async setup({
         host,
