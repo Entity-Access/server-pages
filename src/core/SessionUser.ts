@@ -1,8 +1,8 @@
-import { Request, Response } from "express";
 import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAccessError.js";
 import { RegisterScoped } from "@entity-access/entity-access/dist/di/di.js";
 import DateTime from "@entity-access/entity-access/dist/types/DateTime.js";
 import TokenService, { IAuthCookie } from "../services/TokenService.js";
+import { WrappedResponse } from "./Wrapped.js";
 
 const secure = (process.env["SOCIAL_MAIL_AUTH_COOKIE_SECURE"] ?? "true") === "true";
 
@@ -48,7 +48,7 @@ export default class SessionUser {
     }
 
     constructor(
-        private resp: Response,
+        private resp: WrappedResponse,
         private cookieName: string,
         private tokenService: TokenService
     ) {}

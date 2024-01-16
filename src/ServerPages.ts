@@ -1,18 +1,16 @@
 /* eslint-disable no-console */
 import { RegisterSingleton, ServiceProvider } from "@entity-access/entity-access/dist/di/di.js";
-import express, { Request, Response } from "express";
 import Page from "./Page.js";
 import Content from "./Content.js";
-import SessionUser from "./core/SessionUser.js";
 import RouteTree from "./core/RouteTree.js";
-import CookieService from "./services/CookieService.js";
-import cookieParser from "cookie-parser";
-import bodyParser from "body-parser";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { Server, Socket } from "socket.io";
+import { Server } from "socket.io";
 import * as http from "http";
+import * as http2 from "http2";
 import SocketService from "./socket/SocketService.js";
+import { Wrapped, WrappedRequest, WrappedResponse } from "./core/Wrapped.js";
+import { SecureContext } from "node:tls";
 
 RegisterSingleton
 export default class ServerPages {
@@ -46,13 +44,22 @@ export default class ServerPages {
      * All services should be registered before calling build
      * @param app Express App
      */
-    public async build(app = express(), { createSocketService = true, port = 80 } = {}) {
+    public async build({
+        createSocketService = true,
+        port = 8080,
+        protocol = "http",
+        disableHttp2Warning = false,
+        SNICallback
+    }:{
+        createSocketService?: boolean,
+        port: number,
+        disableHttp2Warning?: boolean,
+        protocol: "http" | "http2" | "https2",
+        SNICallback: (servername: string, cb: (err: Error | null, ctx?: SecureContext) => void) => void
+    }) {
         try {
-            // etag must be set by individual request processors if needed.
-            app.set("etag", false);
 
-            app.use(cookieParser());
-            app.use(bodyParser.json());
+            let httpServer = null as http.Server | http2.Http2Server | http2.Http2SecureServer;
 
             let socketServer = null as Server;
             if (createSocketService) {
@@ -61,83 +68,116 @@ export default class ServerPages {
                 (ss as any).attach(socketServer);
                 await (ss as any).init();
             }
-            app.all(/./, (req, res, next) => this.process(req, res).then(next, next));
-            return new Promise<http.Server>((resolve, reject) => {
-                const server = app.listen(port, () => {
-                    resolve(server);
+
+            switch(protocol) {
+                case "http":
+                    httpServer = http.createServer((req, res) => this.process(req, res))
+                    break;
+                case "https2":
+                    httpServer = http2.createSecureServer({
+                        SNICallback
+                    }, (req, res) => this.process(req, res))
+                    break;
+                case "http2":
+                    httpServer = http2.createSecureServer({
+                    },(req, res) => this.process(req, res))
+                    if (!disableHttp2Warning) {
+                        console.warn("Http2 without SSL should not be used in production");
+                    }
+                    break;
+            }
+
+
+            await new Promise<void>((resolve, reject) => {
+                const server = httpServer.listen(port, () => {
+                    resolve();
                 });
                 socketServer?.attach(server);
             });
+            return httpServer;
         } catch (error) {
             console.error(error);
         }
         return null;
     }
 
-    protected async process(req: Request, resp: Response) {
+    protected async process(req: any, resp: any) {
+
+        req = Wrapped.request(req);
+        resp = Wrapped.response(req, resp);
+
+        req.response = resp;
 
         if((req as any).processed) {
             return;
         }
         (req as any).processed = true;
 
-        // defaulting to no cache
-        // static content delivery should override this
-        resp.setHeader("cache-control", "no-cache");
-
-        using scope = ServiceProvider.createScope(this);
-        let sent = false;
-        const acceptJson = req.accepts().some((s) => /\/json$/i.test(s));
         try {
-            const path = req.path.split("/").filter((x) => x);
-            const method = req.method;
-            const params = { ... req.params, ... req.query, ... req.body ?? {} };
-            const { pageClass, childPath } = (await this.root.getRoute({
-                scope,
-                method,
-                current: "",
-                path,
-                params
-            })) ?? {
-                pageClass: Page,
-                childPath: path
-            };
-            const page = scope.create(pageClass);
-            page.method = method;
-            page.childPath = childPath;
-            page.body = req.body;
-            page.query = req.query;
-            (page as any).req = req;
-            (page as any).res = resp;
-            const content = await page.all(params);
-            resp.setHeader("cache-control", page.cacheControl);
-            resp.removeHeader("etag");
-            sent = true;
-            await content.send(resp);
-        } catch (error) {
-            if (!sent) {
-                try {
 
-                    if (acceptJson || error.errorModel) {
-                        await Content.json(
-                                {
-                                    ... error.errorModel ?? {},
-                                    message: error.message ?? error,
-                                    detail: error.stack ?? error,
-                                }
-                        , 500).send(resp);
-                        return;
+            // defaulting to no cache
+            // static content delivery should override this
+            resp.setHeader("cache-control", "no-cache");
+
+            using scope = ServiceProvider.createScope(this);
+            let sent = false;
+            const acceptJson = req.accepts().some((s) => /\/json$/i.test(s));
+
+
+            try {
+                const path = req.path.split("/").filter((x) => x);
+                const method = req.method;
+                const { pageClass, childPath } = (await this.root.getRoute({
+                    scope,
+                    method,
+                    current: "",
+                    path,
+                    request: req
+                })) ?? {
+                    pageClass: Page,
+                    childPath: path
+                };
+                const page = scope.create(pageClass);
+                page.method = method;
+                page.childPath = childPath;
+                page.request = req;
+                page.response = resp;
+                const content = await page.all(page.params);
+                resp.setHeader("cache-control", page.cacheControl);
+                resp.removeHeader("etag");
+                sent = true;
+                await content.send(resp);
+            } catch (error) {
+                if (!sent) {
+                    try {
+
+                        if (acceptJson || error.errorModel) {
+                            await Content.json(
+                                    {
+                                        ... error.errorModel ?? {},
+                                        message: error.message ?? error,
+                                        detail: error.stack ?? error,
+                                    }
+                            , 500).send(resp);
+                            return;
+                        }
+
+                        const content = Content.html(`<!DOCTYPE html>\n<html><body><pre>Server Error for ${req.url}\r\n${error?.stack ?? error}</pre></body></html>`, 500);
+                        await content.send(resp);
+                    } catch (e1) {
+                        resp.send(e1.stack ?? e1, 500);
+                        console.error(e1);
                     }
-
-                    const content = Content.html(`<!DOCTYPE html>\n<html><body><pre>Server Error for ${req.url}\r\n${error?.stack ?? error}</pre></body></html>`, 500);
-                    await content.send(resp);
-                } catch (e1) {
-                    resp.send(e1.stack ?? e1);
-                    console.error(e1);
+                    return;
                 }
-                return;
+                console.error(error);
             }
-            console.error(error);
+        } finally {
+            if(Array.isArray(req.disposables)) {
+                for (const iterator of req.disposables) {
+                    iterator[Symbol.dispose]?.();
+                }
+            }
         }
     }
 

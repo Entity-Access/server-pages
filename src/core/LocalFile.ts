@@ -1,7 +1,7 @@
-import { createReadStream, createWriteStream, existsSync, statSync } from "fs";
+import { createReadStream, createWriteStream, existsSync, read, statSync } from "fs";
 import { basename  } from "path";
 import mime from "mime-types";
-import internal, { Stream } from "stream";
+import internal, { Stream, Writable } from "stream";
 import { appendFile, open, readFile, writeFile } from "fs/promises";
 
 
@@ -52,6 +52,15 @@ export class LocalFile {
 
     public async readAsBuffer() {
         return await readFile(this.path, { flag: "r" });
+    }
+
+    public async writeTo(writable: Writable, start?: number, end?: number) {
+        const readable = createReadStream(this.path, { start, end });
+        return new Promise((resolve, reject) => {
+            readable.pipe(writable, { end: true })
+                .on("end", resolve)
+                .on("error", reject);
+        });
     }
 
     public async delete() {

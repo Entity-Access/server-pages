@@ -2,10 +2,10 @@ import Inject, { RegisterScoped, RegisterSingleton, ServiceProvider } from "@ent
 import TokenService, { IAuthCookie } from "./TokenService.js";
 import TimedCache from "@entity-access/entity-access/dist/common/cache/TimedCache.js";
 import { BaseDriver } from "@entity-access/entity-access/dist/drivers/base/BaseDriver.js";
-import { Request, Response } from "express";
 import cluster from "cluster";
 import SessionUser from "../core/SessionUser.js";
 import UserSessionProvider from "./UserSessionProvider.js";
+import { WrappedResponse } from "../core/Wrapped.js";
 
 /**
  * This will track userID,cookie pair so we can
@@ -65,13 +65,11 @@ export default class CookieService {
 
     public clearCache = clearCache;
 
-    async createSessionUser(req: Request, resp: Response) {
-        cookieName ??= this.tokenService.authCookieName;
-        const sessionCookie = req.cookies[cookieName];
-        return req.user = await this.createSessionUserFromCookie(sessionCookie, req.ip, resp);
+    public get cookieName() {
+        return cookieName ??= this.tokenService.authCookieName;
     }
 
-    async createSessionUserFromCookie(cookie: string, ip: string, resp?: Response) {
+    async createSessionUserFromCookie(cookie: string, ip: string, resp?: WrappedResponse) {
         const user = new SessionUser(resp, cookieName, this.tokenService);
         try {
             user.ipAddress = ip;

@@ -5,7 +5,7 @@ import Content, { IPageResult, Redirect } from "./Content.js";
 import { LocalFile } from "./core/LocalFile.js";
 import TempFolder from "./core/TempFolder.js";
 import SessionUser from "./core/SessionUser.js";
-import { WrappedRequest } from "./core/Wrapped.js";
+import { WrappedRequest, WrappedResponse } from "./core/Wrapped.js";
 import { ServiceProvider } from "@entity-access/entity-access/dist/di/di.js";
 
 export const isPage = Symbol("isPage");
@@ -16,7 +16,7 @@ export interface IRouteCheck {
     method: string;
     current: string;
     path: string[];
-    params: any;
+    request: WrappedRequest;
 }
 
 export interface IFormData {
@@ -42,6 +42,12 @@ export default class Page {
     }
 
     request: WrappedRequest;
+
+    response: WrappedResponse;
+
+    get params() {
+        return this.request?.query;
+    }
 
     signal: AbortSignal;
 

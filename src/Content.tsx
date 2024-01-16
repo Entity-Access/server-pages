@@ -1,13 +1,13 @@
 /* eslint-disable no-console */
 import { File } from "buffer";
-import { Response } from "express";
 import XNode from "./html/XNode.js";
 import { parse } from "path";
 import { LocalFile } from "./core/LocalFile.js";
 import SessionUser from "./core/SessionUser.js";
+import { WrappedResponse } from "./core/Wrapped.js";
 
 export interface IPageResult {
-    send(res: Response): Promise<any>;
+    send(res: WrappedResponse): Promise<any>;
 }
 
 export class TempFileResult implements IPageResult {
@@ -34,26 +34,18 @@ export class TempFileResult implements IPageResult {
         this.immutable = immutable;
     }
 
-    send(res: Response<any, Record<string, any>>) {
-        return new Promise<void>((resolve, reject) => {
-            res = res.header("content-disposition", `${this.contentDisposition};filename=${encodeURIComponent(this.file.fileName)}`);
-            res.sendFile(this.file.path,{
-                headers: {
-                    "content-type": this.file.contentType
-                },
-                acceptRanges: true,
-                cacheControl: this.cacheControl,
-                maxAge: this.maxAge,
-                etag: this.etag,
-                immutable: this.immutable,
-                lastModified: false
-            }, (error) => {
-                if(error) {
-                    reject(error);
-                    return;
-                }
-                resolve();
-            });
+    send(res: WrappedResponse) {
+        res.setHeader("content-disposition", `${this.contentDisposition};filename=${encodeURIComponent(this.file.fileName)}`);
+        return res.sendFile(this.file.path,{
+            headers: {
+                "content-type": this.file.contentType
+            },
+            acceptRanges: true,
+            cacheControl: this.cacheControl,
+            maxAge: this.maxAge,
+            etag: this.etag,
+            immutable: this.immutable,
+            lastModified: false
         });
     }
 
@@ -86,22 +78,15 @@ export class FileResult implements IPageResult {
         this.fileName = parsed.base;
     }
 
-    send(res: Response<any, Record<string, any>>) {
-        return new Promise<void>((resolve, reject) => {
-            res = res.header("content-disposition", `${this.contentDisposition};filename=${encodeURIComponent(this.fileName)}`);
-            res.sendFile(this.filePath,{
-                acceptRanges: true,
-                cacheControl: this.cacheControl,
-                maxAge: this.maxAge,
-                etag: this.etag,
-                immutable: this.immutable
-            }, (error) => {
-                if(error) {
-                    reject(error);
-                    return;
-                }
-                resolve();
-            });
+    send(res: WrappedResponse) {
+    
+        res.setHeader("content-disposition", `${this.contentDisposition};filename=${encodeURIComponent(this.fileName)}`);
+        return res.sendFile(this.filePath,{
+            acceptRanges: true,
+            cacheControl: this.cacheControl,
+            maxAge: this.maxAge,
+            etag: this.etag,
+            immutable: this.immutable
         });
     }
 
@@ -113,8 +98,8 @@ export class Redirect implements IPageResult {
 
     }
 
-    async send(res: Response) {
-        res.redirect(this.status, this.location);
+    async send(res: WrappedResponse) {
+        return res.sendRedirect(this.location);
     }
 
 }
@@ -157,10 +142,10 @@ export default class Content implements IPageResult {
         return p as Content;
     }
 
-    public async send(res: Response, user?: SessionUser) {
+    public async send(res: WrappedResponse, user?: SessionUser) {
         const { status, body, contentType } = this;
-        const r= res.setHeader("content-type", contentType)
-            .status(status);
+        res.setHeader("content-type", contentType);
+        res.statusCode = status;
         if (typeof body === "string") {
             if (status >= 300) {
                 const u = user ? `User: ${user.userID},${user.userName}` : "User: Anonymous";
