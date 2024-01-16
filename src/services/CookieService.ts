@@ -120,13 +120,13 @@ export default class CookieService {
                 parsedCookie.expiry = new Date(parsedCookie.expiry);
             }
 
-            const r = await this.createUserInfo(parsedCookie.id, cookie, parsedCookie.expiry);
+            const r = await this.createUserInfo(cookie, parsedCookie);
             return r;
         });
     }
 
-    private async createUserInfo(id: number, cookie: string, expiry: Date) {
-        const r = await this.userSessionProvider.getUserSession(id, expiry);
+    private async createUserInfo(cookie: string, parsedCookie: IAuthCookie) {
+        const r = await this.userSessionProvider.getUserSession(parsedCookie);
         if (r === null) {
             return {};
         }

@@ -7,6 +7,7 @@ import KeyProvider from "./KeyProvider.js";
 
 export interface IAuthCookie {
     id: number;
+    userID: number;
     expiry: Date;
     sign: string;
     version: string;
