@@ -121,7 +121,7 @@ export default class RouteTree {
                 }
             })();
 
-            (this.handler ??= { [name]: promise});
+            (this.handler ??= {})[name] = promise;
         }
 
     }
