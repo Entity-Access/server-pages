@@ -2,73 +2,21 @@ import busboy from "busboy";
 import HtmlDocument from "./html/HtmlDocument.js";
 import XNode from "./html/XNode.js";
 import Content, { IPageResult, Redirect } from "./Content.js";
-import { ServiceProvider } from "@entity-access/entity-access/dist/di/di.js";
-import { Request } from "express";
 import { LocalFile } from "./core/LocalFile.js";
 import TempFolder from "./core/TempFolder.js";
 import SessionUser from "./core/SessionUser.js";
+import { WrappedRequest } from "./core/Wrapped.js";
+import { ServiceProvider } from "@entity-access/entity-access/dist/di/di.js";
 
 export const isPage = Symbol("isPage");
 
 
 export interface IRouteCheck {
+    scope: ServiceProvider;
     method: string;
     current: string;
     path: string[];
-    sessionUser: SessionUser;
     params: any;
-}
-
-export interface IPageContext {
-    /**
-     * path till the current folder where this page is located, including the name of current folder itself.
-     */
-    currentPath: string[];
-    /**
-     * Path to the next children to be precessed.
-     */
-    childPath: string[];
-
-    // /**
-    //  * List of all paths that were tried before executing this page.
-    //  */
-    // notFoundPath: string[];
-
-    /**
-     * Query string if associated, empty object is always present.
-     */
-    query: any;
-
-    body: any;
-
-    url: string;
-
-    signal:AbortSignal;
-    /**
-     * Request
-     */
-    // request: Request;
-    /**
-     * Response
-     */
-    // response: Response;
-
-    /**
-     * Request method
-     */
-    method: string;
-
-    /**
-     * Currently logged in user
-     */
-    sessionUser: SessionUser;
-
-    /**
-     * Actual file path of the page
-     */
-    filePath: string;
-
-    disposables: Disposable[];
 }
 
 export interface IFormData {
@@ -79,7 +27,7 @@ export interface IFormData {
 /**
  * Page should not contain any reference to underlying request/response objects.
  */
-export default class Page implements IPageContext {
+export default class Page {
 
     static [isPage] = true;
 
@@ -89,9 +37,11 @@ export default class Page implements IPageContext {
      * @param pageContext page related items
      * @returns true if it can handle the path, default is true
      */
-    static canHandle(pageContext: IRouteCheck) {
+    static canHandle(pageContext: IRouteCheck) : boolean | Promise<boolean> {
         return true;
     }
+
+    request: WrappedRequest;
 
     signal: AbortSignal;
 
@@ -124,7 +74,7 @@ export default class Page implements IPageContext {
 
     disposables: Disposable[] = [];
 
-    private formDataPromise;
+    private formDataPromise: Promise<IFormData>;
 
     constructor() {
         this.cacheControl = "no-cache, no-store, max-age=0";
@@ -135,13 +85,14 @@ export default class Page implements IPageContext {
     }
 
     readFormData(): Promise<IFormData> {
-        this.formDataPromise ??= (async () => {
+
+        return this.formDataPromise ??= (async () => {
             let tempFolder: TempFolder;
             const result: IFormData = {
                 fields: {},
                 files: []
             };
-            const req = (this as any).req as Request;
+            const req = this.request;
             const bb = busboy({ headers: req.headers , defParamCharset: "utf8" });
             const tasks = [];
             await new Promise((resolve, reject) => {
@@ -167,7 +118,6 @@ export default class Page implements IPageContext {
             await Promise.all(tasks);
             return result;
         })();
-        return this.formDataPromise;
     }
 
 

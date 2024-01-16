@@ -89,26 +89,15 @@ export default class ServerPages {
         let sent = false;
         const acceptJson = req.accepts().some((s) => /\/json$/i.test(s));
         try {
-
-            const cookieService = scope.resolve(CookieService);
-
-            try {
-                await cookieService.createSessionUser(req, resp);
-            } catch (error) {
-                console.error(error);
-            }
-
-            const sessionUser = (req as any).user;
-            scope.add(SessionUser, sessionUser);
             const path = req.path.split("/").filter((x) => x);
             const method = req.method;
             const params = { ... req.params, ... req.query, ... req.body ?? {} };
             const { pageClass, childPath } = (await this.root.getRoute({
+                scope,
                 method,
                 current: "",
                 path,
-                params,
-                sessionUser
+                params
             })) ?? {
                 pageClass: Page,
                 childPath: path
@@ -118,7 +107,6 @@ export default class ServerPages {
             page.childPath = childPath;
             page.body = req.body;
             page.query = req.query;
-            page.sessionUser = sessionUser;
             (page as any).req = req;
             (page as any).res = resp;
             const content = await page.all(params);
