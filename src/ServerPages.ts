@@ -50,14 +50,14 @@ export default class ServerPages {
         createSocketService = true,
         port = 8080,
         protocol = "http",
-        disableHttp2Warning = false,
+        disableNoTlsWarning = false,
         SNICallback,
         acmeOptions
     }:{
         createSocketService?: boolean,
         port: number,
-        disableHttp2Warning?: boolean,
-        protocol: "http" | "http2" | "https2",
+        disableNoTlsWarning?: boolean,
+        protocol: "http" | "http2" | "http2NoTLS",
         SNICallback?: (servername: string, cb: (err: Error | null, ctx?: SecureContext) => void) => void,
         acmeOptions?: IAcmeOptions
     }) {
@@ -77,7 +77,7 @@ export default class ServerPages {
                 case "http":
                     httpServer = http.createServer((req, res) => this.process(req, res))
                     break;
-                case "https2":
+                case "http2":
                     let sc = null;
                     SNICallback ??= (name, cb) => {
                         const acme = ServiceProvider.resolve(this, AcmeCertficateService);
@@ -95,10 +95,10 @@ export default class ServerPages {
                     }
 
                     break;
-                case "http2":
+                case "http2NoTLS":
                     httpServer = http2.createSecureServer({
                     },(req, res) => this.process(req, res))
-                    if (!disableHttp2Warning) {
+                    if (!disableNoTlsWarning) {
                         console.warn("Http2 without SSL should not be used in production");
                     }
                     break;
