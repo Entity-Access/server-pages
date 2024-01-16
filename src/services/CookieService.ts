@@ -116,6 +116,10 @@ export default class CookieService {
                 };
             }
 
+            if (typeof parsedCookie.expiry === "string") {
+                parsedCookie.expiry = new Date(parsedCookie.expiry);
+            }
+
             const r = await this.createUserInfo(parsedCookie.id, cookie, parsedCookie.expiry);
             return r;
         });
