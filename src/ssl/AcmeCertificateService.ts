@@ -64,13 +64,6 @@ export default class AcmeCertficateService {
             return this.setupSelfSigned(sslMode);
         }
 
-        const hostRoot = join(sslMode, host);
-
-        ensureDir(hostRoot);
-
-        const keyPath = join(hostRoot, "cert.key");
-        const certPath = join(hostRoot, "cert.crt");
-
         const logs = [];
 
         try {
@@ -140,7 +133,7 @@ export default class AcmeCertficateService {
                 },
             });
 
-            writeFileSync(certPath, cert);
+            await this.certificateStore.save({ host, cert, key });
 
             return { cert, key };
         } catch (error) {
