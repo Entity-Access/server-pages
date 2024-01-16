@@ -15,6 +15,7 @@
     "@entity-access/entity-access": "^1.0.240",
     "busboy": "^1.6.0",
     "cookie": "^0.6.0",
+    "node-forge": "^1.3.1",
     "socket.io": "^4.7.2",
     "tmp-promise": "^3.0.3"
   },

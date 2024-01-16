@@ -10,7 +10,8 @@ import * as http from "http";
 import * as http2 from "http2";
 import SocketService from "./socket/SocketService.js";
 import { Wrapped, WrappedRequest, WrappedResponse } from "./core/Wrapped.js";
-import { SecureContext } from "node:tls";
+import { SecureContext, createSecureContext } from "node:tls";
+import { SelfSigned } from "./ssl/SelfSigned.js";
 
 RegisterSingleton
 export default class ServerPages {
@@ -74,6 +75,15 @@ export default class ServerPages {
                     httpServer = http.createServer((req, res) => this.process(req, res))
                     break;
                 case "https2":
+                    let sc = null;
+                    SNICallback ??= (name, cb) => {
+                        if (sc) {
+                            return cb(null, sc);
+                        }
+                        const { key, cert } = SelfSigned.setupSelfSigned();
+                        sc = createSecureContext({ key, cert });
+                        cb(null, sc);
+                    };
                     httpServer = http2.createSecureServer({
                         SNICallback
                     }, (req, res) => this.process(req, res))

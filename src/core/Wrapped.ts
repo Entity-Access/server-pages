@@ -206,7 +206,7 @@ const requestMethods: { [P in keyof IWrappedRequest]: (this: WrappedRequest) => 
 const responseMethods: { [P in keyof IWrappedResponse]: (this: WrappedResponse) => any} = {
 
     asyncEnd() {
-        return new Promise<void>((resolve) => this.end(resolve));
+        return () => new Promise<void>((resolve) => this.end(resolve));
     },
 
     asyncWrite() {
@@ -322,7 +322,9 @@ export const Wrapped = {
                 const element = requestMethods[key];
                 Object.defineProperty(req, key, {
                     get() {
-                        Object.defineProperty(this, key, { value: element.call(this), enumerable: true, writable: false });
+                        const value = element.call(this);
+                        Object.defineProperty(this, key, { value, enumerable: true, writable: false });
+                        return value;
                     },
                     enumerable: true,
                     configurable: true
@@ -340,7 +342,9 @@ export const Wrapped = {
                 const element = responseMethods[key];
                 Object.defineProperty(res, key, {
                     get() {
-                        Object.defineProperty(this, key, { value: element.call(this), enumerable: true, writable: false });
+                        const value = element.call(this);
+                        Object.defineProperty(this, key, { value, enumerable: true, writable: false });
+                        return value;
                     },
                     enumerable: true,
                     configurable: true
