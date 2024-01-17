@@ -87,7 +87,7 @@ export default abstract class Page {
         this.cacheControl = "no-cache, no-store, max-age=0";
     }
 
-    abstract run(): Content | Promise<Content>;
+    abstract run(): IPageResult | Promise<IPageResult>;
 
     reportError(error) {
         console.error(error);
