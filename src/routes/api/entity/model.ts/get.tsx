@@ -8,7 +8,7 @@ export default class extends Page {
     @Inject
     db: EntityContext;
 
-    all(params: any) {
+    all() {
 
         return this.content(ModelService.getModelDeclaration(this.db), 200, "text/typescript");
     }

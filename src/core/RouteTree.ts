@@ -114,8 +114,8 @@ export default class RouteTree {
                     return pageClass as typeof Page;
                 }
                 return class extends Page {
-                    async all(params: any) {
-                        const r = await pageClass.call(this, params);
+                    async all() {
+                        const r = await pageClass.call(this);
                         return Content.create(r);
                     }
                 }

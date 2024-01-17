@@ -8,11 +8,12 @@ export default class extends Page {
     @Inject
     private db: EntityContext;
 
-    async all(params: any) {
+    async all() {
         const entity = this.childPath[0];
         return this.json(await EntityAccessServer.query(this.db, {
             entity,
-            ... params
+            ... this.query,
+            ... await this.asyncJsonBody
         }));
     }
 

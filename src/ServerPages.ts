@@ -162,11 +162,10 @@ export default class ServerPages {
                     childPath: path
                 };
                 const page = scope.create(pageClass);
-                page.method = method;
                 page.childPath = childPath;
                 page.request = req;
                 page.response = resp;
-                const content = await page.all(page.params);
+                const content = await page.all();
                 resp.setHeader("cache-control", page.cacheControl);
                 resp.removeHeader("etag");
                 sent = true;

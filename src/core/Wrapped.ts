@@ -133,7 +133,7 @@ const requestMethods: { [P in keyof IWrappedRequest]: (this: WrappedRequest) => 
         let encoding = this.headers["content-encoding"] ?? "utf-8";
         const contentType = this.headers["content-type"];
         if (!/\/json/i.test(contentType)) {
-            throw new Error(`Content Type ${contentType} isn't json `);
+            return {};
         }
         await new Promise<void>((resolve, reject) => {
             req.pipe(new Writable({

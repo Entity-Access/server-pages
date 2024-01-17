@@ -8,7 +8,7 @@ export default class extends Page {
     @Inject
     db: EntityContext;
 
-    all(params: any) {
+    all() {
 
         return this.json(ModelService.getModel(this.db), 4);
     }
