@@ -3,6 +3,8 @@ import { Writable } from "node:stream";
 import Page from "../Page.js";
 import TempFolder from "../core/TempFolder.js";
 import { LocalFile } from "../core/LocalFile.js";
+import { ServiceProvider } from "@entity-access/entity-access/dist/di/di.js";
+import SessionUser from "../core/SessionUser.js";
 
 export const prepareSymbol = Symbol("Parse");
 
@@ -73,7 +75,11 @@ const authorize = (page?): any => {
         return;
     }
 
-    return page.sessionUser.authorize();
+    return (async () => {
+        const sessionUser = ServiceProvider.resolve(page, SessionUser);
+        await sessionUser.authorize();
+        (page as any).sessionUser = (page.request as any).sessionUser = sessionUser;
+    })();
 };
 
 const parseForm = (page?): any => {
