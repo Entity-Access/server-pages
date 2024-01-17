@@ -10,16 +10,27 @@ import { ServiceProvider } from "@entity-access/entity-access/dist/di/di.js";
 import CookieService from "../services/CookieService.js";
 import { stat } from "fs/promises";
 import TokenService from "../services/TokenService.js";
+import { CacheProperty } from "./CacheProperty.js";
 
 
 type UnwrappedRequest = IncomingMessage | Http2ServerRequest;
+
+type UnwrappedResponse = ServerResponse | Http2ServerResponse;
 
 export interface IFormData {
     fields: { [key: string]: string};
     files: LocalFile[];
 }
 
+const extendedSymbol = Symbol("extended");
+
 export interface IWrappedRequest {
+
+    headers?: any;
+
+    disposables?: Disposable[];
+
+    response?: WrappedResponse;
 
     get host(): string;
 
@@ -45,7 +56,10 @@ export interface IWrappedRequest {
     accepts(... types: string[]): boolean;
 }
 
+
 export interface IWrappedResponse {
+
+    request?: WrappedRequest;
 
     asyncEnd();
 
@@ -70,305 +84,227 @@ export interface IWrappedResponse {
 
 }
 
-export type WrappedRequest = UnwrappedRequest & IWrappedRequest & {
-    scope: ServiceProvider;
-    response: WrappedResponse;
-    disposables: Disposable[];
-};
+export type WrappedRequest = IWrappedRequest & UnwrappedRequest;
 
-type UnwrappedResponse = ServerResponse | Http2ServerResponse;
+export type WrappedResponse = IWrappedResponse & UnwrappedResponse;
 
-export type WrappedResponse = UnwrappedResponse & IWrappedResponse & {
-    request: WrappedRequest
-};
+const extendRequest = (A: typeof IncomingMessage | typeof Http2ServerRequest) => {
 
-const requestMethods: { [P in keyof IWrappedRequest]: (this: WrappedRequest) => any} = {
-    remoteIPAddress(this: UnwrappedRequest) {
-        return this.socket?.remoteAddress;
-    },
+    let c = A[extendedSymbol];
+    if (!c) {
+        c = class IntermediateRequest extends A implements IWrappedRequest{
 
-    accepts(this: UnwrappedRequest) {
-        const accepts = (this.headers.accept ?? "").split(";");
-        return (...types: string[]) => {
-            if (types.length > 0) {
-                for (const type of types) {
-                    for (const iterator of accepts) {
-                        if (iterator.includes(type)) {
-                            return true;
+            scope: ServiceProvider;
+            disposables: Disposable[];
+
+            get host(): string {
+                const r = this as any as (Http2ServerRequest  | IncomingMessage);
+                const host = (r as Http2ServerRequest).authority || r.headers[":authority"] || r.headers.host || null;
+                return CacheProperty.value(this, "host", host);
+            }
+            get path(): string {
+                return this.URL.pathname;
+            }
+            get cookies(): { [key: string]: string; } {
+                const cookie = (this as any as UnwrappedRequest).headers.cookie;
+                const cookies = parse(cookie);
+                return CacheProperty.value(this, "cookies", cookies);
+            }
+            get URL(): URL {
+                const r = this as any as (Http2ServerRequest  | IncomingMessage);
+                const url = new URL(r.url, `https:${this.host}`);
+                return CacheProperty.value(this, "URL", url);
+            }
+            get remoteIPAddress(): string {
+                const r = this as any as (Http2ServerRequest  | IncomingMessage);
+                return CacheProperty.value(this, "remoteIPAddress", r.socket.remoteAddress);
+            }
+
+            accepts(... types: string[]): any {
+                const h = this as any as IncomingMessage;
+                const accepts = (h.headers.accept ?? "").split(";");
+                const value = (...types: string[]) => {
+                    if (types.length > 0) {
+                        for (const type of types) {
+                            for (const iterator of accepts) {
+                                if (iterator.includes(type)) {
+                                    return true;
+                                }
+                            }
                         }
+                        return false;
                     }
-                }
-                return false;
+                    return accepts;
+                };
+
+                Object.defineProperty(this, "accepts", {
+                    value,
+                    enumerable: true,
+                    configurable: true
+                });
+
+                return value( ... types);
             }
-            return accepts;
-        };
-    },
-
-    URL(this: UnwrappedRequest) {
-        const w = this as WrappedRequest;
-        return new URL(this.url, `http://${w.host}`);
-    },
-
-    path(this: WrappedRequest) {
-        return this.URL.pathname;
-    },
-
-    host(this: UnwrappedRequest) {
-        return this.headers[":authority"] ?? this.headers["host"];
-    },
-    query(this: WrappedRequest) {
-        const u = this.URL;
-        const items = {};
-        for (const [key, value] of u.searchParams.entries()) {
-            items[key] = value;
+        
+            get query(): any {
+                throw new Error("Please decorate `Ensure.parseQuery` callee or call `await Ensure.parseQuery(this)` before accessing this member");                        
+            }
+        
+            get body(): any {
+                throw new Error("Please decorate `Ensure.parseBody` callee or call `await Ensure.parseBody(this)` before accessing this member");                
+            }
+        
+            get form(): any {
+                throw new Error("Please decorate `Ensure.parseForm` callee or call `await Ensure.parseForm(this)` before accessing this member");        
+            }
+        
+            get params(): any {
+                throw new Error("Please decorate `Ensure.parseAll` callee or call `await Ensure.parseAll(this)` before accessing this member");        
+            }
+        
+            get sessionUser(): any {
+                throw new Error("Please decorate `Ensure.authorize` callee or call `await Ensure.authorize(this)` before accessing this member");
+            }
+        
         }
-        return items;
-    },
-    cookies(this: UnwrappedRequest) {
-        const cookie = this.headers.cookie;
-        const cookies = parse(cookie);
-        return cookies;
-    },
-
-    params(this: WrappedRequest) {
-        return {
-            ... this.query,
-            ... this.body,
-            ... this.form
-        };
-    },
-
-    body(this: WrappedRequest) {
-        const req = this;
-        let buffer = null as Buffer;
-        let encoding = this.headers["content-encoding"] ?? "utf-8";
-        const contentType = this.headers["content-type"];
-        if (!/\/json/i.test(contentType)) {
-            return {};
-        }
-        await new Promise<void>((resolve, reject) => {
-            req.pipe(new Writable({
-                write(chunk, enc, callback) {
-                    encoding ||= enc;
-                    let b = typeof chunk === "string"
-                        ? Buffer.from(chunk)
-                        : chunk as Buffer;
-                    buffer = buffer
-                        ? Buffer.concat([buffer, b])
-                        : b;
-                    callback();
-                },
-                final(callback) {
-                    resolve();
-                    callback();
-                },
-            }), { end: true });
-        });
-        const text = buffer.toString(encoding as any);
-        return JSON.parse(text);
-    },
-
-    sessionUser(this: WrappedRequest) {
-        try {
-            const cookieService = this.scope.resolve(CookieService);
-            const tokenService = this.scope.resolve(TokenService);
-            const cookie = this.cookies[tokenService.authCookieName];
-            const sessionUser = await cookieService.createSessionUserFromCookie(cookie, this.remoteIPAddress);
-            sessionUser.resp = this.response;
-            return sessionUser;
-        } catch (error) {
-            console.error(error);
-            const su = this.scope.resolve(SessionUser);
-            su.resp = this.response;
-            return su;
-        }
-    },
-
-    async asyncForm(this: WrappedRequest) {
-        let tempFolder: TempFolder;
-        const result: IFormData = {
-            fields: {},
-            files: []
-        };
-        const req = this;
-        const bb = busboy({ headers: req.headers, defParamCharset: "utf8" });
-        const tasks = [];
-        await new Promise((resolve, reject) => {
-
-            bb.on("field", (name, value) => {
-                result.fields[name] = value;
-            });
-
-            bb.on("file", (name, file, info) => {
-                if (!tempFolder) {
-                    tempFolder = new TempFolder();
-                    this.disposables.push(tempFolder);
-                }
-                const tf = tempFolder.get(info.filename, info.mimeType);
-                tasks.push(tf.writeAll(file).then(() => {
-                    result.files.push(tf);
-                }));
-            });
-            bb.on("error", reject);
-            bb.on("close", resolve);
-            req.pipe(bb);
-        });
-        await Promise.all(tasks);
-        return result;
+        A[extendedSymbol] = c;
     }
+    return c;
 };
 
-const responseMethods: { [P in keyof IWrappedResponse]: (this: WrappedResponse) => any} = {
+const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) => {
+    let c = A[extendedSymbol];
+    if (!c) {
+        c = class WrappedResponse extends A implements IWrappedResponse {
 
-    asyncEnd() {
-        return () => new Promise<void>((resolve) => this.end(resolve));
-    },
+            statusCode: number;
 
-    asyncWrite() {
-        return (buffer: Buffer, start?: number, length?: number) => {
-            return new Promise((resolve) => 
-                this.write(buffer, resolve)
-            );
-        };
-    },
-
-    cookie() {
-        return (name: string, value: string, options = {}) => {
-            const cv = this.getHeaders()["set-cookie"];
-            const cookies = Array.isArray(cv) ? cv : [cv];
-            const nk = cookies.filter((x) => !x.startsWith(name + "="));
-            nk.push(serialize(name, value, options));
-            this.setHeader("set-cookie", nk);
-        }
-    },
-
-    send(this: WrappedResponse) {
-        return async (data: Buffer | string, status: number = 200) => {
-            try {
-                this.statusCode = status;
-                this.writeHead(this.statusCode, this.getHeaders());
-                await new Promise<void>((resolve, reject) => {
-                    this.write(data, (error) => error ? reject(error) : resolve());
-                });
-                return this.asyncEnd();
-            } catch (error) {
-                console.error(error);
+            asyncEnd(this: UnwrappedResponse) {
+                return new Promise<void>((resolve) => this.end(resolve));
             }
-        };
-    },
-    sendRedirect() {
-        return (location: string, permanent = false) => {
-            this.statusCode = 301;
-            this.writeHead(this.statusCode, {
-                location
-            });
-            return this.asyncEnd();
-        }
-    },
-    sendFile() {
-        return async (filePath: string, options?: {
-            acceptRanges?: boolean,
-            cacheControl?: boolean,
-            maxAge?: number,
-            etag?: boolean,
-            immutable?: boolean,
-            headers?: { [key: string]: string},
-            lastModified?: boolean
-        }) => {
-             /** Calculate Size of file */
-            const { size } = await stat(filePath);
-            const range = this.request.headers.range;
+        
+            asyncWrite(this: UnwrappedResponse, buffer: Buffer, start?: number, length?: number) {
+                return new Promise<void>((resolve, reject) => 
+                    this.write(buffer, (error) => error ? reject(error) : resolve())
+                );        
+            }
+        
+            cookie(this: UnwrappedResponse, name: string, value: string, options = {}) {
+                const cv = this.getHeaders()["set-cookie"];
+                const cookies = Array.isArray(cv) ? cv : [cv];
+                const nk = cookies.filter((x) => !x.startsWith(name + "="));
+                nk.push(serialize(name, value, options));
+                this.setHeader("set-cookie", nk);
+            }
+        
+            async send(this: UnwrappedResponse, data: Buffer | string, status: number = 200) {
+                try {
+                    const wrapped = (this as any as WrappedResponse);
+                    wrapped.statusCode = status;
+                    this.writeHead(wrapped.statusCode, this.getHeaders());
+                    await new Promise<void>((resolve, reject) => {
+                        this.write(data, (error) => error ? reject(error) : resolve());
+                    });
+                    return (this as any).asyncEnd();
+                } catch (error) {
+                    console.error(error);
+                }
+            }
 
-            const lf = new LocalFile(filePath);
+            async sendRedirect(this: UnwrappedResponse, location: string, permanent = false) {
+                this.statusCode = 301;
+                this.writeHead(this.statusCode, {
+                    location
+                });
+                return (this as any as IWrappedResponse).asyncEnd();
+            }
 
-            /** Check for Range header */
-            if (!range) {
-                this.writeHead(200, {
-                    "Content-Length": size,
+            async sendFile(this: UnwrappedResponse, filePath: string, options?: {
+                    acceptRanges?: boolean,
+                    cacheControl?: boolean,
+                    maxAge?: number,
+                    etag?: boolean,
+                    immutable?: boolean,
+                    headers?: { [key: string]: string},
+                    lastModified?: boolean
+                }) {
+                    /** Calculate Size of file */
+                const { size } = await stat(filePath);
+                const range = (this as any as IWrappedResponse).request.headers.range;
+    
+                const lf = new LocalFile(filePath);
+    
+                /** Check for Range header */
+                if (!range) {
+                    this.writeHead(200, {
+                        "Content-Length": size,
+                        "Content-Type": "video/mp4"
+                    });
+    
+                    await lf.writeTo(this);
+    
+                    return (this as any).asyncEnd();
+                }
+    
+                /** Extracting Start and End value from Range Header */
+                let [start, end] = range.replace(/bytes=/, "").split("-") as any[];
+                start = parseInt(start, 10);
+                end = end ? parseInt(end, 10) : size - 1;
+    
+                if (!isNaN(start) && isNaN(end)) {
+                    start = start;
+                    end = size - 1;
+                }
+                if (isNaN(start) && !isNaN(end)) {
+                    start = size - end;
+                    end = size - 1;
+                }
+    
+                // Handle unavailable range request
+                if (start >= size || end >= size) {
+                    // Return the 416 Range Not Satisfiable.
+                    this.writeHead(416, {
+                        "Content-Range": `bytes */${size}`
+                    });
+                    return (this as any).asyncEnd();
+                }
+    
+                /** Sending Partial Content With HTTP Code 206 */
+                this.writeHead(206, {
+                    "Content-Range": `bytes ${start}-${end}/${size}`,
+                    "Accept-Ranges": "bytes",
+                    "Content-Length": end - start + 1,
                     "Content-Type": "video/mp4"
                 });
-
-                await lf.writeTo(this);
-
-                return this.asyncEnd();
+    
+                await lf.writeTo(this, start, end);
+    
             }
-
-            /** Extracting Start and End value from Range Header */
-            let [start, end] = range.replace(/bytes=/, "").split("-") as any[];
-            start = parseInt(start, 10);
-            end = end ? parseInt(end, 10) : size - 1;
-
-            if (!isNaN(start) && isNaN(end)) {
-                start = start;
-                end = size - 1;
-            }
-            if (isNaN(start) && !isNaN(end)) {
-                start = size - end;
-                end = size - 1;
-            }
-
-            // Handle unavailable range request
-            if (start >= size || end >= size) {
-                // Return the 416 Range Not Satisfiable.
-                this.writeHead(416, {
-                    "Content-Range": `bytes */${size}`
-                });
-                return this.asyncEnd();
-            }
-
-            /** Sending Partial Content With HTTP Code 206 */
-            this.writeHead(206, {
-                "Content-Range": `bytes ${start}-${end}/${size}`,
-                "Accept-Ranges": "bytes",
-                "Content-Length": end - start + 1,
-                "Content-Type": "video/mp4"
-            });
-
-            await lf.writeTo(this, start, end);
-
         }
-    },
-};
+    }
+    return c;
+}
+
 
 export const Wrapped = {
     request: (req: UnwrappedRequest) => {
-        for (const key in requestMethods) {
-            if (Object.prototype.hasOwnProperty.call(requestMethods, key)) {
-                const element = requestMethods[key];
-                Object.defineProperty(req, key, {
-                    get() {
-                        const value = element.call(this);
-                        Object.defineProperty(this, key, { value, enumerable: true, writable: false });
-                        return value;
-                    },
-                    enumerable: true,
-                    configurable: true
-                });
-            }
-        }
+        let prototype = Object.getPrototypeOf(req);
+        const { constructor } = prototype;
+        prototype = extendRequest(constructor);
+        Object.setPrototypeOf(req, prototype);
         const wr = req as WrappedRequest;
         wr.disposables = [];
-        return wr;
+        return req;
     },
 
     response: (req: WrappedRequest, res: UnwrappedResponse) => {
-        for (const key in responseMethods) {
-            if (Object.prototype.hasOwnProperty.call(responseMethods, key)) {
-                const element = responseMethods[key];
-                Object.defineProperty(res, key, {
-                    get() {
-                        const value = element.call(this);
-                        Object.defineProperty(this, key, { value, enumerable: true, writable: false });
-                        return value;
-                    },
-                    enumerable: true,
-                    configurable: true
-                });
-            }
-        }
+        let prototype = Object.getPrototypeOf(res);
+        const { constructor } = prototype;
+        prototype = extendResponse(constructor);
+        Object.setPrototypeOf(res, prototype);
         const wr = res as WrappedResponse;
         wr.request = req;
         req.response = wr;
-        return wr;
+        return res;
     }
 }

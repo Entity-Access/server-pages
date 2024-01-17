@@ -4,6 +4,7 @@ import Page from "../Page.js";
 import { IRouteCheck, isPage } from "../Page.js";
 import { pathToFileURL } from "url";
 import Content, { IPageResult } from "../Content.js";
+import { prepareSymbol } from "../decorators/Prepare.js";
 
 export interface IRouteHandler {
     get?: Promise<typeof Page>;
@@ -112,12 +113,16 @@ export default class RouteTree {
                 if (pageClass[isPage]) {
                     return pageClass as typeof Page;
                 }
-                return class extends Page {
-                    async all() {
+                const c = class extends Page {
+
+                    [prepareSymbol] = pageClass[prepareSymbol];
+
+                    async run() {
                         const r = await pageClass.call(this);
                         return Content.create(r);
                     }
                 }
+                return c;
             })();
 
             (this.handler ??= {})[name] = promise;

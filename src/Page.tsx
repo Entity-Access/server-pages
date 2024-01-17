@@ -45,24 +45,20 @@ export default class Page {
 
     response: WrappedResponse;
 
-    get query() {
-        throw new Error("Please decorate `Ensure.parseQuery` callee or call `await Ensure.parseQuery(this)` before accessing this member");                        
+    get query(): any {
+        return this.request?.query;
     }
 
-    get body() {
-        throw new Error("Please decorate `Ensure.parseBody` callee or call `await Ensure.parseBody(this)` before accessing this member");                
+    get body(): any {
+        return this.request?.body;
     }
 
-    get form() {
-        throw new Error("Please decorate `Ensure.parseForm` callee or call `await Ensure.parseForm(this)` before accessing this member");        
+    get form(): any {
+        return this.request?.form;
     }
 
-    get params() {
-        throw new Error("Please decorate `Ensure.parseAll` callee or call `await Ensure.parseAll(this)` before accessing this member");        
-    }
-
-    get sessionUser() {
-        throw new Error("Please decorate `Ensure.authorize` callee or call `await Ensure.authorize(this)` before accessing this member");
+    get sessionUser(): any {
+        return this.request?.sessionUser;
     }
 
     get url() {
@@ -78,11 +74,6 @@ export default class Page {
     currentPath: string[];
 
     childPath: string[];
-
-    /**
-     * List of all paths that were tried before executing this page.
-     */
-    notFoundPath: string[];
 
     filePath: string;
 
@@ -100,46 +91,9 @@ export default class Page {
         console.error(error);
     }
 
-    all(): IPageResult | Promise<IPageResult> {
+    run(): IPageResult | Promise<IPageResult> {
         return this.notFound();
     }
-
-    readFormData(): Promise<IFormData> {
-
-        return this.formDataPromise ??= (async () => {
-            let tempFolder: TempFolder;
-            const result: IFormData = {
-                fields: {},
-                files: []
-            };
-            const req = this.request;
-            const bb = busboy({ headers: req.headers , defParamCharset: "utf8" });
-            const tasks = [];
-            await new Promise((resolve, reject) => {
-
-                bb.on("field", (name, value) => {
-                    result.fields[name] = value;
-                });
-
-                bb.on("file", (name, file, info) => {
-                    if(!tempFolder) {
-                        tempFolder = new TempFolder();
-                        this.disposables.push(tempFolder);
-                    }
-                    const tf = tempFolder.get(info.filename, info.mimeType);
-                    tasks.push(tf.writeAll(file).then(() => {
-                        result.files.push(tf);
-                    }));
-                });
-                bb.on("error", reject);
-                bb.on("close", resolve);
-                req.pipe(bb);
-            });
-            await Promise.all(tasks);
-            return result;
-        })();
-    }
-
 
     protected content(body: string, status = 200, contentType = "text/html") {
         return Content.create({ body, status, contentType });

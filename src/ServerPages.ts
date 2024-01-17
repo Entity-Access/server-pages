@@ -16,6 +16,7 @@ import ChallengeServer from "./ssl/ChallengeServer.js";
 import SessionUser from "./core/SessionUser.js";
 import CookieService from "./services/CookieService.js";
 import TokenService from "./services/TokenService.js";
+import Executor from "./core/Executor.js";
 
 RegisterSingleton
 export default class ServerPages {
@@ -176,7 +177,7 @@ export default class ServerPages {
                 page.childPath = childPath;
                 page.request = req;
                 page.response = resp;
-                const content = await page.all();
+                const content = await Executor.run(page);
                 resp.setHeader("cache-control", page.cacheControl);
                 resp.removeHeader("etag");
                 sent = true;
