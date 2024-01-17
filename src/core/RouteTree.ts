@@ -1,7 +1,6 @@
 import { readdirSync } from "fs";
 import { join } from "path";
 import Page from "../Page.js";
-import SessionUser from "./SessionUser.js";
 import { IRouteCheck, isPage } from "../Page.js";
 import { pathToFileURL } from "url";
 import Content, { IPageResult } from "../Content.js";

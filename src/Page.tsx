@@ -61,6 +61,10 @@ export default class Page {
         return this.request?.asyncParams;
     }
 
+    get asyncSessionUser() {
+        return this.request?.asyncSessionUser;
+    }
+
     get url() {
         return this.request?.URL.toString();
     }
@@ -79,8 +83,6 @@ export default class Page {
      * List of all paths that were tried before executing this page.
      */
     notFoundPath: string[];
-
-    sessionUser: SessionUser;
 
     filePath: string;
 

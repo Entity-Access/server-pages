@@ -61,8 +61,7 @@ export default abstract class SocketService {
                 try {
                     const cookieService = scope.resolve(CookieService);
                     const cookie = cookies[tokenService.authCookieName];
-                    const sessionUser = await cookieService.createSessionUserFromCookie(cookie, socket.handshake.address);
-                    scope.add(SessionUser, sessionUser);
+                    await cookieService.createSessionUserFromCookie(cookie, socket.handshake.address);
                     scope.add(Socket, socket);
                     const method = sns[methodName];
                     const types = method[injectServiceKeysSymbol] as any[];

@@ -236,7 +236,7 @@ const responseMethods: { [P in keyof IWrappedResponse]: (this: WrappedResponse) 
         return (name: string, value: string, options = {}) => {
             const cv = this.getHeaders()["set-cookie"];
             const cookies = Array.isArray(cv) ? cv : [cv];
-            const nk = cookies.filter((x) => x.startsWith(name + "="));
+            const nk = cookies.filter((x) => !x.startsWith(name + "="));
             nk.push(serialize(name, value, options));
             this.setHeader("set-cookie", nk);
         }

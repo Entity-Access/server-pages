@@ -66,7 +66,7 @@ export default class CookieService {
     public clearCache = clearCache;
 
     async createSessionUserFromCookie(cookie: string, ip: string) {
-        const user = new SessionUser();
+        const user = ServiceProvider.resolve(this, SessionUser);
         try {
             user.ipAddress = ip;
             if (cookie) {
