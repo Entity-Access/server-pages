@@ -298,20 +298,18 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
 
 export const Wrapped = {
     request: (req: UnwrappedRequest) => {
-        let prototype = Object.getPrototypeOf(req);
-        const { constructor } = prototype;
-        prototype = extendRequest(constructor);
-        Object.setPrototypeOf(req, prototype.prototype);
+        const { constructor } = Object.getPrototypeOf(req);
+        const { prototype } = extendRequest(constructor);
+        Object.setPrototypeOf(req, prototype);
         const wr = req as WrappedRequest;
         wr.disposables = [];
         return req;
     },
 
     response: (req: WrappedRequest, res: UnwrappedResponse) => {
-        let prototype = Object.getPrototypeOf(res);
-        const { constructor } = prototype;
-        prototype = extendResponse(constructor);
-        Object.setPrototypeOf(res, prototype.prototype);
+        const { constructor } = Object.getPrototypeOf(res);
+        const { prototype } = extendResponse(constructor);
+        Object.setPrototypeOf(res, prototype);
         const wr = res as WrappedResponse;
         wr.request = req;
         req.response = wr;
