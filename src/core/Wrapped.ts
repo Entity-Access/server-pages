@@ -301,7 +301,7 @@ export const Wrapped = {
         let prototype = Object.getPrototypeOf(req);
         const { constructor } = prototype;
         prototype = extendRequest(constructor);
-        Object.setPrototypeOf(req, prototype);
+        Object.setPrototypeOf(req, prototype.prototype);
         const wr = req as WrappedRequest;
         wr.disposables = [];
         return req;
@@ -311,7 +311,7 @@ export const Wrapped = {
         let prototype = Object.getPrototypeOf(res);
         const { constructor } = prototype;
         prototype = extendResponse(constructor);
-        Object.setPrototypeOf(res, prototype);
+        Object.setPrototypeOf(res, prototype.prototype);
         const wr = res as WrappedResponse;
         wr.request = req;
         req.response = wr;
