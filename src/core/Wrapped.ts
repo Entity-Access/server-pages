@@ -149,7 +149,11 @@ const extendRequest = (A: typeof IncomingMessage | typeof Http2ServerRequest) =>
             }
         
             get query(): any {
-                throw new Error("Please decorate `Ensure.parseQuery` callee or call `await Ensure.parseQuery(this)` before accessing this member");                        
+                const value = {};
+                for (const [key, value] of this.URL.searchParams.entries()) {
+                    value[key] = value;
+                }
+                return CacheProperty.value(this, "query", value);
             }
         
             get body(): any {
