@@ -210,7 +210,7 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
                     : (cv ? [cv] : []);
                 const nk = cookies.filter((x) => !x.startsWith(name + "="));
                 nk.push(serialize(name, value, options));
-                headers["set-cookie"] = nk;
+                this.setHeader("set-cookie",nk);
             }
 
             // setHeader(this: UnwrappedResponse, name: string, value: string) {
