@@ -7,7 +7,7 @@ export default class Executor {
         let ps = c.constructor[prepareSymbol];
         if (ps) {
             for (const iterator of ps) {
-                await iterator();
+                await iterator(c);
             }
         }
         return c.run();

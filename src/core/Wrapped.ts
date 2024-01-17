@@ -215,7 +215,8 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
                 try {
                     const wrapped = (this as any as WrappedResponse);
                     wrapped.statusCode = status;
-                    this.writeHead(wrapped.statusCode, this.getHeaders());
+                    const headers = this.getHeaders();
+                    this.writeHead(status, headers);
                     await new Promise<void>((resolve, reject) => {
                         this.write(data, (error) => error ? reject(error) : resolve());
                     });
