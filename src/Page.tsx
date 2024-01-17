@@ -7,6 +7,7 @@ import TempFolder from "./core/TempFolder.js";
 import SessionUser from "./core/SessionUser.js";
 import { WrappedRequest, WrappedResponse } from "./core/Wrapped.js";
 import { ServiceProvider } from "@entity-access/entity-access/dist/di/di.js";
+import { IClassOf } from "@entity-access/entity-access/dist/decorators/IClassOf.js";
 
 export const isPage = Symbol("isPage");
 
@@ -88,6 +89,10 @@ export default abstract class Page {
     }
 
     abstract run(): IPageResult | Promise<IPageResult>;
+
+    resolve<T>(c: IClassOf<T>): T {
+        return ServiceProvider.resolve(this, c);
+    }
 
     reportError(error) {
         console.error(error);
