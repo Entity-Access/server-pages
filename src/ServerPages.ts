@@ -57,7 +57,8 @@ export default class ServerPages {
         disableNoTlsWarning = false,
         SNICallback,
         acmeOptions,
-        host
+        host,
+        allowHTTP1 = true
     }:{
         createSocketService?: boolean,
         port: number,
@@ -65,7 +66,8 @@ export default class ServerPages {
         protocol: "http" | "http2" | "http2NoTLS",
         host: string,
         SNICallback?: (servername: string, cb: (err: Error | null, ctx?: SecureContext) => void) => void,
-        acmeOptions?: IAcmeOptions
+        acmeOptions?: IAcmeOptions,
+        allowHTTP1?: boolean
     }) {
         try {
 
@@ -97,7 +99,8 @@ export default class ServerPages {
                         },cb);
                     };
                     httpServer = http2.createSecureServer({
-                        SNICallback
+                        SNICallback,
+                        allowHTTP1
                     }, (req, res) => this.process(req, res))
 
                     if (acmeOptions) {
