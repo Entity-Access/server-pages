@@ -41,6 +41,7 @@ const parseJsonBody = (page?): any => {
             let encoding = page.request.headers["content-encoding"] ?? "utf-8";
             const contentType = page.request.headers["content-type"];
             if (!/\/json/i.test(contentType)) {
+                setValue(page, "body", {});
                 return {};
             }
             await new Promise<void>((resolve, reject) => {
