@@ -154,7 +154,8 @@ export default class ServerPages {
             user.authorize = async () => {
                 const cookieService = scope.resolve(CookieService);
                 const tokenService = scope.resolve(TokenService);
-                await cookieService.createSessionUserFromCookie(tokenService.authCookieName, req.remoteIPAddress);
+                const cookie = req.cookies[tokenService.authCookieName];
+                await cookieService.createSessionUserFromCookie(cookie, req.remoteIPAddress);
                 (user as any).isAuthorized = true;
             };
             const acceptJson = req.accepts("json");
