@@ -46,23 +46,23 @@ export default class Page {
     response: WrappedResponse;
 
     get query() {
-        return this.request?.query;
+        throw new Error("Please decorate `Ensure.parseQuery` callee or call `await Ensure.parseQuery(this)` before accessing this member");                        
     }
 
-    get asyncJsonBody() {
-        return this.request?.asyncJsonBody;
+    get body() {
+        throw new Error("Please decorate `Ensure.parseBody` callee or call `await Ensure.parseBody(this)` before accessing this member");                
     }
 
-    get asyncForm() {
-        return this.request?.asyncForm;
+    get form() {
+        throw new Error("Please decorate `Ensure.parseForm` callee or call `await Ensure.parseForm(this)` before accessing this member");        
     }
 
-    get asyncParams() {
-        return this.request?.asyncParams;
+    get params() {
+        throw new Error("Please decorate `Ensure.parseAll` callee or call `await Ensure.parseAll(this)` before accessing this member");        
     }
 
-    get asyncSessionUser() {
-        return this.request?.asyncSessionUser;
+    get sessionUser() {
+        throw new Error("Please decorate `Ensure.authorize` callee or call `await Ensure.authorize(this)` before accessing this member");
     }
 
     get url() {
@@ -94,6 +94,10 @@ export default class Page {
 
     constructor() {
         this.cacheControl = "no-cache, no-store, max-age=0";
+    }
+
+    reportError(error) {
+        console.error(error);
     }
 
     all(): IPageResult | Promise<IPageResult> {

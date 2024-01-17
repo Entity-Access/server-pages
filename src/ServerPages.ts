@@ -13,6 +13,9 @@ import { Wrapped } from "./core/Wrapped.js";
 import { SecureContext } from "node:tls";
 import  AcmeCertificateService, { IAcmeOptions } from "./ssl/AcmeCertificateService.js";
 import ChallengeServer from "./ssl/ChallengeServer.js";
+import SessionUser from "./core/SessionUser.js";
+import CookieService from "./services/CookieService.js";
+import TokenService from "./services/TokenService.js";
 
 RegisterSingleton
 export default class ServerPages {
@@ -145,7 +148,15 @@ export default class ServerPages {
 
             using scope = ServiceProvider.createScope(this);
             let sent = false;
-            const acceptJson = req.accepts().some((s) => /\/json$/i.test(s));
+            const user = scope.resolve(SessionUser);
+            user.resp = resp;
+            user.authorize = async () => {
+                const cookieService = scope.resolve(CookieService);
+                const tokenService = scope.resolve(TokenService);
+                await cookieService.createSessionUserFromCookie(tokenService.authCookieName, req.remoteIPAddress);
+                (user as any).isAuthorized = true;
+            };
+            const acceptJson = req.accepts("json");
 
 
             try {

@@ -14,27 +14,37 @@ export default class SessionUser {
     /**
      * SessionID saved in database for current session.
      */
-    sessionID: number;
+    get sessionID(): number | null {
+        throw new Error("Please call Authorize first");
+    }
 
     /**
      * UserID
      */
-    userID?: number;
+    get userID(): number | null {
+        throw new Error("Please call Authorize first");
+    }
 
     /**
      * Logged in user name
      */
-    userName?: string;
+    get userName(): string {
+        throw new Error("Please call Authorize first");
+    }
 
     /**
      * Application Roles, user is associated with.
      */
-    roles?: string[];
+    get roles(): string[] {
+        throw new Error("Please call Authorize first");
+    }
 
     /**
      * Expiry date, after which this session is invalid
      */
-    expiry?: Date;
+    get expiry(): Date {
+        throw new Error("Please call Authorize first");
+    }
 
     /**
      * If set to true, session is no longer valid.
@@ -49,8 +59,14 @@ export default class SessionUser {
 
     public resp: WrappedResponse;
 
+    private isAuthorized = false;
+
     @Inject
     protected tokenService: TokenService;
+
+    public async authorize() {
+        this.isAuthorized = true;
+    }
 
     isInRole(role: roles) {
         return this.roles?.includes(role) ?? false;

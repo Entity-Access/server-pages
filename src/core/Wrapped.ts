@@ -25,13 +25,13 @@ export interface IWrappedRequest {
 
     get path(): string;
 
-    get asyncSessionUser(): Promise<SessionUser>;
+    get sessionUser(): SessionUser;
 
-    get asyncJsonBody(): Promise<any>;
+    get body(): any;
 
-    get asyncForm(): Promise<IFormData>;
+    get form(): IFormData;
 
-    get asyncParams(): Promise<any>;
+    get params(): any;
 
     get query(): { [key: string]: string};
 
@@ -130,15 +130,15 @@ const requestMethods: { [P in keyof IWrappedRequest]: (this: WrappedRequest) => 
         return cookies;
     },
 
-    async asyncParams(this: WrappedRequest) {
+    params(this: WrappedRequest) {
         return {
             ... this.query,
-            ... this.asyncJsonBody,
-            ... this.asyncForm
+            ... this.body,
+            ... this.form
         };
     },
 
-    async asyncJsonBody(this: WrappedRequest) {
+    body(this: WrappedRequest) {
         const req = this;
         let buffer = null as Buffer;
         let encoding = this.headers["content-encoding"] ?? "utf-8";
@@ -168,7 +168,7 @@ const requestMethods: { [P in keyof IWrappedRequest]: (this: WrappedRequest) => 
         return JSON.parse(text);
     },
 
-    async asyncSessionUser(this: WrappedRequest) {
+    sessionUser(this: WrappedRequest) {
         try {
             const cookieService = this.scope.resolve(CookieService);
             const tokenService = this.scope.resolve(TokenService);

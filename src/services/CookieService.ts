@@ -67,12 +67,20 @@ export default class CookieService {
 
     async createSessionUserFromCookie(cookie: string, ip: string) {
         const user = ServiceProvider.resolve(this, SessionUser);
+        const ua = user as any;
+        ua.isAuthorized = true;
+        ua.authorize = () => null;
+        ua.sessionID = null;
+        ua.userID = null;
+        ua.userName = null;
+        ua.roles = [];
+        ua.expiry = null;
         try {
             user.ipAddress = ip;
             if (cookie) {
                 const userInfo = await this.getVerifiedUser(cookie);
                 if (userInfo?.sessionID) {
-                    user.sessionID = userInfo.sessionID;
+                    (user as any).sessionID = userInfo.sessionID;
                 }
                 if (userInfo?.userID) {
                     user[tagForCache] = userInfo;
