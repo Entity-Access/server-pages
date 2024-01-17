@@ -55,8 +55,7 @@ export default class AcmeCertificateService {
 
     public async setup({
         host,
-        sslMode = "./",
-        accountPrivateKeyPath = "./",
+        sslMode = "./certs",
         emailAddress = "",
         mode = "production" as "production" | "self-signed" | "staging",
         endPoint = "",
