@@ -1,5 +1,5 @@
 import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAccessError.js";
-import { RegisterScoped } from "@entity-access/entity-access/dist/di/di.js";
+import Inject, { RegisterScoped } from "@entity-access/entity-access/dist/di/di.js";
 import DateTime from "@entity-access/entity-access/dist/types/DateTime.js";
 import TokenService, { IAuthCookie } from "../services/TokenService.js";
 import { WrappedResponse } from "./Wrapped.js";
@@ -47,11 +47,10 @@ export default class SessionUser {
         return this.roles?.includes("Administrator") ?? false;
     }
 
-    constructor(
-        private resp: WrappedResponse,
-        private cookieName: string,
-        private tokenService: TokenService
-    ) {}
+    public resp: WrappedResponse;
+
+    @Inject
+    protected tokenService: TokenService;
 
     isInRole(role: roles) {
         return this.roles?.includes(role) ?? false;
@@ -77,7 +76,7 @@ export default class SessionUser {
     async setAuthCookie(authCookie: Omit<IAuthCookie, "sign">) {
         const cookie = await this.tokenService.getAuthToken(authCookie);
         const maxAge = ((authCookie.expiry ?  DateTime.from(authCookie.expiry) : null) ?? DateTime.now.addDays(30)).diff(DateTime.now).totalMilliseconds;
-        this.resp.cookie(
+        this.resp?.cookie(
             cookie.cookieName,
             cookie.cookie, {
                 secure,
@@ -87,7 +86,7 @@ export default class SessionUser {
     }
 
     clearAuthCookie() {
-        this.resp.cookie(this.cookieName, "{}", {
+        this.resp?.cookie(this.tokenService.authCookieName, "{}", {
             secure,
             httpOnly: true
         });

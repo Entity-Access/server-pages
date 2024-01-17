@@ -65,12 +65,8 @@ export default class CookieService {
 
     public clearCache = clearCache;
 
-    public get cookieName() {
-        return cookieName ??= this.tokenService.authCookieName;
-    }
-
-    async createSessionUserFromCookie(cookie: string, ip: string, resp?: WrappedResponse) {
-        const user = new SessionUser(resp, cookieName, this.tokenService);
+    async createSessionUserFromCookie(cookie: string, ip: string) {
+        const user = new SessionUser();
         try {
             user.ipAddress = ip;
             if (cookie) {

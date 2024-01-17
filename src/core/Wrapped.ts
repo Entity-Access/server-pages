@@ -9,6 +9,7 @@ import { Writable } from "stream";
 import { ServiceProvider } from "@entity-access/entity-access/dist/di/di.js";
 import CookieService from "../services/CookieService.js";
 import { stat } from "fs/promises";
+import TokenService from "../services/TokenService.js";
 
 
 type UnwrappedRequest = IncomingMessage | Http2ServerRequest;
@@ -170,12 +171,16 @@ const requestMethods: { [P in keyof IWrappedRequest]: (this: WrappedRequest) => 
     async asyncSessionUser(this: WrappedRequest) {
         try {
             const cookieService = this.scope.resolve(CookieService);
-            const cookie = this.cookies[cookieService.cookieName];
-            const sessionUser = await cookieService.createSessionUserFromCookie(cookie, this.remoteIPAddress, this.response);
+            const tokenService = this.scope.resolve(TokenService);
+            const cookie = this.cookies[tokenService.authCookieName];
+            const sessionUser = await cookieService.createSessionUserFromCookie(cookie, this.remoteIPAddress);
+            sessionUser.resp = this.response;
             return sessionUser;
         } catch (error) {
             console.error(error);
-            return new SessionUser(null, null, null);
+            const su = this.scope.resolve(SessionUser);
+            su.resp = this.response;
+            return su;
         }
     },
 
