@@ -69,12 +69,25 @@ export default class CookieService {
         const user = ServiceProvider.resolve(this, SessionUser);
         const ua = user as any;
         ua.isAuthorized = true;
-        ua.authorize = () => null;
-        ua.sessionID = null;
-        ua.userID = null;
-        ua.userName = null;
-        ua.roles = [];
-        ua.expiry = null;
+        const value = null;
+        const userID = { value, enumerable: true, writable: true};
+        const sessionID = userID;
+        const userName = userID;
+        const expiry = userID;
+        Object.defineProperties(ua, {
+            authorize: {
+                value: () => null
+            },
+            sessionID,
+            userID,
+            userName,
+            expiry,
+            roles: {
+                value: [],
+                enumerable: true,
+                writable: true
+            }
+        });
         try {
             user.ipAddress = ip;
             if (cookie) {

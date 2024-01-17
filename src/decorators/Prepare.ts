@@ -8,11 +8,16 @@ import SessionUser from "../core/SessionUser.js";
 
 export const prepareSymbol = Symbol("Parse");
 
-
 export interface IFormData {
     fields: { [key: string]: string};
     files: LocalFile[];
 }
+
+const setValue = (page, name, value) => {
+    const v = { value, writable: true, enumerable: true };
+    Object.defineProperty(page, name, v);
+    Object.defineProperty(page.request, name, v);
+};
 
 const parseJsonBody = (page?): any => {
 
@@ -57,10 +62,10 @@ const parseJsonBody = (page?): any => {
                 }), { end: true });
             });
             const text = buffer.toString(encoding as any);
-            (page as any).body = (page.request as any).body = JSON.parse(text);
+            setValue(page, "body", JSON.parse(text));
         } catch (error) {
             page.reportError(error);
-            (page as any).body = (page.request as any).body = {};
+            setValue(page, "body", {});
         }
     })();
 };
@@ -78,7 +83,7 @@ const authorize = (page?): any => {
     return (async () => {
         const sessionUser = ServiceProvider.resolve(page, SessionUser);
         await sessionUser.authorize();
-        (page as any).sessionUser = (page.request as any).sessionUser = sessionUser;
+        setValue(page, "sessionUser", sessionUser);
     })();
 };
 
@@ -131,7 +136,7 @@ const parseForm = (page?): any => {
         } catch (error) {
             page.reportError(error);        
         }
-        (page as any).form = (req as any).form = result;
+        setValue(page, "form", result);
     })();
 };
 
