@@ -109,8 +109,15 @@ const extendRequest = (A: typeof IncomingMessage | typeof Http2ServerRequest) =>
             }
             get cookies(): { [key: string]: string; } {
                 const cookie = (this as any as UnwrappedRequest).headers.cookie;
-                const cookies = parse(cookie);
-                return CacheProperty.value(this, "cookies", cookies);
+                let cookies;
+                if (cookie) {
+                    try {
+                        cookies = parse(cookie);
+                    } catch {
+                        // we will ignore this.. just in case...
+                    }
+                }
+                return CacheProperty.value(this, "cookies", cookies ?? {});
             }
             get URL(): URL {
                 const r = this as any as (Http2ServerRequest  | IncomingMessage);
