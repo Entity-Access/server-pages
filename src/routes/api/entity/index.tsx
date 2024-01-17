@@ -5,9 +5,12 @@ import SchemaRegistry from "@entity-access/entity-access/dist/decorators/SchemaR
 import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAccessError.js";
 import Page, { IRouteCheck } from "../../../Page.js";
 import GraphService from "../../../services/GraphService.js";
+import { Prepare } from "../../../decorators/Prepare.js";
 
 const added = Symbol("added");
 
+@Prepare.authorize
+@Prepare.parseJsonBody
 export default class extends Page {
 
     static canHandle(pageContext: IRouteCheck): boolean {
@@ -22,7 +25,7 @@ export default class extends Page {
         this.db.verifyFilters = true;
         this.db.raiseEvents = true;
 
-        const body = await this.asyncJsonBody;
+        const body = this.body;
 
         if (/delete/i.test(this.method)) {
             return this.delete(body);

@@ -53,11 +53,11 @@ export default class Page {
         return this.request?.body;
     }
 
-    get form(): any {
+    get form() {
         return this.request?.form;
     }
 
-    get sessionUser(): any {
+    get sessionUser() {
         return this.request?.sessionUser;
     }
 

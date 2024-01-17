@@ -12,7 +12,7 @@ export interface IFormData {
     files: LocalFile[];
 }
 
-const parseJsonBody = async (page?: Page) => {
+const parseJsonBody = (page?): any => {
 
     if (!page) {
         return (target) => parseJsonBody(target);
@@ -27,40 +27,43 @@ const parseJsonBody = async (page?: Page) => {
         return;
     }
 
-    try {
-        let buffer = null as Buffer;
-        let encoding = page.request.headers["content-encoding"] ?? "utf-8";
-        const contentType = page.request.headers["content-type"];
-        if (!/\/json/i.test(contentType)) {
-            return {};
+    return (async () => {
+
+        try {
+            let buffer = null as Buffer;
+            let encoding = page.request.headers["content-encoding"] ?? "utf-8";
+            const contentType = page.request.headers["content-type"];
+            if (!/\/json/i.test(contentType)) {
+                return {};
+            }
+            await new Promise<void>((resolve, reject) => {
+                page.request.pipe(new Writable({
+                    write(chunk, enc, callback) {
+                        encoding ||= enc;
+                        let b = typeof chunk === "string"
+                            ? Buffer.from(chunk)
+                            : chunk as Buffer;
+                        buffer = buffer
+                            ? Buffer.concat([buffer, b])
+                            : b;
+                        callback();
+                    },
+                    final(callback) {
+                        resolve();
+                        callback();
+                    },
+                }), { end: true });
+            });
+            const text = buffer.toString(encoding as any);
+            (page as any).body = (page.request as any).body = JSON.parse(text);
+        } catch (error) {
+            page.reportError(error);
+            (page as any).body = (page.request as any).body = {};
         }
-        await new Promise<void>((resolve, reject) => {
-            page.request.pipe(new Writable({
-                write(chunk, enc, callback) {
-                    encoding ||= enc;
-                    let b = typeof chunk === "string"
-                        ? Buffer.from(chunk)
-                        : chunk as Buffer;
-                    buffer = buffer
-                        ? Buffer.concat([buffer, b])
-                        : b;
-                    callback();
-                },
-                final(callback) {
-                    resolve();
-                    callback();
-                },
-            }), { end: true });
-        });
-        const text = buffer.toString(encoding as any);
-        (page as any).body = (page.request as any).body = JSON.parse(text);
-    } catch (error) {
-        page.reportError(error);
-        (page as any).body = (page.request as any).body = {};
-    }
+    })();
 };
 
-const authorize = (page?) => {
+const authorize = (page?): any => {
     if (!page) {
         return (target) => authorize(target);
     }
@@ -73,7 +76,7 @@ const authorize = (page?) => {
     return page.sessionUser.authorize();
 };
 
-const parseForm = async (page?) => {
+const parseForm = (page?): any => {
     if (!page) {
         return (target) => parseForm(target);
     }
@@ -83,41 +86,43 @@ const parseForm = async (page?) => {
         return;
     }
 
-    const req = page.request;
+    return (async () => {
+        const req = page.request;
 
-    let tempFolder: TempFolder;
-    const result: IFormData = {
-        fields: {},
-        files: []
-    };
-    try {
-        const bb = busboy({ headers: req.headers, defParamCharset: "utf8" });
-        const tasks = [];
-        await new Promise((resolve, reject) => {
+        let tempFolder: TempFolder;
+        const result: IFormData = {
+            fields: {},
+            files: []
+        };
+        try {
+            const bb = busboy({ headers: req.headers, defParamCharset: "utf8" });
+            const tasks = [];
+            await new Promise((resolve, reject) => {
 
-            bb.on("field", (name, value) => {
-                result.fields[name] = value;
+                bb.on("field", (name, value) => {
+                    result.fields[name] = value;
+                });
+
+                bb.on("file", (name, file, info) => {
+                    if (!tempFolder) {
+                        tempFolder = new TempFolder();
+                        req.disposables.push(tempFolder);
+                    }
+                    const tf = tempFolder.get(info.filename, info.mimeType);
+                    tasks.push(tf.writeAll(file).then(() => {
+                        result.files.push(tf);
+                    }));
+                });
+                bb.on("error", reject);
+                bb.on("close", resolve);
+                req.pipe(bb);
             });
-
-            bb.on("file", (name, file, info) => {
-                if (!tempFolder) {
-                    tempFolder = new TempFolder();
-                    req.disposables.push(tempFolder);
-                }
-                const tf = tempFolder.get(info.filename, info.mimeType);
-                tasks.push(tf.writeAll(file).then(() => {
-                    result.files.push(tf);
-                }));
-            });
-            bb.on("error", reject);
-            bb.on("close", resolve);
-            req.pipe(bb);
-        });
-        await Promise.all(tasks);
-    } catch (error) {
-        page.reportError(error);        
-    }
-    (page as any).form = (req as any).form = result;
+            await Promise.all(tasks);
+        } catch (error) {
+            page.reportError(error);        
+        }
+        (page as any).form = (req as any).form = result;
+    })();
 };
 
 export const Prepare = {
