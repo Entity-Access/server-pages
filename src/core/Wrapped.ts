@@ -216,6 +216,7 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
                     const wrapped = (this as any as WrappedResponse);
                     wrapped.statusCode = status;
                     const headers = this.getHeaders();
+                    headers["content-type"] ??= "text/html";
                     this.writeHead(status, headers);
                     await new Promise<void>((resolve, reject) => {
                         this.write(data, (error) => error ? reject(error) : resolve());
@@ -253,7 +254,7 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
                 if (!range) {
                     this.writeHead(200, {
                         "Content-Length": size,
-                        "Content-Type": "video/mp4"
+                        "Content-Type": lf.contentType
                     });
     
                     await lf.writeTo(this);
@@ -289,7 +290,7 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
                     "Content-Range": `bytes ${start}-${end}/${size}`,
                     "Accept-Ranges": "bytes",
                     "Content-Length": end - start + 1,
-                    "Content-Type": "video/mp4"
+                    "Content-Type": lf.contentType
                 });
     
                 await lf.writeTo(this, start, end);
