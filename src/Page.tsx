@@ -27,7 +27,7 @@ export interface IFormData {
 /**
  * Page should not contain any reference to underlying request/response objects.
  */
-export default class Page {
+export default abstract class Page {
 
     static [isPage] = true;
 
@@ -87,12 +87,10 @@ export default class Page {
         this.cacheControl = "no-cache, no-store, max-age=0";
     }
 
+    abstract run(): Content | Promise<Content>;
+
     reportError(error) {
         console.error(error);
-    }
-
-    run(): IPageResult | Promise<IPageResult> {
-        return this.notFound();
     }
 
     protected content(body: string, status = 200, contentType = "text/html") {

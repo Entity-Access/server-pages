@@ -174,7 +174,7 @@ export default class ServerPages {
                     pageClass: Page,
                     childPath: path
                 };
-                const page = scope.create(pageClass);
+                const page = scope.create(pageClass as any) as Page;
                 page.childPath = childPath;
                 page.request = req;
                 page.response = resp;

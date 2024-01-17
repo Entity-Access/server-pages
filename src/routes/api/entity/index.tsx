@@ -20,7 +20,7 @@ export default class extends Page {
     @Inject
     private db: EntityContext;
 
-    async all() {
+    async run() {
 
         this.db.verifyFilters = true;
         this.db.raiseEvents = true;

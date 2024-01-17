@@ -9,7 +9,7 @@ export default class extends Page {
     @Inject
     db: EntityContext;
 
-    all() {
+    run() {
         return this.json(ModelService.getModel(this.db), 4);
     }
 

@@ -11,7 +11,7 @@ export default class extends Page {
     @Inject
     private db: EntityContext;
 
-    async all() {
+    async run() {
         const entity = this.childPath[0];
         return this.json(await EntityAccessServer.query(this.db, {
             entity,
