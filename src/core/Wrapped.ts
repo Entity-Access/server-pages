@@ -65,7 +65,7 @@ export interface IWrappedResponse {
 
     asyncWrite(buffer: Buffer): Promise<void>;
 
-    setHeader(name: string, value: string);
+    // setHeader(name: string, value: string);
 
     send(data: Buffer | string | Blob, status?: number): Promise<void>;
 
@@ -213,10 +213,10 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
                 headers["set-cookie"] = nk;
             }
 
-            setHeader(this: UnwrappedResponse, name: string, value: string) {
-                const headers = this.getHeaders();
-                headers[name] = value;
-            }
+            // setHeader(this: UnwrappedResponse, name: string, value: string) {
+            //     const headers = this.getHeaders();
+            //     headers[name] = value;
+            // }
         
             async send(this: UnwrappedResponse, data: Buffer | string, status: number = 200) {
                 try {
