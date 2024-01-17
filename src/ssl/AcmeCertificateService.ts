@@ -26,7 +26,7 @@ export interface ICertOptions extends IAcmeOptions {
 };
 
 @RegisterSingleton
-export default class AcmeCertficateService {
+export default class AcmeCertificateService {
 
     @Inject
     private challengeStore: ChallengeStore;

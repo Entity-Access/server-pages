@@ -11,7 +11,7 @@ import * as http2 from "http2";
 import SocketService from "./socket/SocketService.js";
 import { Wrapped } from "./core/Wrapped.js";
 import { SecureContext } from "node:tls";
-import  AcmeCertficateService, { IAcmeOptions } from "./ssl/AcmeCertificateService.js";
+import  AcmeCertificateService, { IAcmeOptions } from "./ssl/AcmeCertificateService.js";
 import ChallengeServer from "./ssl/ChallengeServer.js";
 
 RegisterSingleton
@@ -52,12 +52,14 @@ export default class ServerPages {
         protocol = "http",
         disableNoTlsWarning = false,
         SNICallback,
-        acmeOptions
+        acmeOptions,
+        host
     }:{
         createSocketService?: boolean,
         port: number,
         disableNoTlsWarning?: boolean,
         protocol: "http" | "http2" | "http2NoTLS",
+        host: string,
         SNICallback?: (servername: string, cb: (err: Error | null, ctx?: SecureContext) => void) => void,
         acmeOptions?: IAcmeOptions
     }) {
@@ -80,7 +82,12 @@ export default class ServerPages {
                 case "http2":
                     let sc = null;
                     SNICallback ??= (name, cb) => {
-                        const acme = ServiceProvider.resolve(this, AcmeCertficateService);
+                        if (host) {
+                            if (name !== host) {
+                                name = host;
+                            }
+                        }
+                        const acme = ServiceProvider.resolve(this, AcmeCertificateService);
                         acme.getSecureContext({ ... ( acmeOptions ?? {}),  host: name }).then((v) => {
                             cb(null, v);
                         },cb);
