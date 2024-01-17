@@ -30,6 +30,8 @@ export interface IWrappedRequest {
 
     get asyncForm(): Promise<IFormData>;
 
+    get asyncParams(): Promise<any>;
+
     get query(): { [key: string]: string};
 
     get cookies(): { [key: string]: string};
@@ -125,6 +127,14 @@ const requestMethods: { [P in keyof IWrappedRequest]: (this: WrappedRequest) => 
         const cookie = this.headers.cookie;
         const cookies = parse(cookie);
         return cookies;
+    },
+
+    async asyncParams(this: WrappedRequest) {
+        return {
+            ... this.query,
+            ... this.asyncJsonBody,
+            ... this.asyncForm
+        };
     },
 
     async asyncJsonBody(this: WrappedRequest) {

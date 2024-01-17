@@ -57,6 +57,10 @@ export default class Page {
         return this.request?.asyncForm;
     }
 
+    get asyncParams() {
+        return this.request?.asyncParams;
+    }
+
     get url() {
         return this.request?.URL.toString();
     }
