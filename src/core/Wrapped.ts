@@ -65,6 +65,8 @@ export interface IWrappedResponse {
 
     asyncWrite(buffer: Buffer): Promise<void>;
 
+    setHeader(name: string, value: string);
+
     send(data: Buffer | string | Blob, status?: number): Promise<void>;
 
     sendRedirect(url: string, permanent?: boolean): void;
@@ -165,7 +167,7 @@ const extendRequest = (A: typeof IncomingMessage | typeof Http2ServerRequest) =>
             get sessionUser(): any {
                 throw new Error("Please decorate `Ensure.authorize` callee or call `await Ensure.authorize(this)` before accessing this member");
             }
-        
+    
         }
         A[extendedSymbol] = c;
     }
@@ -190,11 +192,19 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
             }
         
             cookie(this: UnwrappedResponse, name: string, value: string, options = {}) {
-                const cv = this.getHeaders()["set-cookie"];
-                const cookies = Array.isArray(cv) ? cv : [cv];
+                const headers = this.getHeaders();
+                const cv = headers["set-cookie"];
+                const cookies = Array.isArray(cv)
+                    ? cv
+                    : (cv ? [cv] : []);
                 const nk = cookies.filter((x) => !x.startsWith(name + "="));
                 nk.push(serialize(name, value, options));
-                this.setHeader("set-cookie", nk);
+                headers["set-cookie"] = nk;
+            }
+
+            setHeader(this: UnwrappedResponse, name: string, value: string) {
+                const headers = this.getHeaders();
+                headers[name] = value;
             }
         
             async send(this: UnwrappedResponse, data: Buffer | string, status: number = 200) {
