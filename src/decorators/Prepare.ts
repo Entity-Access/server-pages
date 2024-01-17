@@ -23,7 +23,7 @@ const parseJsonBody = (page?): any => {
         return;
     }
 
-    if (page.body) {
+    if (Object.hasOwn(page, "body")) {
         return;
     }
 
@@ -83,6 +83,10 @@ const parseForm = (page?): any => {
 
     if (!(page instanceof Page)) {
         ((page as any)[prepareSymbol] ??= []).push(parseForm);
+        return;
+    }
+
+    if (Object.hasOwn(page, "form")) {
         return;
     }
 
