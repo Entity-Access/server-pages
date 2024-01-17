@@ -10,6 +10,7 @@ import Inject, { RegisterSingleton } from "@entity-access/entity-access/dist/di/
 import ChallengeStore from "./AcmeChallengeStore.js";
 import * as tls from "node:tls";
 import CertificateStore from "./CertificateStore.js";
+import { FileLock } from "../core/FileLock.js";
 
 export interface IAcmeOptions {
     sslMode?: string,
@@ -37,6 +38,9 @@ export default class AcmeCertificateService {
     private map = new Map<string, tls.SecureContext>();
 
     public async getSecureContext(options: ICertOptions) {
+
+        using fl = await FileLock.lock(options.host + ".lck");
+
         const { host } = options;
         let sc = this.map.get(host);
         if (sc) {
