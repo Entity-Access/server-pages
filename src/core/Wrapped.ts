@@ -157,8 +157,8 @@ const extendRequest = (A: typeof IncomingMessage | typeof Http2ServerRequest) =>
         
             get query(): any {
                 const value = {};
-                for (const [key, value] of this.URL.searchParams.entries()) {
-                    value[key] = value;
+                for (const [key, v] of this.URL.searchParams.entries()) {
+                    value[key] = v;
                 }
                 return CacheProperty.value(this, "query", value);
             }
