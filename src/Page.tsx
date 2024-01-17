@@ -45,8 +45,24 @@ export default class Page {
 
     response: WrappedResponse;
 
-    get params() {
+    get query() {
         return this.request?.query;
+    }
+
+    get asyncJsonBody() {
+        return this.request?.asyncJsonBody;
+    }
+
+    get asyncForm() {
+        return this.request?.asyncForm;
+    }
+
+    get url() {
+        return this.request?.URL.toString();
+    }
+
+    get method() {
+        return this.request?.method;
     }
 
     signal: AbortSignal;
@@ -59,18 +75,6 @@ export default class Page {
      * List of all paths that were tried before executing this page.
      */
     notFoundPath: string[];
-
-    query: any;
-
-    body: any;
-
-    url: string;
-
-    // request: Request;
-
-    // response: Response;
-
-    method: string;
 
     sessionUser: SessionUser;
 
@@ -86,7 +90,7 @@ export default class Page {
         this.cacheControl = "no-cache, no-store, max-age=0";
     }
 
-    all(params: any): IPageResult | Promise<IPageResult> {
+    all(): IPageResult | Promise<IPageResult> {
         return this.notFound();
     }
 

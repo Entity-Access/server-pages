@@ -22,10 +22,12 @@ export default class extends Page {
         this.db.verifyFilters = true;
         this.db.raiseEvents = true;
 
+        const body = await this.asyncJsonBody;
+
         if (/delete/i.test(this.method)) {
-            return this.delete(this.body);
+            return this.delete(body);
         }
-        return this.save(this.body);
+        return this.save(body);
     }
 
     private async save(body: any) {
