@@ -10,7 +10,7 @@ export interface ICertificate {
     cert?: string;
 }
 
-let folder = "./certs";
+let folder = "./data/certs";
 
 @RegisterSingleton
 export default class CertificateStore {
