@@ -109,7 +109,7 @@ export default class ServerPages {
                     }
 
                     break;
-                case "http2NoTLS":
+                default:
                     httpServer = http2.createSecureServer({
                     },(req, res) => this.process(req, res))
                     if (!disableNoTlsWarning) {

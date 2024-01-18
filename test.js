@@ -7,4 +7,4 @@ import { fileURLToPath } from "node:url";
 const sp = ServerPages.create();
 sp.registerRoutes(join(dirname( fileURLToPath(import.meta.url)), "./dist/tests/logger"));
 
-const app = sp.build({ createSocketService: false, protocol: "https2" });
+const app = sp.build({ createSocketService: false, protocol: "http2" });
