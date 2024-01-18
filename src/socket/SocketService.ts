@@ -32,7 +32,18 @@ export default abstract class SocketService {
 
         this.server = server;
 
-        for (const key of Object.keys(this)) {
+        const keys = (o) => {
+            const proto = Object.getPrototypeOf(o);
+            if (!proto || proto === Object || proto === Object.prototype) {
+                return Object.getOwnPropertyNames(proto);
+            }
+            return [
+                ... Object.getOwnPropertyNames(proto),
+                ... keys(proto)
+            ]
+        }
+
+        for (const key of [ ... Object.keys(this),... keys(this)]) {
             const element = this[key];
             if (element instanceof SocketNamespace) {
                 this.attachNamespace(element);
