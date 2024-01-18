@@ -60,9 +60,6 @@ export default class CookieService {
     @Inject
     private tokenService: TokenService;
 
-    @Inject
-    private userSessionProvider: UserSessionProvider;
-
     public clearCache = clearCache;
 
     async createSessionUserFromCookie(cookie: string, ip: string) {
@@ -141,7 +138,8 @@ export default class CookieService {
     }
 
     private async createUserInfo(cookie: string, parsedCookie: IAuthCookie) {
-        const r = await this.userSessionProvider.getUserSession(parsedCookie);
+        const usp = ServiceProvider.resolve(this, UserSessionProvider, true) ?? new UserSessionProvider();
+        const r = await usp.getUserSession(parsedCookie);
         if (r === null) {
             return {};
         }

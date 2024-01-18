@@ -1,4 +1,4 @@
-import Inject, { RegisterSingleton } from "@entity-access/entity-access/dist/di/di.js";
+import Inject, { RegisterSingleton, ServiceProvider } from "@entity-access/entity-access/dist/di/di.js";
 import DateTime from "@entity-access/entity-access/dist/types/DateTime.js";
 import { createSign, createVerify, generateKeyPair } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -31,7 +31,6 @@ export default class TokenService {
 
     public shareCookieName = "ea-ca1";
 
-    @Inject
     private keyProvider: KeyProvider;
 
     public async getAuthToken(authCookie: Omit<IAuthCookie, "sign">): Promise<{ cookieName: string, cookie: string}> {
@@ -40,12 +39,14 @@ export default class TokenService {
     }
 
     public async signContent<T>(content: T): Promise<ISignedContent<T>> {
+        this.keyProvider ??= ServiceProvider.resolve(this, KeyProvider, true) ?? new KeyProvider();
         const [key] = await this.keyProvider.getKeys();
         const sign = this.sign(JSON.stringify(content), key);
         return { ... content, sign};
     }
 
     public async verifyContent<T>(content: ISignedContent<T>, fail = true) {
+        this.keyProvider ??= ServiceProvider.resolve(this, KeyProvider, true) ?? new KeyProvider();
         const { sign , ... c } = content;
         const keys = await this.keyProvider.getKeys();
         for (const iterator of keys) {            
