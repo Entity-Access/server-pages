@@ -73,7 +73,7 @@ export default class SessionUser {
     }
 
     ensureLoggedIn() {
-        if (!this.userName) {
+        if (!this.userID) {
             throw new EntityAccessError();
         }
     }
