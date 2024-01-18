@@ -2,7 +2,7 @@ import busboy from "busboy";
 import { IncomingMessage, OutgoingMessage, ServerResponse } from "http";
 import { Http2ServerRequest, Http2ServerResponse } from "http2";
 import SessionUser from "./SessionUser.js";
-import { parse, serialize } from "cookie";
+import { CookieSerializeOptions, parse, serialize } from "cookie";
 import TempFolder from "./TempFolder.js";
 import { LocalFile } from "./LocalFile.js";
 import { Writable } from "stream";
@@ -202,13 +202,14 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
                 );        
             }
         
-            cookie(this: UnwrappedResponse, name: string, value: string, options = {}) {
+            cookie(this: UnwrappedResponse, name: string, value: string, options: CookieSerializeOptions = {}) {
                 const headers = this.getHeaders();
                 const cv = headers["set-cookie"];
                 const cookies = Array.isArray(cv)
                     ? cv
                     : (cv ? [cv] : []);
                 const nk = cookies.filter((x) => !x.startsWith(name + "="));
+                options.path ||= "/";
                 nk.push(serialize(name, value, options));
                 this.setHeader("set-cookie",nk);
             }
