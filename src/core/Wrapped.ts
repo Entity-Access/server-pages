@@ -218,7 +218,7 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
             //     headers[name] = value;
             // }
         
-            async send(this: UnwrappedResponse, data: Buffer | string, status: number = 200) {
+            async send(this: UnwrappedResponse, data: Buffer | string, status: number = this.statusCode || 200) {
                 try {
                     const wrapped = (this as any as WrappedResponse);
                     wrapped.statusCode = status;
