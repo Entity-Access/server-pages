@@ -31,12 +31,11 @@ export default abstract class SocketService {
         server: Server): Server {
 
         this.server = server;
-        for (const key in this) {
-            if (Object.prototype.hasOwnProperty.call(this, key)) {
-                const element = this[key];
-                if (element instanceof SocketNamespace) {
-                    this.attachNamespace(element);
-                }
+
+        for (const key of Object.keys(this)) {
+            const element = this[key];
+            if (element instanceof SocketNamespace) {
+                this.attachNamespace(element);
             }
         }
         return this.server;
