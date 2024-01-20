@@ -59,14 +59,7 @@ export default class TokenService {
         }
     }
 
-    private sign(content: string, key: IAuthKey) {
-        const sign = createSign("SHA256");
-        sign.write(content);
-        sign.end();
-        return sign.sign(key.privateKey, "hex");
-    }
-
-    private verify(content: string | Buffer, signature: string, key: IAuthKey, fail = true) {
+    public verify(content: string | Buffer, signature: string, key: IAuthKey, fail = true) {
         const verify = createVerify("SHA256");
         verify.write(content);
         verify.end();
@@ -78,5 +71,11 @@ export default class TokenService {
         }
     }
 
+    private sign(content: string, key: IAuthKey) {
+        const sign = createSign("SHA256");
+        sign.write(content);
+        sign.end();
+        return sign.sign(key.privateKey, "hex");
+    }
 
 }
