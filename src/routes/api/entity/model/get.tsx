@@ -3,11 +3,12 @@ import EntityContext from "@entity-access/entity-access/dist/model/EntityContext
 import Page from "../../../../Page.js";
 import ModelService from "../../../../services/ModelService.js";
 import { Prepare } from "../../../../decorators/Prepare.js";
+import EntityRouteContext from "../../../../EntityRouteContext.js";
 
 export default class extends Page {
 
     @Inject
-    db: EntityContext;
+    db: EntityRouteContext;
 
     run() {
         return this.json(ModelService.getModel(this.db), 4);

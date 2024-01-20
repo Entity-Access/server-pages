@@ -6,6 +6,7 @@ import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAc
 import Page, { IRouteCheck } from "../../../Page.js";
 import GraphService from "../../../services/GraphService.js";
 import { Prepare } from "../../../decorators/Prepare.js";
+import EntityRouteContext from "../../../EntityRouteContext.js";
 
 const added = Symbol("added");
 
@@ -18,7 +19,7 @@ export default class extends Page {
     }
 
     @Inject
-    private db: EntityContext;
+    private db: EntityRouteContext;
 
     async run() {
 
