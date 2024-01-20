@@ -34,12 +34,12 @@ export class SocketNamespaceClient {
 
     protected room: string;
 
-    join(... a: any[]) {
-        return this.socket.join(this.room);
+    join(room, ... a: any[]) {
+        return this.socket.join(room);
     }
 
-    leave() {
-        return this.socket.leave(this.room);
+    leave(room) {
+        return this.socket.leave(room);
     }
 
 }

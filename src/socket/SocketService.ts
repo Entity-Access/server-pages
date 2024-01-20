@@ -64,7 +64,7 @@ export default abstract class SocketService {
         (sns as any).server = s;
         const { tokenService } = this;
         s.on("connection", (socket) => {
-            socket.onAny(async (methodName, room, ... args: any[]) => {
+            socket.onAny(async (methodName, ... args: any[]) => {
                 const cookies = parse(socket.request.headers.cookie);
                 const scope = ServiceProvider.createScope(this);
                 try {
@@ -78,7 +78,6 @@ export default abstract class SocketService {
                         c = scope.create(clientClass);
                         scope.add(sns.clientClass, c);
                     }
-                    (c as any).room = room;
                     const method = c[methodName];
                     const types = method[injectServiceKeysSymbol] as any[];
                     if (types) {
