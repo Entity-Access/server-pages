@@ -3,6 +3,7 @@ export const CacheProperty = {
         Object.defineProperty(target, name, { 
             value,
             enumerable: true,
+            writable: true,
             configurable: true
         });
         return value;

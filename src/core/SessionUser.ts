@@ -3,6 +3,7 @@ import Inject, { RegisterScoped } from "@entity-access/entity-access/dist/di/di.
 import DateTime from "@entity-access/entity-access/dist/types/DateTime.js";
 import TokenService, { IAuthCookie } from "../services/TokenService.js";
 import { WrappedResponse } from "./Wrapped.js";
+import { CacheProperty } from "./CacheProperty.js";
 
 const secure = (process.env["SOCIAL_MAIL_AUTH_COOKIE_SECURE"] ?? "true") === "true";
 
@@ -18,11 +19,19 @@ export default class SessionUser {
         throw new Error("Please call Authorize first");
     }
 
+    set sessionID(value: any) {
+        CacheProperty.value(this, "sessionID", value);
+    }
+
     /**
      * UserID
      */
     get userID(): number | null {
         throw new Error("Please call Authorize first");
+    }
+
+    set userID(value: any) {
+        CacheProperty.value(this, "userID", value);
     }
 
     /**
@@ -32,6 +41,10 @@ export default class SessionUser {
         throw new Error("Please call Authorize first");
     }
 
+    set userName(value: string) {
+        CacheProperty.value(this, "userName", value);
+    }
+
     /**
      * Application Roles, user is associated with.
      */
@@ -39,11 +52,19 @@ export default class SessionUser {
         throw new Error("Please call Authorize first");
     }
 
+    set roles(value: string[]) {
+        CacheProperty.value(this, "roles", value);
+    }
+
     /**
      * Expiry date, after which this session is invalid
      */
     get expiry(): Date {
         throw new Error("Please call Authorize first");
+    }
+
+    set expiry(value: string | Date) {
+        CacheProperty.value(this, "sessionID", DateTime.from(value));
     }
 
     /**
