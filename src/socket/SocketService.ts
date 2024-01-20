@@ -8,7 +8,7 @@ import { parse } from "cookie";
 import { Server, Socket } from "socket.io";
 import CookieService from "../services/CookieService.js";
 import TokenService from "../services/TokenService.js";
-import SocketNamespace from "./SocketNamespace.js";
+import SocketNamespace, { SocketNamespaceClient } from "./SocketNamespace.js";
 import { camelToChain } from "../core/camelToChain.js";
 
 export default abstract class SocketService {
@@ -72,7 +72,13 @@ export default abstract class SocketService {
                     const cookie = cookies[tokenService.authCookieName];
                     await cookieService.createSessionUserFromCookie(cookie, socket.handshake.address);
                     scope.add(Socket, socket);
-                    const method = sns[methodName];
+                    const clientClass = sns.clientClass ?? SocketNamespaceClient;
+                    let c = scope.resolve(clientClass, true);
+                    if (!c) {
+                        c = scope.create(clientClass);
+                        scope.add(sns.clientClass, c);
+                    }
+                    const method = c[methodName];
                     const types = method[injectServiceKeysSymbol] as any[];
                     if (types) {
                         for (let index = args.length; index < types.length; index++) {
@@ -80,7 +86,7 @@ export default abstract class SocketService {
                             args.push(element);
                         }
                     }
-                    await sns[methodName](... args);
+                    await c[methodName](... args);
                 } catch (error) {
                     console.error(error);
                 } finally {

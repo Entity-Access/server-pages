@@ -27,25 +27,23 @@ export function Send(target: SocketNamespace, key) {
     };
 }
 
+export class SocketNamespaceClient {
+
+    protected socket: Socket;
+
+}
+
 export default abstract class SocketNamespace {
 
     protected namespace: string;
-
-    protected socket: Socket;
 
     protected server: Namespace;
 
     protected room: string;
 
+    abstract get clientClass(): typeof SocketNamespaceClient;
+
     constructor() {
 
-    }
-
-    join(... a: any[]) {
-        return this.socket.join(this.room);
-    }
-
-    leave() {
-        return this.socket.leave(this.room);
     }
 }
