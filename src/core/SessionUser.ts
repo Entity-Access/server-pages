@@ -9,6 +9,10 @@ const secure = (process.env["SOCIAL_MAIL_AUTH_COOKIE_SECURE"] ?? "true") === "tr
 
 export type roles = "Administrator" | "Contributor" | "Reader" | "Guest";
 
+/**
+ * Remember to call `await sessionUser.authorize()` or 
+ * decorate the page with `@Prepare.authorize`.
+ */
 @RegisterScoped
 export class SessionUser {
 
@@ -16,7 +20,7 @@ export class SessionUser {
      * SessionID saved in database for current session.
      */
     get sessionID(): number | null {
-        throw new Error("Please call Authorize first");
+        return null;
     }
 
     set sessionID(value: any) {
@@ -27,7 +31,7 @@ export class SessionUser {
      * UserID
      */
     get userID(): number | null {
-        throw new Error("Please call Authorize first");
+        return null;
     }
 
     set userID(value: any) {
@@ -38,7 +42,7 @@ export class SessionUser {
      * Logged in user name
      */
     get userName(): string {
-        throw new Error("Please call Authorize first");
+        return null;
     }
 
     set userName(value: string) {
@@ -49,7 +53,7 @@ export class SessionUser {
      * Application Roles, user is associated with.
      */
     get roles(): string[] {
-        throw new Error("Please call Authorize first");
+        return null;
     }
 
     set roles(value: string[]) {
@@ -60,7 +64,7 @@ export class SessionUser {
      * Expiry date, after which this session is invalid
      */
     get expiry(): Date {
-        throw new Error("Please call Authorize first");
+        return null;
     }
 
     set expiry(value: string | Date) {
