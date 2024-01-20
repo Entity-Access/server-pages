@@ -13,7 +13,7 @@ import { Wrapped } from "./core/Wrapped.js";
 import { SecureContext } from "node:tls";
 import  AcmeCertificateService, { IAcmeOptions } from "./ssl/AcmeCertificateService.js";
 import ChallengeServer from "./ssl/ChallengeServer.js";
-import SessionUser from "./core/SessionUser.js";
+import { SessionUser } from "./core/SessionUser.js";
 import CookieService from "./services/CookieService.js";
 import TokenService from "./services/TokenService.js";
 import Executor from "./core/Executor.js";

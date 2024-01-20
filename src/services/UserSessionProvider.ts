@@ -1,5 +1,5 @@
 import { RegisterScoped, RegisterSingleton } from "@entity-access/entity-access/dist/di/di.js";
-import SessionUser from "../core/SessionUser.js";
+import { SessionUser } from "../core/SessionUser.js";
 import DateTime from "@entity-access/entity-access/dist/types/DateTime.js";
 import { IAuthCookie } from "./TokenService.js";
 

@@ -1,7 +1,7 @@
 import busboy from "busboy";
 import { IncomingMessage, OutgoingMessage, ServerResponse } from "http";
 import { Http2ServerRequest, Http2ServerResponse } from "http2";
-import SessionUser from "./SessionUser.js";
+import { SessionUser } from "./SessionUser.js";
 import { CookieSerializeOptions, parse, serialize } from "cookie";
 import TempFolder from "./TempFolder.js";
 import { LocalFile } from "./LocalFile.js";

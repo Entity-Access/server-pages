@@ -3,8 +3,6 @@ import HtmlDocument from "./html/HtmlDocument.js";
 import XNode from "./html/XNode.js";
 import Content, { IPageResult, Redirect } from "./Content.js";
 import { LocalFile } from "./core/LocalFile.js";
-import TempFolder from "./core/TempFolder.js";
-import SessionUser from "./core/SessionUser.js";
 import { WrappedRequest, WrappedResponse } from "./core/Wrapped.js";
 import { ServiceProvider } from "@entity-access/entity-access/dist/di/di.js";
 import { IClassOf } from "@entity-access/entity-access/dist/decorators/IClassOf.js";

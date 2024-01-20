@@ -3,7 +3,7 @@ import TokenService, { IAuthCookie } from "./TokenService.js";
 import TimedCache from "@entity-access/entity-access/dist/common/cache/TimedCache.js";
 import { BaseDriver } from "@entity-access/entity-access/dist/drivers/base/BaseDriver.js";
 import cluster from "cluster";
-import SessionUser from "../core/SessionUser.js";
+import { SessionUser } from "../core/SessionUser.js";
 import UserSessionProvider from "./UserSessionProvider.js";
 import { WrappedResponse } from "../core/Wrapped.js";
 

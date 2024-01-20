@@ -10,7 +10,7 @@ const secure = (process.env["SOCIAL_MAIL_AUTH_COOKIE_SECURE"] ?? "true") === "tr
 export type roles = "Administrator" | "Contributor" | "Reader" | "Guest";
 
 @RegisterScoped
-export default class SessionUser {
+export class SessionUser {
 
     /**
      * SessionID saved in database for current session.

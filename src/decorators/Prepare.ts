@@ -4,7 +4,7 @@ import Page from "../Page.js";
 import TempFolder from "../core/TempFolder.js";
 import { LocalFile } from "../core/LocalFile.js";
 import { ServiceProvider } from "@entity-access/entity-access/dist/di/di.js";
-import SessionUser from "../core/SessionUser.js";
+import { SessionUser } from "../core/SessionUser.js";
 
 export const prepareSymbol = Symbol("Parse");
 

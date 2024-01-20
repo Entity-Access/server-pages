@@ -10,7 +10,6 @@ import CookieService from "../services/CookieService.js";
 import TokenService from "../services/TokenService.js";
 import SocketNamespace from "./SocketNamespace.js";
 import { camelToChain } from "../core/camelToChain.js";
-import SessionUser from "../core/SessionUser.js";
 
 export default abstract class SocketService {
 

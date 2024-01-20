@@ -3,7 +3,7 @@ import { File } from "buffer";
 import XNode from "./html/XNode.js";
 import { parse } from "path";
 import { LocalFile } from "./core/LocalFile.js";
-import SessionUser from "./core/SessionUser.js";
+import { SessionUser } from "./core/SessionUser.js";
 import { WrappedResponse } from "./core/Wrapped.js";
 
 export interface IPageResult {
