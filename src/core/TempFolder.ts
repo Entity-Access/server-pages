@@ -22,8 +22,19 @@ let id = 1;
 
 export default class TempFolder implements Disposable {
 
-    constructor(public readonly folder = join(tmpFolder, `tf-${id++}`)) {
-        mkdirSync(folder);
+    public readonly folder: string;
+
+    constructor() {
+        let folder: string;
+        for(;;) {
+            if (existsSync(folder)) {
+                folder = join(tmpFolder, `tf-${id++}`);
+                continue;
+            }
+            mkdirSync(folder);
+            break;
+        }
+        this.folder = folder;
     }
 
     get(name, mimeType?: string, keep = false) {
