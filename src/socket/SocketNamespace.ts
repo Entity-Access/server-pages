@@ -2,6 +2,7 @@
 import { RegisterScoped, RegisterSingleton, RegisterTransient, ServiceProvider, injectServiceKeysSymbol } from "@entity-access/entity-access/dist/di/di.js";
 import { Namespace, Server, Socket } from "socket.io";
 import ServerPages from "../ServerPages.js";
+import { IClassOf } from "@entity-access/entity-access/dist/decorators/IClassOf.js";
 
 
 export function Receive(target, key) {
@@ -49,7 +50,7 @@ export default abstract class SocketNamespace {
 
     protected server: Namespace;
 
-    abstract get clientClass(): typeof SocketNamespaceClient;
+    abstract get clientClass(): IClassOf<SocketNamespaceClient>;
 
     constructor() {
 
