@@ -32,8 +32,6 @@ export class SocketNamespaceClient {
 
     protected socket: Socket;
 
-    protected room: string;
-
     join(room, ... a: any[]) {
         return this.socket.join(room);
     }
