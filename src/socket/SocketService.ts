@@ -74,11 +74,11 @@ export default abstract class SocketService {
                     scope.add(Socket, socket);
                     const clientClass = sns.clientClass ?? SocketNamespaceClient;
                     let c = scope.resolve(clientClass, true);
-                    (c as any).socket = socket;
                     if (!c) {
                         c = scope.create(clientClass);
                         scope.add(sns.clientClass, c);
                     }
+                    (c as any).socket = socket;
                     const method = c[methodName];
                     const types = method[injectServiceKeysSymbol] as any[];
                     if (types) {
