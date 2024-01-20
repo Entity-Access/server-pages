@@ -31,6 +31,16 @@ export class SocketNamespaceClient {
 
     protected socket: Socket;
 
+    protected room: string;
+
+    join(... a: any[]) {
+        return this.socket.join(this.room);
+    }
+
+    leave() {
+        return this.socket.leave(this.room);
+    }
+
 }
 
 export default abstract class SocketNamespace {
@@ -38,8 +48,6 @@ export default abstract class SocketNamespace {
     protected namespace: string;
 
     protected server: Namespace;
-
-    protected room: string;
 
     abstract get clientClass(): typeof SocketNamespaceClient;
 
