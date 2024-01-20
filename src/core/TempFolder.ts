@@ -25,16 +25,15 @@ export default class TempFolder implements Disposable {
     public readonly folder: string;
 
     constructor() {
-        let folder: string;
         for(;;) {
+            let folder = join(tmpFolder, `tf-${id++}`);
             if (existsSync(folder)) {
-                folder = join(tmpFolder, `tf-${id++}`);
                 continue;
             }
             mkdirSync(folder);
+            this.folder = folder;
             break;
         }
-        this.folder = folder;
     }
 
     get(name, mimeType?: string, keep = false) {
