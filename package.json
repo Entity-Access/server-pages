@@ -12,7 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@entity-access/entity-access": "^1.0.246",
+    "@entity-access/entity-access": "^1.0.247",
     "acme-client": "^5.0.0",
     "busboy": "^1.6.0",
     "cookie": "^0.6.0",
