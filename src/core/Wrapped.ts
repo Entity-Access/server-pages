@@ -225,6 +225,7 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
                     wrapped.statusCode = status;
                     const headers = this.getHeaders();
                     headers["content-type"] ??= "text/html";
+                    headers["content-length"] = data.length.toString();
                     this.writeHead(status, headers);
                     await new Promise<void>((resolve, reject) => {
                         this.write(data, (error) => error ? reject(error) : resolve());
