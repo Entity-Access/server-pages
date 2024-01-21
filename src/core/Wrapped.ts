@@ -272,13 +272,22 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
                 const range = (this as any as IWrappedResponse).request.headers.range;
     
                 const lf = new LocalFile(filePath);
-    
+
+                const headers = this.getHeaders();
+                const oh = options?.headers;
+                if (oh) {
+                    for (const key in oh) {
+                        if (Object.prototype.hasOwnProperty.call(oh, key)) {
+                            const element = oh[key];
+                            headers[key] = element;
+                        }
+                    }
+                }
+
                 /** Check for Range header */
                 if (!range) {
-                    this.writeHead(200, {
-                        "Content-Length": size,
-                        "Content-Type": lf.contentType
-                    });
+                    headers["content-length"] = size;
+                    this.writeHead(200, headers);
     
                     await lf.writeTo(this);
     
@@ -302,20 +311,16 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
                 // Handle unavailable range request
                 if (start >= size || end >= size) {
                     // Return the 416 Range Not Satisfiable.
-                    this.writeHead(416, {
-                        "Content-Range": `bytes */${size}`
-                    });
+                    headers["content-range"] = `bytes */${size}`;
+                    this.writeHead(416, headers);
                     return (this as any).asyncEnd();
                 }
     
                 /** Sending Partial Content With HTTP Code 206 */
-                this.writeHead(206, {
-                    "Content-Range": `bytes ${start}-${end}/${size}`,
-                    "Accept-Ranges": "bytes",
-                    "Content-Length": end - start + 1,
-                    "Content-Type": lf.contentType
-                });
-    
+                headers["accept-ranges"] = "bytes";
+                headers["content-range"] = `bytes ${start}-${end}/${size}`;
+                headers["content-length"] = end - start + 1;
+                this.writeHead(206, headers);
                 await lf.writeTo(this, start, end);
     
             }
