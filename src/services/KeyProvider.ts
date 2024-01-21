@@ -36,7 +36,7 @@ export default class KeyProvider {
         return [this.key];
     }
 
-    private generateKey(expires: DateTime) {
+    protected generateKey(expires: DateTime) {
         return new Promise<IAuthKey>((resolve, reject) => {
             generateKeyPair('rsa', {
                 modulusLength: 2048,
