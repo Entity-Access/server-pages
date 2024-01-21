@@ -11,7 +11,6 @@ export interface IAuthKey {
 }
 
 
-@RegisterSingleton
 export default class KeyProvider {
 
     public keyPath: string = "./data/keys";
