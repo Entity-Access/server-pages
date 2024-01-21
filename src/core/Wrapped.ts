@@ -227,8 +227,17 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
                     headers["content-type"] ??= "text/html";
                     if (typeof data === "string") {
                         data = Buffer.from(data, "utf-8");
-                        const ct = headers["content-type"];
-                        headers["contetn-type"] = ct.toString().split(";")[0] + "; charset=utf-8";
+                        let ct = headers["content-type"];
+                        if (Array.isArray(ct)) {
+                            ct = ct.join(";");
+                        } else {
+                            ct = ct.toString();
+                        }
+                        const index = ct.indexOf(";");
+                        if (index !== -1) {
+                            ct = ct.substring(0, index);
+                        }
+                        ct += "; charset=utf-8";
                     }
                     headers["content-length"] = data.length.toString();
                     this.writeHead(status, headers);
