@@ -2,7 +2,7 @@ import { createReadStream, createWriteStream, existsSync, read, statSync } from 
 import { basename  } from "path";
 import mime from "mime-types";
 import internal, { Stream, Writable } from "stream";
-import { appendFile, open, readFile, writeFile } from "fs/promises";
+import { appendFile, copyFile, open, readFile, writeFile } from "fs/promises";
 
 
 export class LocalFile {
@@ -27,6 +27,10 @@ export class LocalFile {
         this.fileName = name ?? basename(path);
         this.contentType = (mimeType || mime.lookup(this.fileName)) || "application/octet-stream";
         this[Symbol.asyncDispose] = onDispose;
+    }
+
+    public copyTo(dest: LocalFile) {
+        return copyFile(this.path, dest.path);
     }
 
     public openRead(): Stream {
