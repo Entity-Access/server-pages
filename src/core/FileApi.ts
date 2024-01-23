@@ -13,12 +13,13 @@ export default function ensureDir(folder: string) {
         return;
     }
 
-    const parent = dirname(folder);
-    if (parent !== "/") {
-        ensureDir(parent);
+    try {
+        mkdirSync(folder, { recursive: true });
+    } catch (error) {
+        if (existsSync(folder)) {
+            return;
+        }
     }
-
-    mkdirSync(folder);
 
 }
 

@@ -1,12 +1,12 @@
 import * as http from "node:http";
 import Inject, { RegisterSingleton } from "@entity-access/entity-access/dist/di/di.js";
-import ChallengeStore from "./AcmeChallengeStore.js";
+import AcmeChallengeStore from "./AcmeChallengeStore.js";
 
 @RegisterSingleton
 export default class ChallengeServer {
 
     @Inject
-    private challengeStore: ChallengeStore;
+    private challengeStore: AcmeChallengeStore;
 
     start() {
         const server = http.createServer(async (req, res) => {

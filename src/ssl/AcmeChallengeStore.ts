@@ -6,7 +6,7 @@ import { join } from "node:path";
 const path = "./challenges";
 
 @RegisterSingleton
-export default class ChallengeStore {
+export default class AcmeChallengeStore {
 
     constructor() {
         ensureDir(path);
