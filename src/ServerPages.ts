@@ -204,12 +204,13 @@ export default class ServerPages {
                         const content = Content.html(`<!DOCTYPE html>\n<html><body><pre>Server Error for ${req.url}\r\n${error?.stack ?? error}</pre></body></html>`, 500);
                         await content.send(resp);
                     } catch (e1) {
-                        resp.send(e1.stack ?? e1, 500);
+                        e1 = e1.stack ?? e1.toString();
+                        resp.send(e1, 500);
                         console.error(e1);
                     }
                     return;
                 }
-                console.error(error);
+                console.error(error.stack ?? error.toString());
             }
         } finally {
             if(Array.isArray(req.disposables)) {
