@@ -187,6 +187,7 @@ export default class ServerPages {
                 sent = true;
                 await content.send(resp);
             } catch (error) {
+                console.error(`Failed: ${req.url}`);
                 if (!sent) {
                     try {
 
