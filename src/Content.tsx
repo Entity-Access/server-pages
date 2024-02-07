@@ -139,6 +139,9 @@ export default class Content implements IPageResult {
         Object.setPrototypeOf(p, Content.prototype);
         p.contentType ??= "text/plain";
         p.status ??= 200;
+        if (p.body === void 0) {
+            throw new Error(`Body cannot be undefined`);
+        }
         return p as Content;
     }
 
