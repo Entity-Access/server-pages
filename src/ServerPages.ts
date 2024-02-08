@@ -100,7 +100,10 @@ export default class ServerPages {
                     };
                     httpServer = http2.createSecureServer({
                         SNICallback,
-                        allowHTTP1
+                        allowHTTP1,
+                        settings: {
+                            enableConnectProtocol: createSocketService
+                        }
                     }, (req, res) => this.process(req, res))
 
                     if (acmeOptions) {
@@ -111,6 +114,9 @@ export default class ServerPages {
                     break;
                 default:
                     httpServer = http2.createSecureServer({
+                        settings: {
+                            enableConnectProtocol: createSocketService
+                        }
                     },(req, res) => this.process(req, res))
                     if (!disableNoTlsWarning) {
                         console.warn("Http2 without SSL should not be used in production");
