@@ -114,6 +114,7 @@ export default class ServerPages {
                     break;
                 default:
                     httpServer = http2.createSecureServer({
+                        allowHTTP1,
                         settings: {
                             enableConnectProtocol: createSocketService
                         }
