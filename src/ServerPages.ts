@@ -134,7 +134,7 @@ export default class ServerPages {
 
                 if (protocol === "http2" || protocol === "http2NoTLS") {
                     // attach stream method...
-                    httpServer.on("stream", (stream, headers) => {
+                    httpServer.prependListener("stream", (stream, headers) => {
                         if (headers[":method"] === "CONNECT") {
                             try {
                                 
