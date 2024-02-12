@@ -160,7 +160,6 @@ export default class ServerPages {
                                 for (const [key, value] of url.searchParams.entries()) {
                                     _query[key] = value;
                                 }
-                                console.log(JSON.stringify(_query, void 0, 2));
                                 // fake build request
                                 const req = {
                                     url: path,
@@ -169,10 +168,7 @@ export default class ServerPages {
                                     _query
                                 };
                                 (socketServer.engine as any)
-                                    .handshake(
-                                        "websocket",
-                                        req,
-                                        () => { try { stream.end(); } catch {} })
+                                    .onWebSocket(req, stream, websocket)
                                     .catch(console.error);
                             } catch (error) {
                                 console.error(error);
