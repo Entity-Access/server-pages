@@ -144,11 +144,18 @@ export default class ServerPages {
                                     maxPayload: 104857600,
                                     skipUTF8Validation: false,
                                 });
+                                const path = headers[":path"];
+                                const url = new URL(path, "http://a");
+                                const _query = {};
+                                for (const [key, value] of url.searchParams.entries()) {
+                                    _query[key] = value;
+                                }
                                 // fake build request
                                 const req = {
-                                    url: headers[":path"],
+                                    url: path,
                                     headers,
-                                    websocket
+                                    websocket,
+                                    _query
                                 };
                                 s.respond({
                                     ":status": 200
