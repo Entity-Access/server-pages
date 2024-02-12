@@ -146,9 +146,6 @@ export default class ServerPages {
                                 (stream as any).setNoDelay = function() {
                                     // this will keep the stream open
                                 };
-                                stream.respond({
-                                    ":status": 200
-                                });
                                 const websocket = new WebSocket(null, void 0, {
                                     headers
                                 });
@@ -171,7 +168,10 @@ export default class ServerPages {
                                 };
                                 (socketServer.engine as any)
                                     .onWebSocket(req, stream, websocket);
-                            } catch (error) {
+                                stream.respond({
+                                    ":status": 200
+                                });
+                                } catch (error) {
                                 console.error(error);
                             }
                         }
@@ -188,8 +188,12 @@ export default class ServerPages {
 
     protected async process(req: any, resp: any) {
 
+        const { method, url } = req;
+
         req = Wrapped.request(req);
         resp = Wrapped.response(req, resp);
+
+        console.log(JSON.stringify({ method, url}));
 
         req.response = resp;
 
