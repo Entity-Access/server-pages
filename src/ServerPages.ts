@@ -168,8 +168,7 @@ export default class ServerPages {
                                     _query
                                 };
                                 (socketServer.engine as any)
-                                    .onWebSocket(req, stream, websocket)
-                                    .catch(console.error);
+                                    .onWebSocket(req, stream, websocket);
                             } catch (error) {
                                 console.error(error);
                             }
