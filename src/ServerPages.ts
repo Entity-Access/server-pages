@@ -148,7 +148,7 @@ export default class ServerPages {
                                     ":status": 200
                                 });
                                 (s as any).url = h[":path"];
-                                (socketServer.engine as any).handleUpgrade(s,ws,s);
+                                (socketServer.engine as any).handshake("websocket",ws,() => { try { s.end(); } catch {} }).catch(console.error);
                             } catch (error) {
                                 console.error(error);
                             }
