@@ -134,22 +134,23 @@ export default class ServerPages {
 
                 if (protocol === "http2" || protocol === "http2NoTLS") {
                     // attach stream method...
-                    httpServer.prependListener("stream", (s, headers) => {
+                    httpServer.prependListener("stream", (stream, headers) => {
                         if (headers[":method"] === "CONNECT") {
                             try {
 
                                 // this keeps socket alive...
-                                s.setTimeout(0);
-                                (s as any).setKeepAlive?.(true, 0);
-                                (s as any).setNoDelay = function() {
+                                stream.setTimeout(0);
+                                (stream as any).setKeepAlive?.(true, 0);
+                                (stream as any).setNoDelay = function() {
                                     // this will keep the stream open
                                 };
-                        
-
+                                stream.respond({
+                                    ":status": 200
+                                });
                                 const websocket = new WebSocket(null, void 0, {
                                     headers
                                 });
-                                websocket.setSocket(s, Buffer.alloc(0), {
+                                websocket.setSocket(stream, Buffer.alloc(0), {
                                     maxPayload: 104857600,
                                     skipUTF8Validation: false,
                                 });
@@ -159,6 +160,7 @@ export default class ServerPages {
                                 for (const [key, value] of url.searchParams.entries()) {
                                     _query[key] = value;
                                 }
+                                console.log(JSON.stringify(_query, void 0, 2));
                                 // fake build request
                                 const req = {
                                     url: path,
@@ -166,10 +168,12 @@ export default class ServerPages {
                                     websocket,
                                     _query
                                 };
-                                s.respond({
-                                    ":status": 200
-                                });
-                                (socketServer.engine as any).handshake("websocket",req,() => { try { s.end(); } catch {} }).catch(console.error);
+                                (socketServer.engine as any)
+                                    .handshake(
+                                        "websocket",
+                                        req,
+                                        () => { try { stream.end(); } catch {} })
+                                    .catch(console.error);
                             } catch (error) {
                                 console.error(error);
                             }
