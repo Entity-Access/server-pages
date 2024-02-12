@@ -132,24 +132,28 @@ export default class ServerPages {
                 const ss = ServiceProvider.resolve(this, SocketService as any) as SocketService;
                 await (ss as any).attach(socketServer);
 
-                // if (protocol === "http2" || protocol === "http2NoTLS") {
-                //     // attach stream method...
-                //     httpServer.prependListener("stream", (s, h) => {
-                //         if (h[":method"] === "CONNECT") {
-                //             const ws = new WebSocket(null, void 0, {
-                //                 headers: h
-                //             });
-                //             (ws as any).setSocket(s, Buffer.alloc(0), {
-                //                 maxPayload: 104857600,
-                //                 skipUTF8Validation: false,
-                //             });
-                //             socketServer.emit("connection", ws);
-                //             s.respond({
-                //                 ":status": 200
-                //             });
-                //         }
-                //     });
-                // }
+                if (protocol === "http2" || protocol === "http2NoTLS") {
+                    // attach stream method...
+                    httpServer.prependListener("stream", (s, h) => {
+                        if (h[":method"] === "CONNECT") {
+                            try {
+                                const ws = new WebSocket(null, void 0, {
+                                    headers: h
+                                });
+                                (ws as any).setSocket(s, Buffer.alloc(0), {
+                                    maxPayload: 104857600,
+                                    skipUTF8Validation: false,
+                                });
+                                s.respond({
+                                    ":status": 200
+                                });
+                                socketServer.emit("connection", ws);
+                            } catch (error) {
+                                console.error(error);
+                            }
+                        }
+                    });
+                }
             }
 
             return httpServer;
