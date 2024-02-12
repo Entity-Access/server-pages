@@ -97,7 +97,7 @@ export default class ServerPages {
                         settings: {
                             enableConnectProtocol: createSocketService
                         }
-                    }, (req, res) => this.process(req, res))
+                    }, (req, res) => req.method !== "CONNECT" && this.process(req, res))
 
                     if (acmeOptions) {
                         const cs = ServiceProvider.resolve(this, ChallengeServer);
