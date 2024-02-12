@@ -26,8 +26,8 @@ export default abstract class SocketService {
 
     }
 
-    private attach(
-        server: Server): Server {
+    private async attach(
+        server: Server) {
 
         this.server = server;
 
@@ -48,8 +48,10 @@ export default abstract class SocketService {
                 this.attachNamespace(element);
             }
         }
+        await this.init();
         return this.server;
     }
+
     private attachNamespace(sns: SocketNamespace, name?) {
         if (!name) {
             name = sns.constructor.name;

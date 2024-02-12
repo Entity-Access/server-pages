@@ -73,14 +73,6 @@ export default class ServerPages {
 
             let httpServer = null as http.Server | http2.Http2Server | http2.Http2SecureServer;
 
-            let socketServer = null as Server;
-            if (createSocketService) {
-                socketServer = new Server();
-                const ss = ServiceProvider.resolve(this, SocketService as any) as SocketService;
-                (ss as any).attach(socketServer);
-                await (ss as any).init();
-            }
-
             switch(protocol) {
                 case "http":
                     httpServer = http.createServer((req, res) => this.process(req, res))
@@ -130,8 +122,14 @@ export default class ServerPages {
                 const server = httpServer.listen(port, () => {
                     resolve();
                 });
-                socketServer?.attach(server);
             });
+
+            if (createSocketService) {
+                const socketServer = new Server(httpServer, {});
+                const ss = ServiceProvider.resolve(this, SocketService as any) as SocketService;
+                await (ss as any).attach(socketServer);
+            }
+
             return httpServer;
         } catch (error) {
             console.error(error);
