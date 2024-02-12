@@ -134,21 +134,26 @@ export default class ServerPages {
 
                 if (protocol === "http2" || protocol === "http2NoTLS") {
                     // attach stream method...
-                    httpServer.prependListener("stream", (s, h) => {
-                        if (h[":method"] === "CONNECT") {
+                    httpServer.prependListener("stream", (s, headers) => {
+                        if (headers[":method"] === "CONNECT") {
                             try {
-                                const ws = new WebSocket(null, void 0, {
-                                    headers: h
+                                const websocket = new WebSocket(null, void 0, {
+                                    headers
                                 });
-                                (ws as any).setSocket(s, Buffer.alloc(0), {
+                                websocket.setSocket(s, Buffer.alloc(0), {
                                     maxPayload: 104857600,
                                     skipUTF8Validation: false,
                                 });
+                                // fake build request
+                                const req = {
+                                    url: headers[":path"],
+                                    headers,
+                                    websocket
+                                };
                                 s.respond({
                                     ":status": 200
                                 });
-                                (s as any).url = h[":path"];
-                                (socketServer.engine as any).handshake("websocket",ws,() => { try { s.end(); } catch {} }).catch(console.error);
+                                (socketServer.engine as any).handshake("websocket",req,() => { try { s.end(); } catch {} }).catch(console.error);
                             } catch (error) {
                                 console.error(error);
                             }
