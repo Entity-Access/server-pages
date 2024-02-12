@@ -125,7 +125,9 @@ export default class ServerPages {
             });
 
             if (createSocketService) {
-                const socketServer = new Server(httpServer, {});
+                const socketServer = new Server(httpServer, {
+                    transports: ["websocket", "polling"]
+                });
                 const ss = ServiceProvider.resolve(this, SocketService as any) as SocketService;
                 await (ss as any).attach(socketServer);
             }
