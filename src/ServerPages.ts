@@ -137,9 +137,7 @@ export default class ServerPages {
                     httpServer.on("stream", (stream, headers) => {
                         if (headers[":method"] === "CONNECT") {
                             try {
-
                                 
-
                                 // this keeps socket alive...
                                 stream.setTimeout(0);
                                 (stream as any).setKeepAlive?.(true, 0);
@@ -168,10 +166,10 @@ export default class ServerPages {
                                 };
                                 (socketServer.engine as any)
                                     .onWebSocket(req, stream, websocket);
-                                stream.respond({
-                                    ":status": 200
-                                });
-                                } catch (error) {
+                                // stream.respond({
+                                //     ":status": 200
+                                // });
+                            } catch (error) {
                                 console.error(error);
                             }
                         }
