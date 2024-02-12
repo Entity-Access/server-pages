@@ -137,6 +137,15 @@ export default class ServerPages {
                     httpServer.prependListener("stream", (s, headers) => {
                         if (headers[":method"] === "CONNECT") {
                             try {
+
+                                // this keeps socket alive...
+                                s.setTimeout(0);
+                                (s as any).setKeepAlive?.(true, 0);
+                                (s as any).setNoDelay = function() {
+                                    // this will keep the stream open
+                                };
+                        
+
                                 const websocket = new WebSocket(null, void 0, {
                                     headers
                                 });
