@@ -147,6 +147,7 @@ export default class ServerPages {
                                 s.respond({
                                     ":status": 200
                                 });
+                                (s as any).url = h[":path"];
                                 (socketServer.engine as any).handleUpgrade(s,ws,s);
                             } catch (error) {
                                 console.error(error);
