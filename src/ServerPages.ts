@@ -17,6 +17,7 @@ import { SessionUser } from "./core/SessionUser.js";
 import CookieService from "./services/CookieService.js";
 import TokenService from "./services/TokenService.js";
 import Executor from "./core/Executor.js";
+import { WebSocket } from "ws";
 
 RegisterSingleton
 export default class ServerPages {
@@ -130,6 +131,25 @@ export default class ServerPages {
                 });
                 const ss = ServiceProvider.resolve(this, SocketService as any) as SocketService;
                 await (ss as any).attach(socketServer);
+
+                if (protocol === "http2" || protocol === "http2NoTLS") {
+                    // attach stream method...
+                    httpServer.on("stream", (s, h) => {
+                        if (h[":method"] === "CONNECT") {
+                            s.respond({
+                                ":status": 200
+                            });
+                            const ws = new WebSocket(null, void 0, {
+                                headers: h
+                            });
+                            (ws as any).setSocket(s, Buffer.alloc(0), {
+                                maxPayload: 104857600,
+                                skipUTF8Validation: false,
+                            });
+                            socketServer.emit("connection", ws);
+                        }
+                    });
+                }
             }
 
             return httpServer;
