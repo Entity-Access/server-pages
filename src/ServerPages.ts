@@ -134,7 +134,7 @@ export default class ServerPages {
 
                 if (protocol === "http2" || protocol === "http2NoTLS") {
                     // attach stream method...
-                    httpServer.on("stream", (s, h) => {
+                    httpServer.prependListener("stream", (s, h) => {
                         if (h[":method"] === "CONNECT") {
                             const ws = new WebSocket(null, void 0, {
                                 headers: h
