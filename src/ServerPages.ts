@@ -136,9 +136,6 @@ export default class ServerPages {
                     // attach stream method...
                     httpServer.on("stream", (s, h) => {
                         if (h[":method"] === "CONNECT") {
-                            s.respond({
-                                ":status": 200
-                            });
                             const ws = new WebSocket(null, void 0, {
                                 headers: h
                             });
@@ -147,6 +144,9 @@ export default class ServerPages {
                                 skipUTF8Validation: false,
                             });
                             socketServer.emit("connection", ws);
+                            s.respond({
+                                ":status": 200
+                            });
                         }
                     });
                 }
