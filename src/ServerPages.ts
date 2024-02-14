@@ -133,50 +133,44 @@ export default class ServerPages {
                 if (protocol === "http2" || protocol === "http2NoTLS") {
                     httpServer.prependListener("stream", (stream, headers) => {
                         if (headers[":method"] === "CONNECT") {
-                            console.warn(`Connect not handled`);
+                            try {
+                                
+                                // this keeps socket alive...
+                                stream.setTimeout(0);
+                                (stream as any).setKeepAlive?.(true, 0);
+                                (stream as any).setNoDelay = function() {
+                                    // this will keep the stream open
+                                };
+                                const websocket = new WebSocket(null, void 0, {
+                                    headers
+                                });
+                                websocket.setSocket(stream, Buffer.alloc(0), {
+                                    maxPayload: 104857600,
+                                    skipUTF8Validation: false,
+                                });
+                                const path = headers[":path"];
+                                const url = new URL(path, "http://a");
+                                const _query = {};
+                                for (const [key, value] of url.searchParams.entries()) {
+                                    _query[key] = value;
+                                }
+                                // fake build request
+                                const req = {
+                                    url: path,
+                                    headers,
+                                    websocket,
+                                    _query
+                                };
+                                (socketServer.engine as any)
+                                    .onWebSocket(req, stream, websocket);
+                                stream.respond({
+                                    ":status": 200
+                                });
+                            } catch (error) {
+                                console.error(error);
+                            }
                         }
                     });
-                    // attach stream method...
-                    // httpServer.prependListener("stream", (stream, headers) => {
-                    //     if (headers[":method"] === "CONNECT") {
-                    //         try {
-                                
-                    //             // this keeps socket alive...
-                    //             stream.setTimeout(0);
-                    //             (stream as any).setKeepAlive?.(true, 0);
-                    //             (stream as any).setNoDelay = function() {
-                    //                 // this will keep the stream open
-                    //             };
-                    //             const websocket = new WebSocket(null, void 0, {
-                    //                 headers
-                    //             });
-                    //             websocket.setSocket(stream, Buffer.alloc(0), {
-                    //                 maxPayload: 104857600,
-                    //                 skipUTF8Validation: false,
-                    //             });
-                    //             const path = headers[":path"];
-                    //             const url = new URL(path, "http://a");
-                    //             const _query = {};
-                    //             for (const [key, value] of url.searchParams.entries()) {
-                    //                 _query[key] = value;
-                    //             }
-                    //             // fake build request
-                    //             const req = {
-                    //                 url: path,
-                    //                 headers,
-                    //                 websocket,
-                    //                 _query
-                    //             };
-                    //             (socketServer.engine as any)
-                    //                 .onWebSocket(req, stream, websocket);
-                    //             // stream.respond({
-                    //             //     ":status": 200
-                    //             // });
-                    //         } catch (error) {
-                    //             console.error(error);
-                    //         }
-                    //     }
-                    // });
                 }
             }
 
