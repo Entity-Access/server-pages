@@ -150,13 +150,13 @@ export default class ServerPages {
                                 (stream as any).setNoDelay = function() {
                                     // this will keep the stream open
                                 };
-                                // const websocket = new WebSocket(null, void 0, {
-                                //     headers
-                                // });
-                                // websocket.setSocket(stream, Buffer.alloc(0), {
-                                //     maxPayload: 104857600,
-                                //     skipUTF8Validation: false,
-                                // });
+                                const websocket = new WebSocket(null, void 0, {
+                                    headers
+                                });
+                                websocket.setSocket(stream, Buffer.alloc(0), {
+                                    maxPayload: 104857600,
+                                    skipUTF8Validation: false,
+                                });
                                 const path = headers[":path"];
                                 const url = new URL(path, "http://a");
                                 const _query = {};
@@ -171,7 +171,7 @@ export default class ServerPages {
                                     url: path,
                                     method: "GET",
                                     headers,
-//                                     websocket,
+                                    websocket,
                                     _query
                                 };
                                 // (socketServer.engine as any)
@@ -179,8 +179,10 @@ export default class ServerPages {
                                 stream.respond({
                                     ":status": 200
                                 });
+                                // (socketServer.engine as any)
+                                //     .handleUpgrade(req, stream, Buffer.from([]));
                                 (socketServer.engine as any)
-                                    .handleUpgrade(req, stream, Buffer.from([]));
+                                    .onWebSocket(req, stream, websocket);
                                 // stream.respond({
                                 //     ":status": 200
                                 // });
