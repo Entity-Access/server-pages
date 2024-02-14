@@ -133,6 +133,11 @@ export default class ServerPages {
                 await (ss as any).attach(socketServer);
 
                 if (protocol === "http2" || protocol === "http2NoTLS") {
+                    httpServer.prependListener("stream", (stream, headers) => {
+                        if (headers[":method"] === "CONNECT") {
+                            console.warn(`Connect not handled`);
+                        }
+                    });
                     // attach stream method...
                     // httpServer.prependListener("stream", (stream, headers) => {
                     //     if (headers[":method"] === "CONNECT") {
