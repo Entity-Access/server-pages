@@ -166,6 +166,7 @@ export default class ServerPages {
                                 // fake build request
                                 const req = {
                                     url: path,
+                                    method: "GET",
                                     headers,
 //                                     websocket,
                                     _query
