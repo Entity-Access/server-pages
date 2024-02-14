@@ -163,6 +163,9 @@ export default class ServerPages {
                                 for (const [key, value] of url.searchParams.entries()) {
                                     _query[key] = value;
                                 }
+                                // forcing upgrade
+                                headers["upgrade"] = "websocket";
+                                headers["connection"] = "upgrade";
                                 // fake build request
                                 const req = {
                                     url: path,
