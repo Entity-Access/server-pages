@@ -141,13 +141,13 @@ export default class ServerPages {
                                 (stream as any).setNoDelay = function() {
                                     // this will keep the stream open
                                 };
-                                const websocket = new WebSocket(null, void 0, {
-                                    headers
-                                });
-                                websocket.setSocket(stream, Buffer.alloc(0), {
-                                    maxPayload: 104857600,
-                                    skipUTF8Validation: false,
-                                });
+                                // const websocket = new WebSocket(null, void 0, {
+                                //     headers
+                                // });
+                                // websocket.setSocket(stream, Buffer.alloc(0), {
+                                //     maxPayload: 104857600,
+                                //     skipUTF8Validation: false,
+                                // });
                                 const path = headers[":path"];
                                 const url = new URL(path, "http://a");
                                 const _query = {};
@@ -158,11 +158,13 @@ export default class ServerPages {
                                 const req = {
                                     url: path,
                                     headers,
-                                    websocket,
+//                                     websocket,
                                     _query
                                 };
+                                // (socketServer.engine as any)
+                                //     .onWebSocket(req, stream, websocket);
                                 (socketServer.engine as any)
-                                    .onWebSocket(req, stream, websocket);
+                                    .handleUpgrade(req, stream, headers);
                                 stream.respond({
                                     ":status": 200
                                 });
