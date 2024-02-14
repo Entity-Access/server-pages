@@ -181,8 +181,12 @@ export default class ServerPages {
                                 });
                                 // (socketServer.engine as any)
                                 //     .handleUpgrade(req, stream, Buffer.from([]));
+                                // (socketServer.engine as any)
+                                //     .onWebSocket(req, stream, websocket);
                                 (socketServer.engine as any)
-                                    .onWebSocket(req, stream, websocket);
+                                    .handshake("websocket", req, () => {
+                                        try { stream.end(); } catch {}
+                                    });
                                 // stream.respond({
                                 //     ":status": 200
                                 // });
