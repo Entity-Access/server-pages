@@ -177,7 +177,7 @@ export default class ServerPages {
                                 // (socketServer.engine as any)
                                 //     .onWebSocket(req, stream, websocket);
                                 stream.respond({
-                                    ":status": 101
+                                    ":status": 200
                                 });
                                 // (socketServer.engine as any)
                                 //     .handleUpgrade(req, stream, Buffer.from([]));
