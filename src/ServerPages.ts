@@ -163,11 +163,14 @@ export default class ServerPages {
                                 };
                                 // (socketServer.engine as any)
                                 //     .onWebSocket(req, stream, websocket);
-                                (socketServer.engine as any)
-                                    .handleUpgrade(req, stream, headers);
                                 stream.respond({
                                     ":status": 200
                                 });
+                                (socketServer.engine as any)
+                                    .handleUpgrade(req, stream, headers);
+                                // stream.respond({
+                                //     ":status": 200
+                                // });
                             } catch (error) {
                                 console.error(error);
                             }
