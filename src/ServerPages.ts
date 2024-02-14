@@ -180,7 +180,7 @@ export default class ServerPages {
                                     ":status": 200
                                 });
                                 (socketServer.engine as any)
-                                    .handleUpgrade(req, stream, headers);
+                                    .handleUpgrade(req, stream, Buffer.from([]));
                                 // stream.respond({
                                 //     ":status": 200
                                 // });
