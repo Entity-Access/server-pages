@@ -32,9 +32,13 @@ export default class TempFolder implements Disposable {
             if (existsSync(folder)) {
                 continue;
             }
-            mkdirSync(folder);
-            this.folder = folder;
-            break;
+            try {
+                mkdirSync(folder);
+                this.folder = folder;
+                return;
+            } catch {
+                continue;
+            }
         }
     }
 
