@@ -134,6 +134,9 @@ export default class extends Page {
             }
             if (existing) {
                 entry.original = {};
+                for(const c of entityType.columns) {
+                    entry.original[c.name] = existing[c.name];
+                }
                 entry.status = "unchanged";
                 if (operation === "delete") {
                     source.delete(existing);
