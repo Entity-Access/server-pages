@@ -75,6 +75,7 @@ export default class extends Page {
         // get entityType from type...
         const source = this.db.model.register(type);
         const entityType = this.db.model.getEntityType(type);
+        Object.setPrototypeOf(body, entityType.typeClass.prototype);
         body.$type = entityType.entityName;
         const events = this.db.eventsFor(type, true);
 
