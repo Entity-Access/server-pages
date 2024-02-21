@@ -133,6 +133,7 @@ export default class extends Page {
                 }
             }
             if (existing) {
+                entry.original = {};
                 entry.status = "unchanged";
                 if (operation === "delete") {
                     source.delete(existing);
