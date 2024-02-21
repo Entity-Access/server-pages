@@ -114,30 +114,38 @@ export default class extends Page {
         }
 
 
-        const changes = { ... body };
+        // const changes = { ... body };
+        const changes = body;
         if(hasAllKeys) {
 
             q = events.modify(q);
 
-            body = await q.where(p, `(p) => (x) => ${where}` as any).first();
-            if (!body) {
+            const original = { ... body };
+
+            // we will attach entity...
+            const entry = this.db.changeSet.getEntry(body);
+
+            const existing = await q.where(p, `(p) => (x) => ${where}` as any).first();
+            if (!existing) {
                 if (hasAutoGenerate) {
                     throw new EntityAccessError(`Unable to ${operation} ${type.name}`);
                 }
             }
-            if (body) {
+            if (existing) {
+                entry.status = "unchanged";
                 if (operation === "delete") {
-                    source.delete(body);
+                    source.delete(existing);
                 } else {
-                    for (const key in changes) {
-                        if(Object.hasOwn(changes, key)) {
-                            const element = changes[key];
+                    for (const key in original) {
+                        if(Object.hasOwn(original, key)) {
+                            const element = original[key];
                             body[key] = element;
                         }
                     }
                 }
             } else {
-                body = source.add(changes);
+                // body = source.add(changes);
+                entry.status = "inserted";
                 body[added] = true;
             }
         } else {
@@ -149,12 +157,12 @@ export default class extends Page {
 
         // load all relations...
         for (const key in changes) {
-            if (Object.prototype.hasOwnProperty.call(changes, key)) {
+            if (Object.hasOwn(changes, key)) {
                 const element = changes[key];
                 const property = entityType.getProperty(key);
                 if(!property.relation) {
-                        // set value...
-                        body[key] = element;
+                    // set value...
+                    body[key] = element;
                     continue;
                 }
 
@@ -170,7 +178,8 @@ export default class extends Page {
                 if (body[key]) {
                     continue;
                 }
-                body[key] = await this.loadEntity(element, property.relation.relatedTypeClass);
+                const related = await this.loadEntity(element, property.relation.relatedTypeClass);
+                body[key] = related;
             }
         }
 
