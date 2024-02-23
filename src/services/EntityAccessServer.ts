@@ -4,6 +4,8 @@ import EntityContext from "@entity-access/entity-access/dist/model/EntityContext
 import { StringHelper } from "./StringHelper.js";
 import EntityQuery from "@entity-access/entity-access/dist/model/EntityQuery.js";
 import GraphService from "./GraphService.js";
+import External from "../decorators/External.js";
+import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAccessError.js";
 
 export type IQueryMethod = [string, string, ... any[]];
 
@@ -70,6 +72,12 @@ export default class EntityAccessServer {
         }
 
         const events = db.eventsFor(entityClass, true);
+
+        if (queryFunction) {
+            if(!External.isExternal(events, queryFunction)) {
+                throw new EntityAccessError(`${queryFunction} is not marked as an external function`);
+            }
+        }
 
         let q = queryFunction
             ? events[queryFunction](... args) as EntityQuery<any>
