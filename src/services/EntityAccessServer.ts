@@ -83,6 +83,10 @@ export default class EntityAccessServer {
             ? events[queryFunction](... args) as EntityQuery<any>
             : events.filter(db.query(entityClass));
 
+        if (queryFunction && (q as any).then) {
+            q = await q;
+        }
+
         if (methods) {
             for (const [method, code, ... methodArgs] of methods) {
                 const p = {};
