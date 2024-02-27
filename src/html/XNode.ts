@@ -4,7 +4,7 @@ export default class XNode {
         // eslint-disable-next-line @typescript-eslint/ban-types
         name: string | Function,
         attribs: Record<string, any>,
-        ... nodes: (XNode | string)[]) {
+        ... nodes: (XNode | string)[]): XNode {
         if (typeof name === "function") {
             return name(attribs ?? {}, ... nodes);
         }
