@@ -45,7 +45,7 @@ export default class TempFolder implements Disposable {
     get(name: string, mimeType?: string, keep = false, useSafeFileName = false) {
         let fileName = name;
         if (useSafeFileName) {
-            fileName = name.replaceAll(/[^\p{L}\p{N}\.\-\_]/ug, "_");
+            fileName = name.replaceAll(/[^\.\-_\p{L}\p{N}]/ug, "_");
         }
         return new LocalFile(join(this.folder, fileName), name, mimeType, keep ? doNothing : void 0);
     }
