@@ -42,7 +42,10 @@ export default class TempFolder implements Disposable {
         }
     }
 
-    get(name, mimeType?: string, keep = false) {
+    get(name: string, mimeType?: string, keep = false, useSafeFileName = false) {
+        if (useSafeFileName) {
+            name = name.replaceAll(/[^\p{L}\p{N}]/ug, "_");
+        }
         return new LocalFile(join(this.folder, name), name, mimeType, keep ? doNothing : void 0);
     }
 

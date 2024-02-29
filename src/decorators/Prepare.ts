@@ -124,7 +124,7 @@ const parseForm = (page?): any => {
                         tempFolder = new TempFolder();
                         req.disposables.push(tempFolder);
                     }
-                    const tf = tempFolder.get(info.filename, info.mimeType);
+                    const tf = tempFolder.get(info.filename, info.mimeType, false, true);
                     tasks.push(tf.writeAll(file).then(() => {
                         result.files.push(tf);
                     }));
