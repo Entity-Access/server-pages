@@ -110,6 +110,13 @@ export default class RouteTree {
 
             const promise = (async () => {
                 const { default: pageClass } = await import(handler);
+                if (!pageClass) {
+                    return class extends Page {
+                        run() {
+                            return this.notFound();
+                        }
+                    };
+                }
                 if (pageClass[isPage]) {
                     return pageClass as typeof Page;
                 }
