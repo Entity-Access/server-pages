@@ -6,6 +6,7 @@ import { LocalFile } from "./core/LocalFile.js";
 import { WrappedRequest, WrappedResponse } from "./core/Wrapped.js";
 import { ServiceProvider } from "@entity-access/entity-access/dist/di/di.js";
 import { IClassOf } from "@entity-access/entity-access/dist/decorators/IClassOf.js";
+import { OutgoingHttpHeaders } from "http";
 
 export const isPage = Symbol("isPage");
 
@@ -68,6 +69,10 @@ export default abstract class Page {
         return this.request?.method;
     }
 
+    get headers() {
+        return this.request?.headers;
+    }
+
     signal: AbortSignal;
 
     currentPath: string[];
@@ -96,11 +101,18 @@ export default abstract class Page {
         console.error(error);
     }
 
-    protected content(body: string, status = 200, contentType = "text/html") {
-        return Content.create({ body, status, contentType });
+    protected content(h: Partial<Content>): Content;
+    protected content(body: string, status?: number, contentType?: string, headers?: OutgoingHttpHeaders): Content;
+    protected content(body: string | Partial<Content>, status?: number, contentType?: string, headers?: OutgoingHttpHeaders) {
+        if (typeof body !== "object") {
+            return body = { body, status, contentType, headers};
+        }
+        body.status ??= 200;
+        body.contentType ??= "text/html";
+        return Content.create(body);
     }
 
-    protected json(o: any, indent = 0) {
+    protected json(o: any, indent = 0, headers = void 0 as OutgoingHttpHeaders) {
         const content = indent
             ? JSON.stringify(o, undefined, indent)
             : JSON.stringify(o);

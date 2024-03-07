@@ -5,6 +5,7 @@ import { parse } from "path";
 import { LocalFile } from "./core/LocalFile.js";
 import { SessionUser } from "./core/SessionUser.js";
 import { WrappedResponse } from "./core/Wrapped.js";
+import { OutgoingHttpHeaders } from "http";
 
 export interface IPageResult {
     send(res: WrappedResponse): Promise<any>;
@@ -135,6 +136,8 @@ export default class Content implements IPageResult {
 
     public body: string | Buffer | Blob | XNode;
 
+    public headers: OutgoingHttpHeaders;
+
     private constructor(p: Partial<Content>) {
         Object.setPrototypeOf(p, Content.prototype);
         p.contentType ??= "text/plain";
@@ -147,6 +150,15 @@ export default class Content implements IPageResult {
 
     public async send(res: WrappedResponse, user?: SessionUser) {
         const { status, body, contentType } = this;
+        const { headers } = this;
+        if (headers) {
+            for (const key in headers) {
+                if (Object.hasOwn(headers, key)) {
+                    const element = headers[key];
+                    res.setHeader(key, element);
+                }
+            }
+        }
         res.setHeader("content-type", contentType);
         res.statusCode = status;
         if (typeof body === "string") {
