@@ -6,6 +6,8 @@ import EntityQuery from "@entity-access/entity-access/dist/model/EntityQuery.js"
 import GraphService from "./GraphService.js";
 import External from "../decorators/External.js";
 import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAccessError.js";
+import { FilteredExpression } from "@entity-access/entity-access/dist/model/events/FilteredExpression.js";
+import type { IEntityQuery } from "@entity-access/entity-access/dist/model/IFilterWithParameter.js";
 
 export type IQueryMethod = [string, string, ... any[]];
 
@@ -79,12 +81,16 @@ export default class EntityAccessServer {
             }
         }
 
-        let q = queryFunction
-            ? events[queryFunction](... args) as EntityQuery<any>
-            : events.filter(db.query(entityClass));
+        let q: IEntityQuery<any>;
 
-        if (queryFunction && (q as any).then) {
-            q = await q;
+        if (queryFunction) {
+            q = events[queryFunction](... args);
+            if ((q as any).then) {
+                q = await q;
+            }
+            q = FilteredExpression.markAsFiltered(q);
+        } else {
+            q = events.filter(db.query(entityClass));
         }
 
         if (methods) {
