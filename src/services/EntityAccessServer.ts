@@ -91,6 +91,9 @@ export default class EntityAccessServer {
             q = FilteredExpression.markAsFiltered(q);
         } else {
             q = events.filter(db.query(entityClass));
+            if ((q as any).then) {
+                q = await q;
+            }
         }
 
         if (methods) {
