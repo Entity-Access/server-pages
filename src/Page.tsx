@@ -105,7 +105,7 @@ export default abstract class Page {
     protected content(body: string, status?: number, contentType?: string, headers?: OutgoingHttpHeaders): Content;
     protected content(body: string | Partial<Content>, status?: number, contentType?: string, headers?: OutgoingHttpHeaders) {
         if (typeof body !== "object") {
-            return body = { body, status, contentType, headers};
+            body = { body, status, contentType, headers};
         }
         body.status ??= 200;
         body.contentType ??= "text/html";
@@ -116,7 +116,7 @@ export default abstract class Page {
         const content = indent
             ? JSON.stringify(o, undefined, indent)
             : JSON.stringify(o);
-        return this.content(content, 200, "application/json");
+        return this.content(content, 200, "application/json", headers);
     }
 
     protected redirect(location: string) {
