@@ -245,21 +245,31 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
                         ct += "; charset=utf-8";
                     }
                     headers["content-length"] = data.length.toString();
-                    this.writeHead(status, headers);
 
                     // compress if required...
                     const { compress } = wrapped;
-                    const { accept } = this.req.headers;
-                    if (compress && accept && accept.toLocaleLowerCase().split(".").includes(compress)) {
-                        switch(compress) {
-                            case "deflate":
-                                data = Compression.deflate(data);
-                                break;
-                            case "gzip":
-                                data = Compression.gzip(data);
-                                break;
+                    if (compress) {
+                        let { accept } = headers;
+                        if (typeof accept === "string") {
+                            accept = accept.split(",");
+                        } else {
+                            accept = accept.flatMap((x) => x.split(","));
+                        }
+                        if (accept && accept.includes(compress)) {
+                            switch(compress) {
+                                case "deflate":
+                                    data = Compression.deflate(data);
+                                    headers["content-encoding"] = compress;
+                                    break;
+                                case "gzip":
+                                    data = Compression.gzip(data);
+                                    headers["content-encoding"] = compress;
+                                    break;
+                            }
                         }
                     }
+
+                    this.writeHead(status, headers);
 
                     await new Promise<void>((resolve, reject) => {
                         this.write(data, (error) => error ? reject(error) : resolve());
