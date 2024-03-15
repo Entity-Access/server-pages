@@ -138,6 +138,8 @@ export default class Content implements IPageResult {
 
     public headers: OutgoingHttpHeaders;
 
+    public compress: "gzip" | "deflate" | null = null;
+
     private constructor(p: Partial<Content>) {
         Object.setPrototypeOf(p, Content.prototype);
         p.contentType ??= "text/plain";
@@ -159,6 +161,9 @@ export default class Content implements IPageResult {
                 }
             }
         }
+
+        res.compress = this.compress;
+
         res.setHeader("content-type", contentType);
         res.statusCode = status;
         if (typeof body === "string") {

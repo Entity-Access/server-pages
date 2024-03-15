@@ -11,6 +11,7 @@ import CookieService from "../services/CookieService.js";
 import { stat } from "fs/promises";
 import TokenService from "../services/TokenService.js";
 import { CacheProperty } from "./CacheProperty.js";
+import Compression from "./Compression.js";
 
 
 type UnwrappedRequest = IncomingMessage | Http2ServerRequest;
@@ -60,6 +61,8 @@ export interface IWrappedRequest {
 export interface IWrappedResponse {
 
     request?: WrappedRequest;
+
+    compress?: "gzip" | "deflate" | null;
 
     asyncEnd();
 
@@ -192,6 +195,8 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
 
             statusCode: number;
 
+            compress?: "gzip" | "deflate" | null;
+
             asyncEnd(this: UnwrappedResponse) {
                 return new Promise<void>((resolve) => this.end(resolve));
             }
@@ -241,6 +246,21 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
                     }
                     headers["content-length"] = data.length.toString();
                     this.writeHead(status, headers);
+
+                    // compress if required...
+                    const { compress } = wrapped;
+                    const { accept } = this.req.headers;
+                    if (compress && accept && accept.toLocaleLowerCase().split(".").includes(compress)) {
+                        switch(compress) {
+                            case "deflate":
+                                data = Compression.deflate(data);
+                                break;
+                            case "gzip":
+                                data = Compression.gzip(data);
+                                break;
+                        }
+                    }
+
                     await new Promise<void>((resolve, reject) => {
                         this.write(data, (error) => error ? reject(error) : resolve());
                     });
