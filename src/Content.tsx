@@ -111,7 +111,8 @@ export default class Content implements IPageResult {
         return new Content({
             body: JSON.stringify(json),
             contentType: "application/json",
-            status
+            status,
+            compress: "gzip"
         });
     }
 
@@ -119,7 +120,8 @@ export default class Content implements IPageResult {
         return new Content({
             body: html,
             contentType: "text/html",
-            status
+            status,
+            compress: "gzip"
         });
     }
 
@@ -170,6 +172,8 @@ export default class Content implements IPageResult {
             if (status >= 300) {
                 const u = user ? `User: ${user.userID},${user.userName}` : "User: Anonymous";
                 console.error(`${res.req.method} ${res.req.url}\n${status}\n${u}\n${body}`);
+            } else {
+                res.compress ||= "gzip";
             }
             res.send(body);
             return;
@@ -178,6 +182,8 @@ export default class Content implements IPageResult {
             const text = body.render();
             if (status >= 300) {
                 console.error(`${res.req.method} ${res.req.url}\n${status}\n${text}`);
+            } else {
+                res.compress ||= "gzip";
             }
             res.send(text);
             return;
