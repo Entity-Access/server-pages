@@ -1,5 +1,5 @@
 import busboy from "busboy";
-import { IncomingMessage, OutgoingHttpHeaders, OutgoingMessage, ServerResponse } from "http";
+import { IncomingHttpHeaders, IncomingMessage, OutgoingHttpHeaders, OutgoingMessage, ServerResponse } from "http";
 import { Http2ServerRequest, Http2ServerResponse } from "http2";
 import { SessionUser } from "./SessionUser.js";
 import { CookieSerializeOptions, parse, serialize } from "cookie";
@@ -27,7 +27,7 @@ const extendedSymbol = Symbol("extended");
 
 export interface IWrappedRequest {
 
-    headers?: any;
+    headers?: IncomingHttpHeaders;
 
     disposables?: Disposable[];
 
@@ -265,7 +265,7 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
                 if (!compress) {
                     return data;
                 }
-                let { accept } = (this as IWrappedResponse).request?.headers;
+                let { "accept-encoding": accept } = (this as IWrappedResponse).request?.headers;
                 if (!accept) {
                     return data;
                 }
