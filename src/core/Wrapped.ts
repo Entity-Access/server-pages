@@ -244,11 +244,9 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
                         }
                         ct += "; charset=utf-8";
                     }
-                    headers["content-length"] = data.length.toString();
-
                     // compress if required...
                     data = wrapped.compressData(data, headers);
-
+                    headers["content-length"] = data.length.toString();
                     this.writeHead(status, headers);
 
                     await new Promise<void>((resolve, reject) => {
