@@ -1,5 +1,5 @@
 import busboy from "busboy";
-import { IncomingMessage, OutgoingMessage, ServerResponse } from "http";
+import { IncomingMessage, OutgoingHttpHeaders, OutgoingMessage, ServerResponse } from "http";
 import { Http2ServerRequest, Http2ServerResponse } from "http2";
 import { SessionUser } from "./SessionUser.js";
 import { CookieSerializeOptions, parse, serialize } from "cookie";
@@ -247,27 +247,7 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
                     headers["content-length"] = data.length.toString();
 
                     // compress if required...
-                    const { compress } = wrapped;
-                    if (compress) {
-                        let { accept } = headers;
-                        if (typeof accept === "string") {
-                            accept = accept.split(",");
-                        } else {
-                            accept = accept.flatMap((x) => x.split(","));
-                        }
-                        if (accept && accept.includes(compress)) {
-                            switch(compress) {
-                                case "deflate":
-                                    data = Compression.deflate(data);
-                                    headers["content-encoding"] = compress;
-                                    break;
-                                case "gzip":
-                                    data = Compression.gzip(data);
-                                    headers["content-encoding"] = compress;
-                                    break;
-                            }
-                        }
-                    }
+                    data = wrapped.compressData(data, headers);
 
                     this.writeHead(status, headers);
 
@@ -278,6 +258,39 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
                 } catch (error) {
                     console.error(error);
                 }
+            }
+
+            private compressData(data: string | Buffer, headers: OutgoingHttpHeaders) {
+                const { compress } = this;
+                if (!compress) {
+                    return data;
+                }
+                let { accept } = (this as IWrappedResponse).request?.headers;
+                if (!accept) {
+                    return data;
+                }
+                if (typeof accept === "string") {
+                    accept = accept.split(",");
+                } else {
+                    if (!Array.isArray(accept)) {
+                        return data;
+                    }
+                    accept = accept.flatMap((x) => x.split(","));
+                }
+                if (!accept.includes(compress)) {
+                    return data;
+                }
+                switch (compress) {
+                    case "deflate":
+                        data = Compression.deflate(data);
+                        headers["content-encoding"] = compress;
+                        break;
+                    case "gzip":
+                        data = Compression.gzip(data);
+                        headers["content-encoding"] = compress;
+                        break;
+                }                
+                return data;
             }
 
             async sendRedirect(this: UnwrappedResponse, location: string, permanent = false) {
