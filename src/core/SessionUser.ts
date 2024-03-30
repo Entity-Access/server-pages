@@ -98,20 +98,20 @@ export class SessionUser {
         return this.roles?.includes(role) ?? false;
     }
 
-    ensureLoggedIn(error: () => EntityAccessError = () => new EntityAccessError()) {
+    ensureLoggedIn(error: () => EntityAccessError = () => new EntityAccessError(`Login Required`)) {
         if (!this.userID) {
             throw error();
         }
     }
 
-    ensureRole(role: roles, error: () => EntityAccessError = () => new EntityAccessError()) {
+    ensureRole(role: roles, error: () => EntityAccessError = () => new EntityAccessError(`Not in Role`)) {
         if (this.isInRole(role)) {
             return;
         }
         throw error();
     }
 
-    ensureIsAdmin(error: () => EntityAccessError = () => new EntityAccessError()) {
+    ensureIsAdmin(error: () => EntityAccessError = () => new EntityAccessError(`Not an Admin.`)) {
         return this.ensureRole("Administrator", error);
     }
 
