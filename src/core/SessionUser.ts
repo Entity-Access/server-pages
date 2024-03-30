@@ -98,20 +98,20 @@ export class SessionUser {
         return this.roles?.includes(role) ?? false;
     }
 
-    ensureLoggedIn(error?: string | ErrorModel) {
+    ensureLoggedIn(error: () => EntityAccessError = () => new EntityAccessError()) {
         if (!this.userID) {
-            throw new EntityAccessError(error);
+            throw error();
         }
     }
 
-    ensureRole(role: roles, error?: string | ErrorModel) {
+    ensureRole(role: roles, error: () => EntityAccessError = () => new EntityAccessError()) {
         if (this.isInRole(role)) {
             return;
         }
-        throw new EntityAccessError(error);
+        throw error();
     }
 
-    ensureIsAdmin(error?: string | ErrorModel) {
+    ensureIsAdmin(error: () => EntityAccessError = () => new EntityAccessError()) {
         return this.ensureRole("Administrator", error);
     }
 
