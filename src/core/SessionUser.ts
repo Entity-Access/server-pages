@@ -4,6 +4,7 @@ import DateTime from "@entity-access/entity-access/dist/types/DateTime.js";
 import TokenService, { IAuthCookie } from "../services/TokenService.js";
 import { WrappedResponse } from "./Wrapped.js";
 import { CacheProperty } from "./CacheProperty.js";
+import ErrorModel from "@entity-access/entity-access/dist/common/ErrorModel.js";
 
 const secure = (process.env["SOCIAL_MAIL_AUTH_COOKIE_SECURE"] ?? "true") === "true";
 
@@ -97,21 +98,21 @@ export class SessionUser {
         return this.roles?.includes(role) ?? false;
     }
 
-    ensureLoggedIn() {
+    ensureLoggedIn(error?: string | ErrorModel) {
         if (!this.userID) {
-            throw new EntityAccessError();
+            throw new EntityAccessError(error);
         }
     }
 
-    ensureRole(role: roles) {
+    ensureRole(role: roles, error?: string | ErrorModel) {
         if (this.isInRole(role)) {
             return;
         }
-        throw new EntityAccessError();
+        throw new EntityAccessError(error);
     }
 
-    ensureIsAdmin() {
-        return this.ensureRole("Administrator");
+    ensureIsAdmin(error?: string | ErrorModel) {
+        return this.ensureRole("Administrator", error);
     }
 
     async setAuthCookie(authCookie: Omit<IAuthCookie, "sign">) {
