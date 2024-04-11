@@ -258,6 +258,7 @@ export default class ServerPages {
                 page.childPath = childPath;
                 page.request = req;
                 page.response = resp;
+                scope.add(Page, page);
                 const content = await Executor.run(page);
                 resp.setHeader("cache-control", page.cacheControl);
                 resp.removeHeader("etag");
