@@ -95,12 +95,12 @@ export class FileResult implements IPageResult {
 
 export class Redirect implements IPageResult {
 
-    constructor(public location: string, public status = 301) {
+    constructor(public location: string, public status = 301, public headers = void 0 as OutgoingHttpHeaders) {
 
     }
 
     async send(res: WrappedResponse) {
-        return res.sendRedirect(this.location);
+        return res.sendRedirect(this.location, this.status, this.headers);
     }
 
 }

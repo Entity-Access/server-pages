@@ -72,7 +72,7 @@ export interface IWrappedResponse {
 
     send(data: Buffer | string | Blob, status?: number): Promise<void>;
 
-    sendRedirect(url: string, permanent?: boolean): void;
+    sendRedirect(url: string, status?: number, headers?: OutgoingHttpHeaders): void;
 
     cookie(name: string, value: string, options?: { secure?: boolean, httpOnly?: boolean, maxAge?: number });
 
@@ -291,11 +291,10 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
                 return data;
             }
 
-            async sendRedirect(this: UnwrappedResponse, location: string, permanent = false) {
-                this.statusCode = 301;
-                this.writeHead(this.statusCode, {
-                    location
-                });
+            async sendRedirect(this: UnwrappedResponse, location: string, status = 301, headers?: OutgoingHttpHeaders) {
+                this.statusCode = status;
+                headers.location = location;
+                this.writeHead(this.statusCode, headers);
                 return (this as any as IWrappedResponse).asyncEnd();
             }
 
