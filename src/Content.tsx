@@ -136,7 +136,7 @@ export default class Content implements IPageResult {
 
     public contentType: string;
 
-    public body: string | Buffer | Blob | XNode;
+    public body: string | Buffer | XNode;
 
     public headers: OutgoingHttpHeaders;
 
