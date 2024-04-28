@@ -213,14 +213,7 @@ export default class ServerPages {
         // const { method, url } = req;
 
         req = Wrapped.request(req);
-
-        if (trustProxy) {
-            const headers = req.headers as IncomingHttpHeaders;
-            const ip = headers["x-forwarded-for"];
-            if (ip) {
-                Object.defineProperty(req, "remoteIPAddress", { value: ip, enumerable: true });
-            }
-        }
+        req.trustProxy = trustProxy;
 
         resp = Wrapped.response(req, resp);
 
