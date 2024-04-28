@@ -18,6 +18,7 @@ import CookieService from "./services/CookieService.js";
 import TokenService from "./services/TokenService.js";
 import Executor from "./core/Executor.js";
 import { WebSocket } from "ws";
+import { IncomingHttpHeaders } from "http";
 
 RegisterSingleton
 export default class ServerPages {
@@ -59,10 +60,12 @@ export default class ServerPages {
         SNICallback,
         acmeOptions,
         host,
+        trustProxy = false,
         allowHTTP1 = true
     }:{
         createSocketService?: boolean,
         port: number,
+        trustProxy: boolean,
         disableNoTlsWarning?: boolean,
         protocol: "http" | "http2" | "http2NoTLS",
         host: string,
@@ -76,7 +79,7 @@ export default class ServerPages {
 
             switch(protocol) {
                 case "http":
-                    httpServer = http.createServer((req, res) => this.process(req, res))
+                    httpServer = http.createServer((req, res) => this.process(req, res, trustProxy))
                     break;
                 case "http2":
                     let sc = null;
@@ -97,7 +100,7 @@ export default class ServerPages {
                         settings: {
                             enableConnectProtocol: createSocketService
                         }
-                    }, (req, res) => req.method !== "CONNECT" && this.process(req, res))
+                    }, (req, res) => req.method !== "CONNECT" && this.process(req, res, trustProxy))
 
                     if (acmeOptions) {
                         const cs = ServiceProvider.resolve(this, ChallengeServer);
@@ -111,7 +114,7 @@ export default class ServerPages {
                         settings: {
                             enableConnectProtocol: createSocketService
                         }
-                    },(req, res) => this.process(req, res))
+                    },(req, res) => this.process(req, res, trustProxy))
                     if (!disableNoTlsWarning) {
                         console.warn("Http2 without SSL should not be used in production");
                     }
@@ -205,11 +208,20 @@ export default class ServerPages {
         return null;
     }
 
-    protected async process(req: any, resp: any) {
+    protected async process(req: any, resp: any, trustProxy: boolean) {
 
         // const { method, url } = req;
 
         req = Wrapped.request(req);
+
+        if (trustProxy) {
+            const headers = req.headers as IncomingHttpHeaders;
+            const ip = headers["x-forwarded-for"];
+            if (ip) {
+                Object.defineProperty(req, "remoteIPAddress", { value: ip, enumerable: true });
+            }
+        }
+
         resp = Wrapped.response(req, resp);
 
         // console.log(JSON.stringify({ method, url}));
