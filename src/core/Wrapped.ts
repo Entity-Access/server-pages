@@ -131,7 +131,7 @@ const extendRequest = (A: typeof IncomingMessage | typeof Http2ServerRequest) =>
                 const r = this as any as (Http2ServerRequest  | IncomingMessage);
                 let ip = r.socket.remoteAddress;
                 if ((this as any).trustProxy) {
-                    ip = (r.headers["x-forwarded-for"]).toString() ?? r.socket.remoteAddress
+                    ip = (r.headers["x-forwarded-for"]).toString() || r.socket.remoteAddress
                 }
                 return CacheProperty.value(this, "remoteIPAddress", ip);
             }
