@@ -250,11 +250,10 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
                         ct += "; charset=utf-8";
                     }
                     // compress if required...
-                    if (data) {
-                        data = wrapped.compressData(data, headers);
-                    } else {
-                        data = Buffer.from([]);
+                    if (data === null || data === void 0) {
+                        throw new Error("Data cannot be null or undefined.");
                     }
+                    data = wrapped.compressData(data, headers);
                     headers["content-length"] = data.length.toString();
                     this.writeHead(status, headers);
                     sent = true;
