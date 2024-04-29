@@ -229,8 +229,9 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
             // }
         
             async send(this: UnwrappedResponse, data: Buffer | string, status: number = this.statusCode || 200) {
+                let sent = false;
+                const wrapped = (this as any as WrappedResponse);
                 try {
-                    const wrapped = (this as any as WrappedResponse);
                     wrapped.statusCode = status;
                     const headers = this.getHeaders();
                     headers["content-type"] ??= "text/html";
@@ -249,16 +250,24 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
                         ct += "; charset=utf-8";
                     }
                     // compress if required...
-                    data = wrapped.compressData(data, headers);
+                    if (data) {
+                        data = wrapped.compressData(data, headers);
+                    } else {
+                        data = Buffer.from([]);
+                    }
                     headers["content-length"] = data.length.toString();
                     this.writeHead(status, headers);
-
+                    sent = true;
                     await new Promise<void>((resolve, reject) => {
                         this.write(data, (error) => error ? reject(error) : resolve());
                     });
                     return (this as any).asyncEnd();
                 } catch (error) {
                     console.error(error);
+                    if (sent) {
+                        return (this as any).asyncEnd();
+                    }
+                    return (this as any).send(error.stack ?? error.toString(), 500);
                 }
             }
 
