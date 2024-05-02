@@ -41,11 +41,10 @@ export default class GraphService {
         $id = visited.size + 1;
         visited.set(body, $id);
 
-        const appendToGraph = body[this.appendToGraph]?.() ?? {};
+        const appendToGraph = body[this.appendToGraph]?.();
 
         const copy = {
-            $id,
-            ... appendToGraph
+            $id
         };
 
         // check constructor
@@ -79,6 +78,14 @@ export default class GraphService {
                         copy[key] = e;
                     }
                     continue;
+            }
+        }
+        if (appendToGraph) {
+            for (const key in appendToGraph) {
+                if (Object.prototype.hasOwnProperty.call(appendToGraph, key)) {
+                    const element = appendToGraph[key];
+                    copy[key] = element;
+                }
             }
         }
         return copy;
