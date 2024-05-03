@@ -8,7 +8,7 @@ import { WrappedResponse } from "./core/Wrapped.js";
 import { OutgoingHttpHeaders } from "http";
 
 export interface IPageResult {
-    send(res: WrappedResponse): Promise<any>;
+    send(res: WrappedResponse, user?: SessionUser): Promise<any>;
 }
 
 export class TempFileResult implements IPageResult {

@@ -268,7 +268,7 @@ export default class ServerPages {
                 resp.setHeader("cache-control", page.cacheControl);
                 resp.removeHeader("etag");
                 sent = true;
-                await content.send(resp);
+                await content.send(resp, user);
             } catch (error) {
                 console.error(`Failed: ${req.url}`);
                 if (!sent) {
