@@ -18,7 +18,6 @@ import CookieService from "./services/CookieService.js";
 import TokenService from "./services/TokenService.js";
 import Executor from "./core/Executor.js";
 import { WebSocket } from "ws";
-import { IncomingHttpHeaders } from "http";
 
 RegisterSingleton
 export default class ServerPages {
@@ -31,21 +30,25 @@ export default class ServerPages {
     private root: RouteTree = new RouteTree();
 
     /**
+     * Cache routeTree based on host to improve performance
+     */
+    public getRouteTreeForHost: (host: string) => Promise<RouteTree>;
+
+    /**
      * We will register all sub folders starting with given path.
      * @param folder string
      * @param start string
      */
-    public registerRoutes(folder: string, start: string = "/") {
+    public registerRoutes(folder: string, start: string = "/", root = this.root) {
         const startRoute = start.split("/").filter((x) => x);
-        let root = this.root;
         for (const iterator of startRoute) {
             root = root.getOrCreate(iterator);
         }
         root.register(folder);
     }
 
-    public registerEntityRoutes() {
-        this.registerRoutes(join(fileURLToPath(dirname(import.meta.url)), "./routes"))
+    public registerEntityRoutes(start = "/", tree = this.root) {
+        this.registerRoutes(join(fileURLToPath(dirname(import.meta.url)), "./routes"), start, tree)
     }
 
     /**
@@ -245,11 +248,18 @@ export default class ServerPages {
             };
             const acceptJson = req.accepts("json");
 
+            const host = req.host;
+
 
             try {
+
+                const root = this.getRouteTreeForHost
+                    ? await this.getRouteTreeForHost(host)
+                    : this.root;
+
                 const path = req.path.split("/").filter((x) => x);
                 const method = req.method;
-                const { pageClass, childPath } = (await this.root.getRoute({
+                const { pageClass, childPath } = (await root.getRoute({
                     scope,
                     method,
                     current: "",
