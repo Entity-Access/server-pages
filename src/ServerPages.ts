@@ -254,7 +254,7 @@ export default class ServerPages {
             try {
 
                 const root = this.getRouteTreeForHost
-                    ? await this.getRouteTreeForHost(host)
+                    ? (await this.getRouteTreeForHost(host)) ?? this.root
                     : this.root;
 
                 const path = req.path.split("/").filter((x) => x);
