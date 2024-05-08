@@ -287,9 +287,9 @@ export default class ServerPages {
                         if (acceptJson || error.errorModel) {
                             await Content.json(
                                     {
+                                        details: error.stack ?? error,
                                         ... error.errorModel ?? {},
                                         message: error.message ?? error,
-                                        detail: error.stack ?? error,
                                     }
                             , 500).send(resp);
                             return;
