@@ -4,7 +4,6 @@ import DateTime from "@entity-access/entity-access/dist/types/DateTime.js";
 import TokenService, { IAuthCookie } from "../services/TokenService.js";
 import { WrappedResponse } from "./Wrapped.js";
 import { CacheProperty } from "./CacheProperty.js";
-import ErrorModel from "@entity-access/entity-access/dist/common/ErrorModel.js";
 
 const secure = (process.env["SOCIAL_MAIL_AUTH_COOKIE_SECURE"] ?? "true") === "true";
 
