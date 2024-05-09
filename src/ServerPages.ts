@@ -248,13 +248,13 @@ export default class ServerPages {
             };
             const acceptJson = req.accepts("json");
 
-            const host = req.host;
+            const hostName = req.hostName;
 
 
             try {
 
                 const root = this.getRouteTreeForHost
-                    ? (await this.getRouteTreeForHost(host)) ?? this.root
+                    ? (await this.getRouteTreeForHost(hostName)) ?? this.root
                     : this.root;
 
                 const path = req.path.split("/").filter((x) => x);
