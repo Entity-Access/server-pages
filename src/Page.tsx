@@ -27,7 +27,7 @@ export interface IFormData {
 /**
  * Page should not contain any reference to underlying request/response objects.
  */
-export default abstract class Page {
+export default abstract class Page<TInput = any, TQuery = any> {
 
     static [isPage] = true;
 
@@ -45,11 +45,11 @@ export default abstract class Page {
 
     response: WrappedResponse;
 
-    get query(): any {
-        return this.request?.query;
+    get query(): TQuery {
+        return this.request?.query as any;
     }
 
-    get body(): any {
+    get body(): TInput {
         return this.request?.body;
     }
 
