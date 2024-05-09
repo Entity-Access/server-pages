@@ -33,6 +33,10 @@ export interface IWrappedRequest {
 
     response?: WrappedResponse;
 
+    /** host name without port */
+    get hostName(): string;
+
+    /** host name with port if present */
     get host(): string;
 
     get path(): string;
@@ -101,6 +105,15 @@ const extendRequest = (A: typeof IncomingMessage | typeof Http2ServerRequest) =>
 
             scope: ServiceProvider;
             disposables: Disposable[];
+
+            get hostName(): string {
+                let host = this.host;
+                const index = host.indexOf(":");
+                if (index !== -1) {
+                    host = host.substring(0, index);
+                }
+                return CacheProperty.value(this, "hostName", host);
+            }
 
             get host(): string {
                 const r = this as any as (Http2ServerRequest  | IncomingMessage);
