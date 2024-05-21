@@ -316,7 +316,7 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
                 return data;
             }
 
-            async sendRedirect(this: UnwrappedResponse, location: string, status = 301, headers?: OutgoingHttpHeaders) {
+            async sendRedirect(this: UnwrappedResponse, location: string, status = 301, headers: OutgoingHttpHeaders = {}) {
                 this.statusCode = status;
                 headers.location = location;
                 this.writeHead(this.statusCode, headers);
