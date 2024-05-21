@@ -280,7 +280,7 @@ export default class ServerPages {
                 sent = true;
                 await content.send(resp, user);
             } catch (error) {
-                console.error(`Failed: ${req.url}`);
+                console.error(`Failed: ${req.URL}`);
                 if (!sent) {
                     try {
 
@@ -295,7 +295,7 @@ export default class ServerPages {
                             return;
                         }
 
-                        const content = Content.html(`<!DOCTYPE html>\n<html><body><pre>Server Error for ${req.URL}\r\n${error?.stack ?? error}</pre></body></html>`, 500);
+                        const content = Content.html(`<!DOCTYPE html>\n<html><body><pre>Server Error for ${req.url}\r\n${error?.stack ?? error}</pre></body></html>`, 500);
                         await content.send(resp);
                     } catch (e1) {
                         e1 = e1.stack ?? e1.toString();
