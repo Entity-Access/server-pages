@@ -38,7 +38,11 @@ export default class extends Page {
             return this.saveMultiple(body);
         }
         body = await this.loadEntity(body);
-        await this.db.saveChanges();
+        const options = {} as any;
+        if (this.query.trace) {
+            options.trace = true;
+        }
+        await this.db.saveChanges(options);
         return this.json(GraphService.prepareGraph(body));
     }
 
@@ -48,7 +52,11 @@ export default class extends Page {
         for (const iterator of body) {
             result.push(await this.loadEntity(iterator));
         }
-        await this.db.saveChanges();
+        const options = {} as any;
+        if (this.query.trace) {
+            options.trace = true;
+        }
+        await this.db.saveChanges(options);
         return this.json(GraphService.prepareGraph(result));
     }
 
