@@ -40,7 +40,7 @@ export default class extends Page {
         body = await this.loadEntity(body);
         const options = {} as any;
         if (this.query.trace) {
-            options.trace = true;
+            options.trace = console.log;
         }
         await this.db.saveChanges(options);
         return this.json(GraphService.prepareGraph(body));
@@ -54,7 +54,7 @@ export default class extends Page {
         }
         const options = {} as any;
         if (this.query.trace) {
-            options.trace = true;
+            options.trace = console.log;
         }
         await this.db.saveChanges(options);
         return this.json(GraphService.prepareGraph(result));
