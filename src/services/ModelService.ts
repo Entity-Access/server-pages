@@ -186,7 +186,7 @@ export default class ModelService {
                 })),
                 isCollection: r.isCollection,
                 isInverse: r.isInverseRelation,
-                relatedName: r.relatedEntity.name
+                relatedName: r.relatedEntity.entityName
             }))
         });
     }
