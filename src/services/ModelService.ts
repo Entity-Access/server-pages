@@ -305,7 +305,7 @@ export default class ModelService {
                             ${this.getSchema(entityType)}
                         );`);
 
-            writer.writeLine(`modelEntitySchemas[${name}] = ${name};`)
+            writer.writeLine(`modelEntitySchemas["${name}"] = ${name};`)
             writer.writeLine();
         }
 
