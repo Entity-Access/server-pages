@@ -138,6 +138,25 @@ const getDefaults = (column: IColumn): [string, any] => {
     return;
 };
 
+const fixRelatedSchemas = (schema) => {
+    for (const key in schema) {
+        if (Object.prototype.hasOwnProperty.call(schema, key)) {
+            const element = schema[key];
+            if (!element.name) {
+                continue;
+            }
+
+            const { relations } = element;
+            if (!relations) {
+                continue;
+            }
+            for (const iterator of relations) {
+                iterator.relatedModel = schema[iterator.name];
+            }
+        }
+    }
+};
+
 export default class ModelService {
 
     public static ignore(t: IClassOf<any>, key: string) {
@@ -166,9 +185,10 @@ export default class ModelService {
                     relatedKey: f.relatedKeyColumn.name
                 })),
                 isCollection: r.isCollection,
-                isInverse: r.isInverseRelation
+                isInverse: r.isInverseRelation,
+                relatedName: r.relatedEntity.name
             }))
-        }, undefined, 2);
+        });
     }
 
     public static getModel(context: EntityContext) {
@@ -186,6 +206,10 @@ export default class ModelService {
         writer.writeLine(`import DateTime from "@web-atoms/date-time/dist/DateTime";
             import type IClrEntity from "@web-atoms/entity/dist/models/IClrEntity";
             import { ICollection, IGeometry, IModel, Model, DefaultFactory } from "@web-atoms/entity/dist/services/BaseEntityService";
+        `);
+
+        writer.writeLine(`
+        export const modelEntitySchemas = {};
         `);
 
         for (const [type] of context.model.sources) {
@@ -280,8 +304,14 @@ export default class ModelService {
                             { ${defaults.join(",")} },
                             ${this.getSchema(entityType)}
                         );`);
+
+            writer.writeLine(`modelEntitySchemas[${name}] = ${name};`)
             writer.writeLine();
         }
+
+        writer.writeLine(`const fixRelatedSchemas = ${fixRelatedSchemas};
+        fixRelatedSchemas(modelEntitySchemas);
+        `)
 
         return writer.toString();
     }
