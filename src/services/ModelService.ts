@@ -144,6 +144,33 @@ export default class ModelService {
         return (t.prototype?.[modelProperties] as IModelProperties)?.[key]?.ignore;
     }
 
+    public static getSchema(type: EntityType) {
+        return JSON.stringify({
+            name: type.name,
+            keys: type.keys.map((k) => ({
+                name: k.name,
+                type: getJSType({ type: k.type }),
+                generated: k.generated,
+                default: getDefaults(k)
+            })),
+            properties: type.nonKeys.map((k) => ({
+                name: k.name,
+                type: getJSType({ type: k.type }),
+                generated: k.generated,
+                default: getDefaults(k)
+            })),
+            relations: type.relations.map((r) => ({
+                name: r.name,
+                fkMap: r.fkMap?.map((f) => ({
+                    fk: f.fkColumn.name,
+                    relatedKey: f.relatedKeyColumn.name
+                })),
+                isCollection: r.isCollection,
+                isInverse: r.isInverseRelation
+            }))
+        }, undefined, 2);
+    }
+
     public static getModel(context: EntityContext) {
         const model = [] as IEntityModel[];
 
@@ -247,7 +274,12 @@ export default class ModelService {
                 writer.writeLine();
             }
 
-            writer.writeLine(`export const ${name}: IModel<I${name}> = new Model<I${name}>("${entityName}", ${JSON.stringify(keys)}, { ${defaults.join(",")} });`);
+            writer.writeLine(`export const ${name}: IModel<I${name}> = new Model<I${name}>(
+                            "${entityName}",
+                            ${JSON.stringify(keys)},
+                            { ${defaults.join(",")} },
+                            ${this.getSchema(entityType)}
+                        );`);
             writer.writeLine();
         }
 
