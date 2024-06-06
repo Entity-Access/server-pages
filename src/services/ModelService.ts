@@ -146,12 +146,12 @@ const fixRelatedSchemas = (schema) => {
                 continue;
             }
 
-            const { relations } = element;
+            const { relations } = element.schema;
             if (!relations) {
                 continue;
             }
             for (const iterator of relations) {
-                iterator.relatedModel = schema[iterator.name];
+                iterator.relatedModel = schema[iterator.relatedName];
             }
         }
     }
