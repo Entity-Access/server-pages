@@ -179,6 +179,10 @@ export default class extends Page {
                     continue;
                 }
 
+                if(!element) {
+                    continue;
+                }
+
                 // see what to with relation...
                 if(Array.isArray(element)) {
                     const arrayCopy = [];
