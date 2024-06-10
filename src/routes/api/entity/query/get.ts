@@ -13,6 +13,14 @@ export default class extends Page {
 
     async run() {
         const entity = this.childPath[0];
+
+        const cv = this.query.cv;
+        const cache = this.query.cache;
+
+        if (cv && cache) {
+            this.cacheControl = `public, max-age=${cache}`;
+        }
+
         return this.json(await EntityAccessServer.query(this.db, {
             entity,
             ... this.query,
