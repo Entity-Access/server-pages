@@ -118,7 +118,12 @@ export default class CookieService {
                 return {};
             }
 
+            if (typeof parsedCookie.expiry === "string") {
+                parsedCookie.expiry = new Date(parsedCookie.expiry);
+            }
+
             if(!await this.tokenService.verifyContent(parsedCookie, false)) {
+                console.warn(`Cookie Verification failed for ${parsedCookie.id}: ${parsedCookie.userID}`);
                 return {};
             }
 
@@ -126,10 +131,6 @@ export default class CookieService {
                 return {
                     sessionID: parsedCookie.id
                 };
-            }
-
-            if (typeof parsedCookie.expiry === "string") {
-                parsedCookie.expiry = new Date(parsedCookie.expiry);
             }
 
             const r = await this.createUserInfo(cookie, parsedCookie);
@@ -141,9 +142,11 @@ export default class CookieService {
         const usp = ServiceProvider.resolve(this, UserSessionProvider, true) ?? new UserSessionProvider();
         const r = await usp.getUserSession(parsedCookie);
         if (r === null) {
+            console.warn(`Failed to get userSession for ${parsedCookie.id}: ${parsedCookie.userID}`);
             return {};
         }
         if (r.expiry.getTime() < Date.now() || r.invalid) {
+            console.warn(`Session expired for ${parsedCookie.id}: ${parsedCookie.userID}`);
             return {};
         }
         cacheFR.register(r, r.userID);
