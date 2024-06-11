@@ -43,7 +43,7 @@ export default class extends Page {
             options.trace = console.log;
         }
         await this.db.saveChanges(options);
-        return this.json(GraphService.prepareGraph(body));
+        return this.json(GraphService.prepareGraph(body, this.sessionUser));
     }
 
     private async saveMultiple(body: any[]) {
@@ -57,7 +57,7 @@ export default class extends Page {
             options.trace = console.log;
         }
         await this.db.saveChanges(options);
-        return this.json(GraphService.prepareGraph(result));
+        return this.json(GraphService.prepareGraph(result, this.sessionUser));
     }
 
     private async delete(body: any) {

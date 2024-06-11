@@ -8,6 +8,7 @@ import External from "../decorators/External.js";
 import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAccessError.js";
 import { FilteredExpression } from "@entity-access/entity-access/dist/model/events/FilteredExpression.js";
 import type { IEntityQuery } from "@entity-access/entity-access/dist/model/IFilterWithParameter.js";
+import { SessionUser } from "../core/SessionUser.js";
 
 export type IQueryMethod = [string, string, ... any[]];
 
@@ -38,7 +39,10 @@ export interface IEntityQueryOptions {
 
 export default class EntityAccessServer {
 
-    public static async query(db: EntityContext, options: IEntityQueryOptions) {
+    public static async query(
+        db: EntityContext,
+        options: IEntityQueryOptions,
+        user: SessionUser) {
 
         db.verifyFilters = true;
         db.raiseEvents = true;
@@ -126,7 +130,7 @@ export default class EntityAccessServer {
             return GraphService.prepareGraph({
                 total,
                 items: await q.toArray()
-            });
+            }, user);
         }
 
         if (trace) {
@@ -135,7 +139,7 @@ export default class EntityAccessServer {
         return GraphService.prepareGraph({
             total: 0,
             items: await q.toArray()
-        });
+        }, user);
 
     }
 

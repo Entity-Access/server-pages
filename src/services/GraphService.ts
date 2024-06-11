@@ -1,23 +1,27 @@
 import SchemaRegistry from "@entity-access/entity-access/dist/decorators/SchemaRegistry.js";
 import ModelService from "./ModelService.js";
+import { ServiceProvider } from "@entity-access/entity-access/dist/di/di.js";
+import { SessionUser } from "../core/SessionUser.js";
 
 export default class GraphService {
+
+    static init = Symbol("init");
 
     static toGraph = Symbol("toGraph");
 
     static appendToGraph = Symbol("toGraph");
 
-    static prepareGraph(body) {
-        const r = this.prepare(body, new Map());
+    static prepareGraph(body, sp: SessionUser) {
+        const r = this.prepare(body, new Map(), sp);
         return r;
     }
 
-    private static prepare(body: any, visited: Map<any, any>) {
+    private static prepare(body: any, visited: Map<any, any>, sp: SessionUser) {
 
         if (Array.isArray(body)) {
             const r = [];
             for (const iterator of body) {
-                r.push(this.prepare(iterator, visited));
+                r.push(this.prepare(iterator, visited, sp));
             }
             return r;
         }
@@ -41,6 +45,8 @@ export default class GraphService {
         $id = visited.size + 1;
         visited.set(body, $id);
 
+        body[this.init]?.(sp);
+
         const appendToGraph = body[this.appendToGraph]?.() ?? {};
 
         const copy = {
@@ -63,7 +69,7 @@ export default class GraphService {
 
             if (Object.prototype.hasOwnProperty.call(body, key)) {
                 const element = body[key];
-                copy[key] = this.prepare(element, visited);
+                copy[key] = this.prepare(element, visited, sp);
                 continue;
             }
             const e = body[key];

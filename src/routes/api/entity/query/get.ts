@@ -25,7 +25,7 @@ export default class extends Page {
             entity,
             ... this.query,
             ... this.body
-        }));
+        }, this.sessionUser));
     }
 
 }
