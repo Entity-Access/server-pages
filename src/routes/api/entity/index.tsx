@@ -85,11 +85,13 @@ export default class extends Page {
         const entityType = this.db.model.getEntityType(type);
         Object.setPrototypeOf(body, entityType.typeClass.prototype);
         body.$type = entityType.entityName;
-        const events = this.db.eventsFor(type, true);
-
-        let q = source.asQuery();
 
         let operation = "modify";
+
+        if (body.$deleted) {
+            operation = "delete";
+        }
+
 
         let hasAllKeys = true;
 
@@ -117,17 +119,18 @@ export default class extends Page {
                 : condition;
         }
 
-        if (body.$deleted) {
-            operation = "delete";
-            q = events.delete(q);
-        }
-
 
         // const changes = { ... body };
         const changes = body;
         if(hasAllKeys) {
 
-            q = events.modify(q);
+            const events = this.db.eventsFor(type, true);
+            let q = source.asQuery();
+            if (operation === "delete") {
+                q = events.delete(q);
+            } else {
+                q = events.modify(q);
+            }
 
             const original = { ... body };
 
