@@ -136,6 +136,8 @@ export default class Content implements IPageResult {
 
     public contentType: string;
 
+    public suppressLog: boolean;
+
     public body: string | Buffer | XNode;
 
     public headers: OutgoingHttpHeaders;
@@ -169,7 +171,7 @@ export default class Content implements IPageResult {
         res.setHeader("content-type", contentType);
         res.statusCode = status;
         if (typeof body === "string") {
-            if (status >= 300) {
+            if (status >= 300 && !this.suppressLog) {
                 const u = user ? `User: ${user.userID},${user.userName}` : "User: Anonymous";
                 console.error(`${res.req.method} ${res.req.url}\n${status}\n${u}\n${body}`);
             } else {
@@ -180,7 +182,7 @@ export default class Content implements IPageResult {
         }
         if (body instanceof XNode) {
             const text = body.render();
-            if (status >= 300) {
+            if (status >= 300 && !this.suppressLog) {
                 console.error(`${res.req.method} ${res.req.url}\n${status}\n${text}`);
             } else {
                 res.compress ||= "gzip";
@@ -188,7 +190,7 @@ export default class Content implements IPageResult {
             res.send(text);
             return;
         }
-        if (status >= 300) {
+        if (status >= 300 && !this.suppressLog) {
             console.error(`${res.req.method} ${res.req.url}\n${status}\nBINARY DATA`);
         }
         res.send(body);
