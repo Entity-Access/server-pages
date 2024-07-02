@@ -123,8 +123,8 @@ export default abstract class Page<TInput = any, TQuery = any> {
         return new Redirect(location);
     }
 
-    protected notFound(): Content | Promise<Content> {
-        return Content.html(<HtmlDocument>
+    protected notFound(suppressLog = false): Content | Promise<Content> {
+        const c = Content.html(<HtmlDocument>
                 <head>
                     <title>Not found</title>
                 </head>
@@ -135,6 +135,8 @@ export default abstract class Page<TInput = any, TQuery = any> {
             </HtmlDocument>,
             404
         );
+        c.suppressLog = suppressLog;
+        return c;
     }
 
     protected serverError(error, status = 500): Content | Promise<Content> {
