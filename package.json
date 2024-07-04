@@ -7,12 +7,13 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "test-postgres": "node --enable-source-maps ./test.js",
+    "vb": "git add -A && git commit -m \"dep vb\" && npm version patch",
     "postversion": "git push --follow-tags"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@entity-access/entity-access": "^1.0.317",
+    "@entity-access/entity-access": "^1.0.318",
     "acme-client": "^5.3.0",
     "busboy": "^1.6.0",
     "cookie": "^0.6.0",
