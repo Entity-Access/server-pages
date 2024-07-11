@@ -18,6 +18,7 @@ import CookieService from "./services/CookieService.js";
 import TokenService from "./services/TokenService.js";
 import Executor from "./core/Executor.js";
 import { WebSocket } from "ws";
+import { UrlParser } from "./core/UrlParser.js";
 
 RegisterSingleton
 export default class ServerPages {
@@ -257,7 +258,8 @@ export default class ServerPages {
                     ? (await this.getRouteTreeForHost(hostName)) ?? this.root
                     : this.root;
 
-                const path = req.path.split("/").filter((x) => x);
+                
+                const path = UrlParser.parse(req.path);
                 const method = req.method;
                 const { pageClass, childPath } = (await root.getRoute({
                     scope,
