@@ -1,7 +1,7 @@
 import { createReadStream, createWriteStream, existsSync, read, statSync } from "fs";
 import { basename  } from "path";
 import mime from "mime-types";
-import internal, { Stream, Writable } from "stream";
+import internal, { Readable, Stream, Writable } from "stream";
 import { appendFile, copyFile, open, readFile, writeFile } from "fs/promises";
 
 
@@ -79,7 +79,36 @@ export class LocalFile {
         return writeFile(this.path, buffer);
     }
 
-    public async *readBuffers(bufferSize = 16 * 1024 * 1024) {
+    public async *lines() {
+        let line = "";
+        const trimEndR = (t: string) => {
+            if (t.endsWith("\r")) {
+                return t.substring(0, t.length - 1);
+            }
+            return t;
+        };
+        for await(const buffer of this.readBuffers(4 * 1024 * 1024)) {
+            let start = 0;
+            do {
+
+                const index = buffer.indexOf("\n", start);
+                if (index === -1) {
+                    line += buffer.toString("utf8", start);
+                    break;
+                }
+
+                yield trimEndR(line + buffer.toString("utf8", start, index));
+                start = index + 1;
+                line = "";
+            } while (true);
+        }
+        line = trimEndR(line);
+        if (line) {
+            yield line;
+        }
+    }
+
+    public async *readBuffers(bufferSize = 16 * 1024 * 1024, signal?: AbortSignal) {
         const size = this.contentSize;
         let buffer = Buffer.alloc(bufferSize);
         for (let offset = 0; offset < size; offset += bufferSize) {
@@ -88,6 +117,9 @@ export class LocalFile {
                 : bufferSize;
             let fd = await open(this.path);
             try {
+                if (signal?.aborted) {
+                    throw new Error("aborted");
+                }
                 if (buffer.length !== length) {
                     buffer = Buffer.alloc(length);
                 }
