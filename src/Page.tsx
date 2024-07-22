@@ -123,7 +123,7 @@ export default abstract class Page<TInput = any, TQuery = any> {
         return new Redirect(location);
     }
 
-    protected notFound(suppressLog = false): Content | Promise<Content> {
+    protected notFound(suppressLog = true): Content | Promise<Content> {
         const c = Content.html(<HtmlDocument>
                 <head>
                     <title>Not found</title>
