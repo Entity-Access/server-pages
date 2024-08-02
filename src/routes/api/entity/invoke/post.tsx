@@ -51,7 +51,7 @@ export default class extends Page {
             .firstOrFail();
 
         // now execute external method
-        const result = await events[methodName](entity, ... args);
+        const result = await events[methodName](e, ... args);
 
         return this.json(result ?? {});
     }
