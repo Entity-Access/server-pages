@@ -322,7 +322,7 @@ export default class ModelService {
             const events = context.eventsFor(entityType.typeClass, false);
 
             const schema = this.getSchema(entityType, events);
-            let methodNames;
+            let methodNames = "";
             if (schema.methods) {
                 methodNames = "," + JSON.stringify(schema.methods);
             }
