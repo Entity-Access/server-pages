@@ -166,13 +166,13 @@ export default class ModelService {
     }
 
     public static getSchema(type: EntityType, events: EntityEvents<any>) {
-        const methods = [];
+        const methods = {};
 
         if (events) {
             for (const key in events) {
                 if (Object.prototype.hasOwnProperty.call(events, key)) {
                     if(External.isExternal(events, key)) {
-                        methods.push(key);
+                        methods[key] = "external";
                     }
                 }
             }
