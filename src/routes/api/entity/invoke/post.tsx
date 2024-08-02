@@ -4,8 +4,8 @@ import Page from "../../../../Page.js";
 import { Prepare } from "../../../../decorators/Prepare.js";
 import EntityContext from "@entity-access/entity-access/dist/model/EntityContext.js";
 import SchemaRegistry from "@entity-access/entity-access/dist/decorators/SchemaRegistry.js";
-import ExternalQuery from "../../../../decorators/ExternalQuery.js";
 import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAccessError.js";
+import ExternalInvoke from "../../../../decorators/ExternalInvoke.js";
 
 export default class extends Page {
 
@@ -28,8 +28,8 @@ export default class extends Page {
 
         const events = this.db.eventsFor(entityClass, true);
 
-        if(!ExternalQuery.isExternal(events, methodName)) {
-            throw new EntityAccessError(`${methodName} is not marked as an external function`);
+        if(!ExternalInvoke.isExternal(events, methodName)) {
+            throw new EntityAccessError(`${methodName} is not marked as an externally invokable method`);
         }
 
         // body should contain entity and args
