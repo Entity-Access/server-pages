@@ -4,7 +4,7 @@ import EntityContext from "@entity-access/entity-access/dist/model/EntityContext
 import { StringHelper } from "./StringHelper.js";
 import EntityQuery from "@entity-access/entity-access/dist/model/EntityQuery.js";
 import GraphService from "./GraphService.js";
-import External from "../decorators/External.js";
+import ExternalQuery from "../decorators/ExternalQuery.js";
 import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAccessError.js";
 import { FilteredExpression } from "@entity-access/entity-access/dist/model/events/FilteredExpression.js";
 import type { IEntityQuery } from "@entity-access/entity-access/dist/model/IFilterWithParameter.js";
@@ -80,7 +80,7 @@ export default class EntityAccessServer {
         const events = db.eventsFor(entityClass, true);
 
         if (queryFunction) {
-            if(!External.isExternal(events, queryFunction)) {
+            if(!ExternalQuery.isExternal(events, queryFunction)) {
                 throw new EntityAccessError(`${queryFunction} is not marked as an external function`);
             }
         }

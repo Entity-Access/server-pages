@@ -6,7 +6,8 @@ import IndentedStringWriter from "./IndentedStringWriter.js";
 import DateTime from "@entity-access/entity-access/dist/types/DateTime.js";
 import { IClassOf } from "@entity-access/entity-access/dist/decorators/IClassOf.js";
 import EntityEvents from "@entity-access/entity-access/dist/model/events/EntityEvents.js";
-import External from "../decorators/External.js";
+import ExternalQuery from "../decorators/ExternalQuery.js";
+import ExternalInvoke from "../decorators/ExternalInvoke.js";
 
 const modelProperties = Symbol("modelProperty");
 
@@ -183,20 +184,18 @@ export default class ModelService {
     }
 
     public static getSchema(type: EntityType, events: EntityEvents<any>) {
-        let methods = {};
-        let hasMethods = false;
+        let queries = void 0;
+        let actions = void 0;
 
         if (events) {
             for (const key of allKeys(events)) {
-                if(External.isExternal(events, key)) {
-                    hasMethods = true;
-                    methods[key] = "external";
+                if(ExternalQuery.isExternal(events, key)) {
+                    (queries ??= {})[key] = "external";
+                }
+                if(ExternalInvoke.isExternal(events, key)) {
+                    (actions ??= {})[key] = "external";
                 }
             }
-        }
-
-        if (!hasMethods) {
-            methods = void 0;
         }
 
         return {
@@ -223,7 +222,8 @@ export default class ModelService {
                 isInverse: r.isInverseRelation,
                 relatedName: r.relatedEntity.entityName
             })),
-            methods
+            queries,
+            actions
         };
     }
 
@@ -337,12 +337,16 @@ export default class ModelService {
             const events = context.eventsFor(entityType.typeClass, false);
 
             const schema = this.getSchema(entityType, events);
-            let methodNames = "";
-            if (schema.methods) {
-                methodNames = "," + JSON.stringify(schema.methods);
+            let queries = ",any";
+            if (schema.queries) {
+                queries = "," + JSON.stringify(schema.queries);
+            }
+            let actions = "";
+            if (schema.actions) {
+                actions = "," + JSON.stringify(schema.actions);
             }
 
-            writer.writeLine(`export const ${name}: IModel<I${name}${methodNames}> = new Model<I${name}>(
+            writer.writeLine(`export const ${name}: IModel<I${name}${queries},${actions}> = new Model<I${name}>(
                             "${entityName}",
                             ${JSON.stringify(keys)},
                             { ${defaults.join(",")} },
