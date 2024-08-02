@@ -341,12 +341,12 @@ export default class ModelService {
             if (schema.queries) {
                 queries = "," + JSON.stringify(schema.queries);
             }
-            let actions = "";
+            let actions = ",any";
             if (schema.actions) {
                 actions = "," + JSON.stringify(schema.actions);
             }
 
-            writer.writeLine(`export const ${name}: IModel<I${name}${queries},${actions}> = new Model<I${name}>(
+            writer.writeLine(`export const ${name}: IModel<I${name}${queries}${actions}> = new Model<I${name}>(
                             "${entityName}",
                             ${JSON.stringify(keys)},
                             { ${defaults.join(",")} },
