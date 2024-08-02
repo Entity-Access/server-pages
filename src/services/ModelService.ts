@@ -185,7 +185,7 @@ export default class ModelService {
         let hasMethods = false;
 
         if (events) {
-            for (const key in allKeys(events)) {
+            for (const key of allKeys(events)) {
                 if(External.isExternal(events, key)) {
                     hasMethods = true;
                     methods[key] = "external";
