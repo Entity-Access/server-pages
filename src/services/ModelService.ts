@@ -5,6 +5,8 @@ import EntityContext from "@entity-access/entity-access/dist/model/EntityContext
 import IndentedStringWriter from "./IndentedStringWriter.js";
 import DateTime from "@entity-access/entity-access/dist/types/DateTime.js";
 import { IClassOf } from "@entity-access/entity-access/dist/decorators/IClassOf.js";
+import EntityEvents from "@entity-access/entity-access/dist/model/events/EntityEvents.js";
+import External from "../decorators/External.js";
 
 const modelProperties = Symbol("modelProperty");
 
@@ -163,7 +165,19 @@ export default class ModelService {
         return (t.prototype?.[modelProperties] as IModelProperties)?.[key]?.ignore;
     }
 
-    public static getSchema(type: EntityType) {
+    public static getSchema(type: EntityType, events: EntityEvents<any>) {
+        const methods = [];
+
+        if (events) {
+            for (const key in events) {
+                if (Object.prototype.hasOwnProperty.call(events, key)) {
+                    if(External.isExternal(events, key)) {
+                        methods.push(key);
+                    }
+                }
+            }
+        }
+
         return JSON.stringify({
             name: type.name,
             keys: type.keys.map((k) => ({
@@ -187,7 +201,8 @@ export default class ModelService {
                 isCollection: r.isCollection,
                 isInverse: r.isInverseRelation,
                 relatedName: r.relatedEntity.entityName
-            }))
+            })),
+            methods
         });
     }
 
@@ -298,11 +313,13 @@ export default class ModelService {
                 writer.writeLine();
             }
 
+            const events = context.eventsFor(entityType.typeClass, false);
+
             writer.writeLine(`export const ${name}: IModel<I${name}> = new Model<I${name}>(
                             "${entityName}",
                             ${JSON.stringify(keys)},
                             { ${defaults.join(",")} },
-                            ${this.getSchema(entityType)}
+                            ${this.getSchema(entityType, events)}
                         );`);
 
             writer.writeLine(`modelEntitySchemas["${name}"] = ${name};`)
