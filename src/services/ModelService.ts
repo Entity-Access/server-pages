@@ -171,11 +171,9 @@ export default class ModelService {
 
         if (events) {
             for (const key in Object.getPrototypeOf(events)) {
-                if (Object.prototype.hasOwnProperty.call(events, key)) {
-                    if(External.isExternal(events, key)) {
-                        hasMethods = true;
-                        methods[key] = "external";
-                    }
+                if(External.isExternal(events, key)) {
+                    hasMethods = true;
+                    methods[key] = "external";
                 }
             }
         }
