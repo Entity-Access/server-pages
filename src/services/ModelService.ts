@@ -166,19 +166,25 @@ export default class ModelService {
     }
 
     public static getSchema(type: EntityType, events: EntityEvents<any>) {
-        const methods = {};
+        let methods = {};
+        let hasMethods = false;
 
         if (events) {
             for (const key in events) {
                 if (Object.prototype.hasOwnProperty.call(events, key)) {
                     if(External.isExternal(events, key)) {
+                        hasMethods = true;
                         methods[key] = "external";
                     }
                 }
             }
         }
 
-        return JSON.stringify({
+        if (!hasMethods) {
+            methods = void 0;
+        }
+
+        return {
             name: type.name,
             keys: type.keys.map((k) => ({
                 name: k.name,
@@ -203,7 +209,7 @@ export default class ModelService {
                 relatedName: r.relatedEntity.entityName
             })),
             methods
-        });
+        };
     }
 
     public static getModel(context: EntityContext) {
@@ -315,11 +321,17 @@ export default class ModelService {
 
             const events = context.eventsFor(entityType.typeClass, false);
 
-            writer.writeLine(`export const ${name}: IModel<I${name}> = new Model<I${name}>(
+            const schema = this.getSchema(entityType, events);
+            let methodNames;
+            if (schema.methods) {
+                methodNames = "," + JSON.stringify(schema.methods);
+            }
+
+            writer.writeLine(`export const ${name}: IModel<I${name}${methodNames}> = new Model<I${name}>(
                             "${entityName}",
                             ${JSON.stringify(keys)},
                             { ${defaults.join(",")} },
-                            ${this.getSchema(entityType, events)}
+                            ${JSON.stringify(schema)}
                         );`);
 
             writer.writeLine(`modelEntitySchemas["${name}"] = ${name};`)
