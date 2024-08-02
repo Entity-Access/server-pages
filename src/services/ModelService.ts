@@ -164,7 +164,9 @@ function* allKeys(obj) {
     let start = obj;
     while(start) {
         for (const k in Object.getOwnPropertyDescriptors(start)) {
-            yield k;
+            if (k !== "constructor") {
+                yield k;
+            }
         }
         start = Object.getPrototypeOf(start);
         if (start === Object.prototype) {
