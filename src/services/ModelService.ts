@@ -159,6 +159,21 @@ const fixRelatedSchemas = (schema) => {
     }
 };
 
+function* allKeys(obj) {
+
+    let start = obj;
+    while(start) {
+        for (const k in Object.getOwnPropertyDescriptors(start)) {
+            yield k;
+        }
+        start = Object.getPrototypeOf(start);
+        if (start === Object.prototype) {
+            break;
+        }
+    }
+
+};
+
 export default class ModelService {
 
     public static ignore(t: IClassOf<any>, key: string) {
@@ -170,7 +185,7 @@ export default class ModelService {
         let hasMethods = false;
 
         if (events) {
-            for (const key in Object.getPrototypeOf(events)) {
+            for (const key in allKeys(events)) {
                 if(External.isExternal(events, key)) {
                     hasMethods = true;
                     methods[key] = "external";
