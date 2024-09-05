@@ -293,7 +293,7 @@ export default class ServerPages {
                                         ... error.errorModel ?? {},
                                         message: error.message ?? error,
                                     }
-                            , 500).send(resp);
+                            , error.errorModel?.status ?? 500).send(resp);
                             return;
                         }
 
