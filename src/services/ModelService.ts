@@ -57,9 +57,10 @@ export interface IEntityModel {
 }
 
 const columnFrom = (c: IColumn): IEntityPropertyInfo => {
+    let type = c.type?.name ?? c.type.toString();
     return {
         name: c.name,
-        type: c.type?.name ?? c.type.toString(),
+        type,
         isNullable: !!c.nullable
     };
 };
