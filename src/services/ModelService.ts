@@ -39,6 +39,8 @@ export const ReadOnlyJsonProperty =  JsonProperty({ readonly: true });
 export interface IEntityKey {
     name: string;
     type: string;
+    dataType?: string;
+    length?: number;
 }
 
 export interface IEntityPropertyInfo extends IEntityKey {
@@ -57,10 +59,14 @@ export interface IEntityModel {
 }
 
 const columnFrom = (c: IColumn): IEntityPropertyInfo => {
-    let type = c.type?.name ?? c.type.toString();
+    const type = c.type?.name ?? c.type.toString();
+    const length = c.length;
+    const dataType = c.dataType;
     return {
         name: c.name,
         type,
+        dataType,
+        length,
         isNullable: !!c.nullable
     };
 };
