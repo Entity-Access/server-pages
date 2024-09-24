@@ -211,12 +211,16 @@ export default class ModelService {
                 name: k.name,
                 type: getJSType({ type: k.type }),
                 generated: k.generated,
+                dataType: k.dataType,
+                length: k.length,
                 default: getDefaults(k)
             })),
             properties: type.nonKeys.map((k) => ({
                 name: k.name,
                 type: getJSType({ type: k.type }),
                 generated: k.generated,
+                dataType: k.dataType,
+                length: k.length,
                 default: getDefaults(k)
             })),
             relations: type.relations.map((r) => ({
