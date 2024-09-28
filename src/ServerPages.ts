@@ -190,6 +190,8 @@ export default class ServerPages {
             websocket.setSocket(stream, Buffer.alloc(0), {
                 maxPayload: 104857600,
                 skipUTF8Validation: false,
+                allowSynchronousEvents: false,
+                handshakeTimeout: 5000
             });
             const path = headers[":path"];
             const url = new URL(path, `http://${headers[":authority"] ?? headers.host}`);
