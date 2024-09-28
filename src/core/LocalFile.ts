@@ -5,7 +5,7 @@ import mime from "mime-types";
 import internal, { Readable, Stream, Writable } from "stream";
 import { appendFile, copyFile, open, readFile, writeFile } from "fs/promises";
 
-export class LocalFile implements Disposable {
+export class LocalFile implements AsyncDisposable {
 
     public readonly contentType: string;
 
@@ -26,11 +26,10 @@ export class LocalFile implements Disposable {
     constructor(public readonly path: string, name?: string, mimeType?: string, private onDispose?: () => void) {
         this.fileName = name ?? basename(path);
         this.contentType = (mimeType || mime.lookup(this.fileName)) || "application/octet-stream";
-        this[Symbol.dispose] = onDispose;
     }
 
-    [Symbol.dispose]() {
-        // do nothing...
+    async [Symbol.asyncDispose]() {
+        return this.onDispose?.();
     }
 
     public copyTo(dest: LocalFile) {
