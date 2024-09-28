@@ -22,7 +22,11 @@ import { UrlParser } from "./core/UrlParser.js";
 
 export const wsData = Symbol("wsData");
 
-
+const isConnect = (req: http2.Http2ServerRequest) => {
+    return /^connect/i.test(req.method)
+        || /^connect/i.test(req.headers[":method"])
+        || /^upgrade/i.test(req.headers["connection"])
+};
 export default class ServerPages {
 
     public static create(globalServiceProvider: ServiceProvider = new ServiceProvider()) {
@@ -106,7 +110,7 @@ export default class ServerPages {
                         settings: {
                             enableConnectProtocol: createSocketService
                         }
-                    }, (req, res) => req.method !== "CONNECT" && this.process(req, res, trustProxy))
+                    }, (req, res) => !isConnect(req) && this.process(req, res, trustProxy))
 
                     if (acmeOptions) {
                         const cs = ServiceProvider.resolve(this, ChallengeServer);
@@ -119,7 +123,7 @@ export default class ServerPages {
                         settings: {
                             enableConnectProtocol: createSocketService
                         }
-                    },(req, res) => req.method !== "CONNECT" && req.headers[":method"] !== "CONNECT" && this.process(req, res, trustProxy))
+                    },(req, res) => !isConnect(req) && this.process(req, res, trustProxy))
                     if (!disableNoTlsWarning) {
                         console.warn("Http2 without SSL should not be used in production");
                     }
