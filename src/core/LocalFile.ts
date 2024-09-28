@@ -1,8 +1,42 @@
-import { createReadStream, createWriteStream, existsSync, read, statSync } from "fs";
+import { createReadStream, createWriteStream, existsSync, read, statSync, openSync } from "fs";
+import * as fs from "fs";
 import { basename  } from "path";
 import mime from "mime-types";
 import internal, { Readable, Stream, Writable } from "stream";
 import { appendFile, copyFile, open, readFile, writeFile } from "fs/promises";
+
+
+
+const deleteFileOnFinalize = new FinalizationRegistry<FileHandle>((dfh) => {
+    dfh.delete();
+});
+
+class FileHandle {
+    private id: number;
+    constructor(weakOwner, private path) {
+        this.id = openSync(path, "r", 0o666);
+        deleteFileOnFinalize.register(weakOwner, this, this);
+    }
+
+    delete() {
+        if(!this.id) {
+            return;
+        }
+        deleteFileOnFinalize.unregister(this);
+        try {
+            fs.closeSync(this.id);
+        } catch (error) {
+            console.error(error);
+        }
+        try {
+            fs.unlinkSync(this.path);
+        } catch (error) {
+            console.error(error);
+        }
+        this.id = void 0;
+        this.path = void 0;
+    }
+}
 
 
 export class LocalFile {
@@ -10,6 +44,8 @@ export class LocalFile {
     public readonly contentType: string;
 
     public readonly fileName: string;
+
+    private fd: FileHandle;
 
     public get exists() {
         return existsSync(this.path);
@@ -23,10 +59,18 @@ export class LocalFile {
         return s.size;
     }
 
-    constructor(public readonly path: string, name?: string, mimeType?: string, private onDispose?: () => void) {
+    constructor(public readonly path: string, name?: string, mimeType?: string, private onDispose?: () => void, deleteOnClose = false) {
         this.fileName = name ?? basename(path);
         this.contentType = (mimeType || mime.lookup(this.fileName)) || "application/octet-stream";
-        this[Symbol.asyncDispose] = onDispose;
+        if (deleteOnClose) {
+            this.fd = new FileHandle(this, path);
+            this[Symbol.asyncDispose] = () => {
+                onDispose();
+                this.fd.delete();
+            };
+        } else {
+            this[Symbol.asyncDispose] = onDispose;
+        }
     }
 
     public copyTo(dest: LocalFile) {
@@ -68,6 +112,7 @@ export class LocalFile {
     }
 
     public async delete() {
+        this.fd?.delete();
         return this.onDispose?.();
     }
 
