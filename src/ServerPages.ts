@@ -208,6 +208,9 @@ export default class ServerPages {
                 method: "GET",
                 headers,
                 websocket,
+                connection: {
+                    encrypted: true
+                },
                 _query
             };
             // (socketServer.engine as any)
