@@ -20,7 +20,9 @@ import Executor from "./core/Executor.js";
 import { WebSocket } from "ws";
 import { UrlParser } from "./core/UrlParser.js";
 
-RegisterSingleton
+export const wsData = Symbol("wsData");
+
+
 export default class ServerPages {
 
     public static create(globalServiceProvider: ServiceProvider = new ServiceProvider()) {
@@ -117,7 +119,7 @@ export default class ServerPages {
                         settings: {
                             enableConnectProtocol: createSocketService
                         }
-                    },(req, res) => req.method !== "CONNECT" && this.process(req, res, trustProxy))
+                    },(req, res) => req.method !== "CONNECT" && req.headers[":method"] !== "CONNECT" && this.process(req, res, trustProxy))
                     if (!disableNoTlsWarning) {
                         console.warn("Http2 without SSL should not be used in production");
                     }
@@ -148,61 +150,7 @@ export default class ServerPages {
                 });
 
                 if (protocol === "http2" || protocol === "http2NoTLS") {
-                    httpServer.prependListener("stream", (stream, headers) => {
-                        if (headers[":method"] === "CONNECT") {
-                            try {
-                                
-                                // this keeps socket alive...
-                                stream.setTimeout(0);
-                                (stream as any).setKeepAlive?.(true, 0);
-                                (stream as any).setNoDelay = function() {
-                                    // this will keep the stream open
-                                };
-                                const websocket = new WebSocket(null, void 0, {
-                                    headers
-                                });
-                                websocket.setSocket(stream, Buffer.alloc(0), {
-                                    maxPayload: 104857600,
-                                    skipUTF8Validation: false,
-                                });
-                                const path = headers[":path"];
-                                const url = new URL(path, "http://a");
-                                const _query = {};
-                                for (const [key, value] of url.searchParams.entries()) {
-                                    _query[key] = value;
-                                }
-                                // forcing upgrade
-                                headers["upgrade"] = "websocket";
-                                headers["connection"] = "upgrade";
-                                // fake build request
-                                const req = {
-                                    url: path,
-                                    method: "GET",
-                                    headers,
-                                    websocket,
-                                    _query
-                                };
-                                // (socketServer.engine as any)
-                                //     .onWebSocket(req, stream, websocket);
-                                stream.respond({
-                                    ":status": 200
-                                });
-                                // (socketServer.engine as any)
-                                //     .handleUpgrade(req, stream, Buffer.from([]));
-                                // (socketServer.engine as any)
-                                //     .onWebSocket(req, stream, websocket);
-                                (socketServer.engine as any)
-                                    .handshake("websocket", req, () => {
-                                        try { stream.end(); } catch {}
-                                    });
-                                // stream.respond({
-                                //     ":status": 200
-                                // });
-                            } catch (error) {
-                                console.error(error);
-                            }
-                        }
-                    });
+                    httpServer.prependListener("stream", (stream, headers) => this.forwardConnect(socketServer, stream, headers));
                 }
             }
 
@@ -211,6 +159,63 @@ export default class ServerPages {
             console.error(error);
         }
         return null;
+    }
+
+    private async forwardConnect(socketServer, stream: http2.ServerHttp2Stream, headers: http2.IncomingHttpHeaders) {
+        if (headers[":method"] !== "CONNECT") {
+            return;
+        }
+        try {
+            
+            // this keeps socket alive...
+            stream.setTimeout(0);
+            (stream as any).setKeepAlive?.(true, 0);
+            (stream as any).setNoDelay = function() {
+                // this will keep the stream open
+            };
+            const websocket = new WebSocket(null, void 0, {
+                headers
+            });
+            websocket.setSocket(stream, Buffer.alloc(0), {
+                maxPayload: 104857600,
+                skipUTF8Validation: false,
+            });
+            const path = headers[":path"];
+            const url = new URL(path, "http://a");
+            const _query = {};
+            for (const [key, value] of url.searchParams.entries()) {
+                _query[key] = value;
+            }
+            // forcing upgrade
+            headers["upgrade"] = "websocket";
+            headers["connection"] = "upgrade";
+            // fake build request
+            const req = {
+                url: path,
+                method: "GET",
+                headers,
+                websocket,
+                _query
+            };
+            // (socketServer.engine as any)
+            //     .onWebSocket(req, stream, websocket);
+            stream.respond({
+                ":status": 200
+            });
+            // (socketServer.engine as any)
+            //     .handleUpgrade(req, stream, Buffer.from([]));
+            // (socketServer.engine as any)
+            //     .onWebSocket(req, stream, websocket);
+            (socketServer.engine as any)
+                .handshake("websocket", req, () => {
+                    try { stream.end(); } catch {}
+                });
+            // stream.respond({
+            //     ":status": 200
+            // });
+        } catch (error) {
+            console.error(error);
+        }
     }
 
     protected async process(req: any, resp: any, trustProxy: boolean) {
