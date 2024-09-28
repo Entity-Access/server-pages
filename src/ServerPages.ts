@@ -19,6 +19,7 @@ import TokenService from "./services/TokenService.js";
 import Executor from "./core/Executor.js";
 import { WebSocket } from "ws";
 import { UrlParser } from "./core/UrlParser.js";
+import { createConnection } from "node:net";
 
 export const wsData = Symbol("wsData");
 
@@ -177,16 +178,21 @@ export default class ServerPages {
             (stream as any).setNoDelay = function() {
                 // this will keep the stream open
             };
-            const websocket = new WebSocket(null, void 0, {
-                headers
-            });
+            // const websocket = new WebSocket(null, void 0, {
+            //     headers
+            // });
 
-            websocket.setSocket(stream, Buffer.alloc(0), {
-                maxPayload: 104857600,
-                skipUTF8Validation: false,
-            });
+            // websocket.setSocket(stream, Buffer.alloc(0), {
+            //     maxPayload: 104857600,
+            //     skipUTF8Validation: false,
+            // });
             const path = headers[":path"];
-            const url = new URL(path, "http://a");
+            const url = new URL(path, `http://${headers[":authority"] ?? headers.host}`);
+            const websocket = new WebSocket(url, {
+                createConnection() {
+                    return stream;
+                }
+            })
             const _query = {};
             for (const [key, value] of url.searchParams.entries()) {
                 _query[key] = value;
