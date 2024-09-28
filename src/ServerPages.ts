@@ -128,6 +128,9 @@ export default class ServerPages {
                     // if (!disableNoTlsWarning) {
                     //     console.warn("Http2 without SSL should not be used in production");
                     // }
+                    httpServer.on("connect", () => {
+                        // undocumented and needed.
+                    });
                     break;
                 default:
                     throw new Error(`Unknown protocol ${protocol}`);
