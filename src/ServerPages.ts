@@ -112,9 +112,8 @@ export default class ServerPages {
                     }
 
                     break;
-                default:
-                    httpServer = http2.createSecureServer({
-                        allowHTTP1,
+                case "http2NoTLS":
+                    httpServer = http2.createServer({
                         settings: {
                             enableConnectProtocol: createSocketService
                         }
@@ -123,6 +122,8 @@ export default class ServerPages {
                         console.warn("Http2 without SSL should not be used in production");
                     }
                     break;
+                default:
+                    throw new Error(`Unknown protocol ${protocol}`);
             }
 
 
