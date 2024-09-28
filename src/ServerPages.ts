@@ -176,6 +176,7 @@ export default class ServerPages {
             const websocket = new WebSocket(null, void 0, {
                 headers
             });
+
             websocket.setSocket(stream, Buffer.alloc(0), {
                 maxPayload: 104857600,
                 skipUTF8Validation: false,
