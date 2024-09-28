@@ -177,7 +177,6 @@ export default class ServerPages {
             
             // this keeps socket alive...
             stream.setTimeout(0);
-            stream.session.socket.setNoDelay();
             (stream as any).setKeepAlive?.(true, 0);
             (stream as any).setNoDelay = function() {
                 // this will keep the stream open
