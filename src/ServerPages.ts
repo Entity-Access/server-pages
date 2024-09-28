@@ -124,9 +124,9 @@ export default class ServerPages {
                             enableConnectProtocol: createSocketService
                         }
                     },(req, res) => !isConnect(req) && this.process(req, res, trustProxy))
-                    if (!disableNoTlsWarning) {
-                        console.warn("Http2 without SSL should not be used in production");
-                    }
+                    // if (!disableNoTlsWarning) {
+                    //     console.warn("Http2 without SSL should not be used in production");
+                    // }
                     break;
                 default:
                     throw new Error(`Unknown protocol ${protocol}`);
