@@ -192,7 +192,8 @@ export default class ServerPages {
                 createConnection() {
                     return stream;
                 }
-            })
+            });
+            websocket._socket = stream.session.socket;
             const _query = {};
             for (const [key, value] of url.searchParams.entries()) {
                 _query[key] = value;
