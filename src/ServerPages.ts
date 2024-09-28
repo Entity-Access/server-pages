@@ -178,22 +178,16 @@ export default class ServerPages {
             (stream as any).setNoDelay = function() {
                 // this will keep the stream open
             };
-            // const websocket = new WebSocket(null, void 0, {
-            //     headers
-            // });
+            const websocket = new WebSocket(null, void 0, {
+                headers
+            });
 
-            // websocket.setSocket(stream, Buffer.alloc(0), {
-            //     maxPayload: 104857600,
-            //     skipUTF8Validation: false,
-            // });
+            websocket.setSocket(stream, Buffer.alloc(0), {
+                maxPayload: 104857600,
+                skipUTF8Validation: false,
+            });
             const path = headers[":path"];
             const url = new URL(path, `http://${headers[":authority"] ?? headers.host}`);
-            const websocket = new WebSocket(url, {
-                createConnection() {
-                    return stream;
-                }
-            });
-            websocket._socket = stream.session.socket;
             const _query = {};
             for (const [key, value] of url.searchParams.entries()) {
                 _query[key] = value;
@@ -211,9 +205,7 @@ export default class ServerPages {
             };
             // (socketServer.engine as any)
             //     .onWebSocket(req, stream, websocket);
-            stream.respond({
-                ":status": 200
-            });
+            stream.respond({ ":status": 200 }, { endStream: false });
             // (socketServer.engine as any)
             //     .handleUpgrade(req, stream, Buffer.from([]));
             // (socketServer.engine as any)
