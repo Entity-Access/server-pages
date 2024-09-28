@@ -117,7 +117,9 @@ export default class ServerPages {
                         const cs = ServiceProvider.resolve(this, ChallengeServer);
                         cs.start();
                     }
-
+                    httpServer.on("connect", () => {
+                        // undocumented and needed.
+                    });
                     break;
                 case "http2NoTLS":
                     httpServer = http2.createServer({
