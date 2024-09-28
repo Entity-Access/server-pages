@@ -39,7 +39,7 @@ class FileHandle {
 }
 
 
-export class LocalFile {
+export class LocalFile implements Disposable {
 
     public readonly contentType: string;
 
@@ -64,13 +64,23 @@ export class LocalFile {
         this.contentType = (mimeType || mime.lookup(this.fileName)) || "application/octet-stream";
         if (deleteOnClose) {
             this.fd = new FileHandle(this, path);
-            this[Symbol.asyncDispose] = () => {
-                onDispose();
+            this[Symbol.dispose] = () => {
+                if (onDispose) {
+                    try {
+                        onDispose();
+                    } catch (error) {
+                        console.error(error);
+                    }
+                }
                 this.fd.delete();
             };
         } else {
-            this[Symbol.asyncDispose] = onDispose;
+            this[Symbol.dispose] = onDispose;
         }
+    }
+
+    [Symbol.dispose]() {
+        // do nothing...
     }
 
     public copyTo(dest: LocalFile) {
