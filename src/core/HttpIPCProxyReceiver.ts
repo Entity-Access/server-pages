@@ -2,6 +2,7 @@ import http from "http";
 import http2 from "http2";
 import { createServer, Socket, Server as SocketServer } from "net";
 import { remoteAddressSymbol } from "./remoteAddressSymbol.js";
+import { Readable, Stream } from "stream";
 
 const endSocket = (s: Socket) => {
     try {
@@ -9,7 +10,24 @@ const endSocket = (s: Socket) => {
     } catch {}
 };
 
-const bound = Symbol("bound");
+const readLine = (s: Socket) => new Promise<string>((resolve, reject) => {
+
+    const ss = s as Readable;
+    let buffer = Buffer.from("");
+    const reader = () => {
+        const n = ss.read(1);
+        if (n === null || n === void 0) {
+            return;
+        }
+        if (n === 10) {
+            ss.off("readable", reader);
+            resolve(buffer.toString("utf8"));
+            return;
+        }
+        buffer = Buffer.concat([buffer, Buffer.from([n]) ]);
+    };
+    ss.on("readable", reader);
+});
 
 /**
  * HttpIPCProxyReceiver class creates a simple socket server, this server
@@ -23,53 +41,26 @@ export default class HttpIPCProxyReceiver {
 
     server: SocketServer;
 
-    onConnection = (socket: Socket) => {
-        const getAddress = (buffer: Buffer) => {
+    onConnection = async (socket: Socket) => {
+        try {
 
-            try {
-
-                socket.off("data", getAddress);
-
-                if(socket[bound]) {
-                    return;
-                }
-
-                socket[bound] = true;
-
-
-                const n = buffer.indexOf("\n");
+            let address = await readLine(socket);
+            if (!address.startsWith("fwd>")) {
+                throw new Error(`Invalid HTTP IPC Fowrd Protocol, received ${address}`);
+            }
             
-                let address = buffer.subarray(0, n).toString("utf8");
+            address = address.substring(4);
 
+            socket[remoteAddressSymbol] = address;
+            this.forward.emit("connection", socket);
 
-                if (!address.startsWith("fwd>")) {
-                    throw new Error(`Invalid HTTP IPC Fowrd Protocol, received ${address}`);
-                }
-                
-                address = address.substring(4);
-            
-                const head = buffer.subarray(n);
-            
-                if (head.length) {
-                    socket.unshift(head);
-                }
-            
-                socket[remoteAddressSymbol] = address;
-            
-            
-                this.forward.emit("connection", socket);
-            } catch (error) {
+            socket.on("error", (error) => {
                 console.error(error);
                 endSocket(socket);
-            }
-        
-        };
-
-        socket.on("data", getAddress);
-        socket.on("error", (error) => {
-            console.error(error);
-            endSocket(socket);
-        });
+            });
+        } catch (error) {
+            
+        }
 
     };
 
