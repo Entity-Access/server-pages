@@ -39,11 +39,14 @@ export default class HttpIPCProxyReceiver {
 
                 const n = buffer.indexOf("\n");
             
-                const address = buffer.subarray(1, n).toString("utf8");
+                let address = buffer.subarray(1, n).toString("utf8");
 
-                if (!address.startsWith("fwd:")) {
+
+                if (!address.startsWith("fwd>")) {
                     throw new Error(`Invalid HTTP IPC Fowrd Protocol, received ${address}`);
                 }
+                
+                address = address.substring(4);
             
                 const head = buffer.subarray(n + 1);
             
