@@ -20,7 +20,7 @@ import Executor from "./core/Executor.js";
 import { WebSocket } from "ws";
 import { UrlParser } from "./core/UrlParser.js";
 import { createConnection } from "node:net";
-import TLSProxy from "./core/TLSProxy.js";
+import HttpIPCProxyReceiver from "./core/HttpIPCProxyReceiver.js";
 
 export const wsData = Symbol("wsData");
 
@@ -86,7 +86,7 @@ export default class ServerPages {
         allowHTTP1?: boolean
     }) {
 
-        let listeningServer = null as http.Server | http2.Http2Server | http2.Http2SecureServer | TLSProxy;
+        let listeningServer = null as http.Server | http2.Http2Server | http2.Http2SecureServer | HttpIPCProxyReceiver;
 
         try {
 
@@ -139,7 +139,7 @@ export default class ServerPages {
                     httpServer.on("connect", () => {
                         // undocumented and needed.
                     });
-                    listeningServer = new TLSProxy(httpServer);
+                    listeningServer = new HttpIPCProxyReceiver(httpServer);
                     break;
                 default:
                     throw new Error(`Unknown protocol ${protocol}`);

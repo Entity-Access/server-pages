@@ -3,7 +3,15 @@ import http2 from "http2";
 import { createServer, Socket, Server as SocketServer } from "net";
 import { remoteAddressSymbol } from "./remoteAddressSymbol.js";
 
-export default class TLSProxy {
+/**
+ * HttpIPCProxyReceiver class creates a simple socket server, this server
+ * can only receive incoming sockets IPC Unix socket only.
+ * IPC sockets have no way to distinguish remote clients, so they will first
+ * send a remote IP Address terminated by new line character.
+ *
+ * And then they will start further communication.
+ */
+export default class HttpIPCProxyReceiver {
 
     server: SocketServer;
 
