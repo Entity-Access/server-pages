@@ -9,6 +9,8 @@ const endSocket = (s: Socket) => {
     } catch {}
 };
 
+const bound = Symbol("bound");
+
 /**
  * HttpIPCProxyReceiver class creates a simple socket server, this server
  * can only receive incoming sockets IPC Unix socket only.
@@ -26,6 +28,15 @@ export default class HttpIPCProxyReceiver {
 
             try {
 
+                socket.off("data", getAddress);
+
+                if(socket[bound]) {
+                    return;
+                }
+
+                socket[bound] = true;
+
+
                 const n = buffer.indexOf("\n");
             
                 const address = buffer.subarray(1, n).toString("utf8");
@@ -42,7 +53,6 @@ export default class HttpIPCProxyReceiver {
             
                 socket[remoteAddressSymbol] = address;
             
-                socket.off("data", getAddress);
             
                 this.forward.emit("connection", socket);
             } catch (error) {
