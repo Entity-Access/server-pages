@@ -16,16 +16,16 @@ const readLine = (s: Socket) => new Promise<string>((resolve, reject) => {
     let buffer = Buffer.from("");
     const reader = () => {
         do {
-            const n = ss.read(1);
+            const n = ss.read(1) as Buffer;
             if (n === null || n === void 0) {
                 return;
             }
-            if (n === 10) {
+            if (n.at(0) === 10) {
                 ss.off("readable", reader);
                 resolve(buffer.toString("utf8"));
                 return;
             }
-            buffer = Buffer.concat([buffer, Buffer.from([n]) ]);
+            buffer = Buffer.concat([buffer, n]);
         } while(true);
     };
     ss.on("readable", reader);
