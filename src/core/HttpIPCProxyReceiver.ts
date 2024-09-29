@@ -39,7 +39,7 @@ export default class HttpIPCProxyReceiver {
 
                 const n = buffer.indexOf("\n");
             
-                let address = buffer.subarray(1, n).toString("utf8");
+                let address = buffer.subarray(0, n).toString("utf8");
 
 
                 if (!address.startsWith("fwd>")) {
