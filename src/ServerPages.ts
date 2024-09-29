@@ -20,6 +20,7 @@ import Executor from "./core/Executor.js";
 import { WebSocket } from "ws";
 import { UrlParser } from "./core/UrlParser.js";
 import { createConnection } from "node:net";
+import TLSProxy from "./core/TLSProxy.js";
 
 export const wsData = Symbol("wsData");
 
@@ -84,13 +85,17 @@ export default class ServerPages {
         acmeOptions?: IAcmeOptions,
         allowHTTP1?: boolean
     }) {
+
+        let listeningServer = null as http.Server | http2.Http2Server | http2.Http2SecureServer | TLSProxy;
+
         try {
 
             let httpServer = null as http.Server | http2.Http2Server | http2.Http2SecureServer;
 
             switch(protocol) {
                 case "http":
-                    httpServer = http.createServer((req, res) => this.process(req, res, trustProxy))
+                    httpServer = http.createServer((req, res) => this.process(req, res, trustProxy));
+                    listeningServer = httpServer;
                     break;
                 case "http2":
                     let sc = null;
@@ -120,6 +125,7 @@ export default class ServerPages {
                     httpServer.on("connect", () => {
                         // undocumented and needed.
                     });
+                    listeningServer = httpServer;
                     break;
                 case "http2NoTLS":
                     httpServer = http2.createServer({
@@ -133,6 +139,7 @@ export default class ServerPages {
                     httpServer.on("connect", () => {
                         // undocumented and needed.
                     });
+                    listeningServer = new TLSProxy(httpServer);
                     break;
                 default:
                     throw new Error(`Unknown protocol ${protocol}`);
@@ -140,7 +147,7 @@ export default class ServerPages {
 
 
             await new Promise<void>((resolve, reject) => {
-                const server = httpServer.listen(port, () => {
+                listeningServer.listen(port, () => {
                     resolve();
                 });
             });

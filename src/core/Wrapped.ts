@@ -12,6 +12,7 @@ import { stat } from "fs/promises";
 import TokenService from "../services/TokenService.js";
 import { CacheProperty } from "./CacheProperty.js";
 import Compression from "./Compression.js";
+import { remoteAddressSymbol } from "./remoteAddressSymbol.js";
 
 
 type UnwrappedRequest = IncomingMessage | Http2ServerRequest;
@@ -142,9 +143,9 @@ const extendRequest = (A: typeof IncomingMessage | typeof Http2ServerRequest) =>
             }
             get remoteIPAddress(): string {
                 const r = this as any as (Http2ServerRequest  | IncomingMessage);
-                let ip = r.socket.remoteAddress;
+                let ip = r.socket[remoteAddressSymbol] || r.socket.remoteAddress;
                 if ((this as any).trustProxy) {
-                    ip = (r.headers["x-forwarded-for"])?.toString() || r.socket.remoteAddress
+                    ip = r.socket[remoteAddressSymbol] || (r.headers["x-forwarded-for"])?.toString() || r.socket.remoteAddress
                 }
                 return CacheProperty.value(this, "remoteIPAddress", ip);
             }
