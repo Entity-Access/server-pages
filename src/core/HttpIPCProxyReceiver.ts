@@ -26,8 +26,8 @@ export default class HttpIPCProxyReceiver {
         this.server.on("error", console.error);
     }
 
-    listen(port) {
-        return this.server.listen(port);
+    listen(port, listener?: any) {
+        return this.server.listen(port, listener);
     }
 
     onConnection(socket: Socket) {
