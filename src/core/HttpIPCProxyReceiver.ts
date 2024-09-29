@@ -48,7 +48,7 @@ export default class HttpIPCProxyReceiver {
                 
                 address = address.substring(4);
             
-                const head = buffer.subarray(n + 1);
+                const head = buffer.subarray(n);
             
                 if (head.length) {
                     socket.unshift(head);
