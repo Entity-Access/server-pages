@@ -59,7 +59,7 @@ export default class HttpIPCProxyReceiver {
                 endSocket(socket);
             });
         } catch (error) {
-            
+            console.error(error);
         }
 
     };
