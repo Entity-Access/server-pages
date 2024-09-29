@@ -15,16 +15,18 @@ const readLine = (s: Socket) => new Promise<string>((resolve, reject) => {
     const ss = s as Readable;
     let buffer = Buffer.from("");
     const reader = () => {
-        const n = ss.read(1);
-        if (n === null || n === void 0) {
-            return;
-        }
-        if (n === 10) {
-            ss.off("readable", reader);
-            resolve(buffer.toString("utf8"));
-            return;
-        }
-        buffer = Buffer.concat([buffer, Buffer.from([n]) ]);
+        do {
+            const n = ss.read(1);
+            if (n === null || n === void 0) {
+                return;
+            }
+            if (n === 10) {
+                ss.off("readable", reader);
+                resolve(buffer.toString("utf8"));
+                return;
+            }
+            buffer = Buffer.concat([buffer, Buffer.from([n]) ]);
+        } while(true);
     };
     ss.on("readable", reader);
 });
