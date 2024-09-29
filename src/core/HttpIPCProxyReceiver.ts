@@ -3,6 +3,12 @@ import http2 from "http2";
 import { createServer, Socket, Server as SocketServer } from "net";
 import { remoteAddressSymbol } from "./remoteAddressSymbol.js";
 
+const endSocket = (s: Socket) => {
+    try {
+        s.end();
+    } catch {}
+};
+
 /**
  * HttpIPCProxyReceiver class creates a simple socket server, this server
  * can only receive incoming sockets IPC Unix socket only.
@@ -17,6 +23,7 @@ export default class HttpIPCProxyReceiver {
 
     constructor(private forward: http.Server | http2.Http2Server | http2.Http2SecureServer) {
         this.server = createServer(this.onConnection);
+        this.server.on("error", console.error);
     }
 
     listen(port) {
@@ -26,25 +33,35 @@ export default class HttpIPCProxyReceiver {
     onConnection(socket: Socket) {
         const getAddress = (buffer: Buffer) => {
 
-            const n = buffer.indexOf("\n");
-        
-            const address = buffer.subarray(1, n).toString("utf8");
-        
-            const head = buffer.subarray(n + 1);
-        
-            if (head.length) {
-                socket.unshift(head);
+            try {
+
+                const n = buffer.indexOf("\n");
+            
+                const address = buffer.subarray(1, n).toString("utf8");
+            
+                const head = buffer.subarray(n + 1);
+            
+                if (head.length) {
+                    socket.unshift(head);
+                }
+            
+                socket[remoteAddressSymbol] = address;
+            
+                socket.off("data", getAddress);
+            
+                this.forward.emit("connection", socket);
+            } catch (error) {
+                console.error(error);
+                endSocket(socket);
             }
-        
-            socket[remoteAddressSymbol] = address;
-        
-            socket.off("data", getAddress);
-        
-            this.forward.emit("connection", socket);
         
         };
 
-        socket.on("data", getAddress);                
+        socket.on("data", getAddress);
+        socket.on("error", (error) => {
+            console.error(error);
+            endSocket(socket);
+        });
 
     }
 
