@@ -21,16 +21,7 @@ export default class HttpIPCProxyReceiver {
 
     server: SocketServer;
 
-    constructor(private forward: http.Server | http2.Http2Server | http2.Http2SecureServer) {
-        this.server = createServer(this.onConnection);
-        this.server.on("error", console.error);
-    }
-
-    listen(port, listener?: any) {
-        return this.server.listen(port, listener);
-    }
-
-    onConnection(socket: Socket) {
+    onConnection = (socket: Socket) => {
         const getAddress = (buffer: Buffer) => {
 
             try {
@@ -63,6 +54,15 @@ export default class HttpIPCProxyReceiver {
             endSocket(socket);
         });
 
+    };
+
+    constructor(private forward: http.Server | http2.Http2Server | http2.Http2SecureServer) {
+        this.server = createServer(this.onConnection);
+        this.server.on("error", console.error);
+    }
+
+    listen(port, listener?: any) {
+        return this.server.listen(port, listener);
     }
 
 
