@@ -10,6 +10,20 @@ const endSocket = (s: Socket) => {
     } catch {}
 };
 
+const read = (s: Socket, n: number) => new Promise<Buffer>((resolve, reject) => {
+    const ss = s as Readable;
+    const reader = () => {
+        const data = ss.read(3);
+        if (!data) {
+            ss.once("readable", reader);
+            return;
+        }
+        resolve(data);
+    };
+    ss.once("readable", reader);
+    ss.once("error", reject);
+});
+
 const readLine = (s: Socket) => new Promise<string>((resolve, reject) => {
 
     const ss = s as Readable;
@@ -48,13 +62,21 @@ export default class HttpIPCProxyReceiver {
 
             let address = await readLine(socket);
             if (!address.startsWith("fwd>")) {
-                throw new Error(`Invalid HTTP IPC Fowrd Protocol, received ${address}`);
+                throw new Error(`Invalid HTTP IPC Forward Protocol, received ${address}`);
             }
             
             address = address.substring(4);
 
             socket[remoteAddressSymbol] = address;
-            this.forward.emit("connection", socket);
+
+            const prefix = await read(socket, 3);
+            socket.unshift(prefix);
+            if (/pri/i.test(prefix.toString("ascii"))) {
+                this.forward.emit("connection", socket);
+            } else {
+                this.forward1.emit("connection", socket);
+            }
+
 
             socket.on("error", (error) => {
                 console.error(error);
@@ -67,7 +89,9 @@ export default class HttpIPCProxyReceiver {
 
     };
 
-    constructor(private forward: http.Server | http2.Http2Server | http2.Http2SecureServer) {
+    constructor(private forward: http.Server | http2.Http2Server | http2.Http2SecureServer,
+        private forward1: http.Server
+    ) {
         this.server = createServer(this.onConnection);
         this.server.on("error", console.error);
     }

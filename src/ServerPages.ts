@@ -139,7 +139,7 @@ export default class ServerPages {
                     httpServer.on("connect", () => {
                         // undocumented and needed.
                     });
-                    listeningServer = new HttpIPCProxyReceiver(httpServer);
+                    listeningServer = new HttpIPCProxyReceiver(httpServer, http.createServer((req, res) => this.process(req, res, trustProxy)));
                     break;
                 default:
                     throw new Error(`Unknown protocol ${protocol}`);
