@@ -43,6 +43,7 @@ const readLine = (s: Socket) => new Promise<string>((resolve, reject) => {
         } while(true);
     };
     ss.on("readable", reader);
+    ss.once("error", reject);
 });
 
 /**
@@ -60,6 +61,11 @@ export default class HttpIPCProxyReceiver {
     onConnection = async (socket: Socket) => {
         try {
 
+            socket.on("error", (error) => {
+                console.error(error);
+                endSocket(socket);
+            });
+
             let address = await readLine(socket);
             if (!address.startsWith("fwd>")) {
                 throw new Error(`Invalid HTTP IPC Forward Protocol, received ${address}`);
@@ -76,12 +82,6 @@ export default class HttpIPCProxyReceiver {
             } else {
                 this.forward1.emit("connection", socket);
             }
-
-
-            socket.on("error", (error) => {
-                console.error(error);
-                endSocket(socket);
-            });
         } catch (error) {
             console.error(error);
             endSocket(socket);
