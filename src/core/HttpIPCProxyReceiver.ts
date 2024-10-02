@@ -18,6 +18,7 @@ const read = (s: Socket, n: number) => new Promise<Buffer>((resolve, reject) => 
             ss.once("readable", reader);
             return;
         }
+        ss.off("error", reject);
         resolve(data);
     };
     ss.once("readable", reader);
@@ -35,14 +36,15 @@ const readLine = (s: Socket) => new Promise<string>((resolve, reject) => {
                 return;
             }
             if (n.at(0) === 10) {
-                ss.off("readable", reader);
+                ss.off("error", reject);
                 resolve(buffer.toString("utf8"));
                 return;
             }
             buffer = Buffer.concat([buffer, n]);
+            ss.once("readable", reader);
         } while(true);
     };
-    ss.on("readable", reader);
+    ss.once("readable", reader);
     ss.once("error", reject);
 });
 
