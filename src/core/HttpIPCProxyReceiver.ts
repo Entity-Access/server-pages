@@ -89,7 +89,7 @@ export default class HttpIPCProxyReceiver {
                 this.forward1.emit("connection", socket);
             }
         } catch (error) {
-            console.error(error);
+            // console.error(error);
             endSocket(socket);
         }
 
