@@ -42,7 +42,7 @@ export default class TempFolder implements Disposable {
         }
     }
 
-    get(name: string, mimeType?: string, keep = false, useSafeFileName = false) {
+    get(name: string, mimeType?: string, keep = false, useSafeFileName = true) {
         let fileName = name;
         if (useSafeFileName) {
             fileName = name.replaceAll(/[^\.\-_\p{L}\p{N}]/ug, "_");
@@ -50,7 +50,7 @@ export default class TempFolder implements Disposable {
         return new LocalFile(join(this.folder, fileName), name, mimeType, keep ? doNothing : void 0);
     }
 
-    async copy(fileName: string, src: LocalFile, contentType: string) {
+    async copy(fileName: string, src: LocalFile, contentType?: string) {
         fileName ||= "temp.dat";
         const qIndex = fileName.indexOf("?");
         if (qIndex !== -1) {
