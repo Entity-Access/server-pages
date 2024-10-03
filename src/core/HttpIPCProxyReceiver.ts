@@ -36,6 +36,7 @@ const readLine = (s: Socket) => {
         do {
             const n = target.read(1) as Buffer;
             if (n === null || n === void 0) {
+                target.once("readable", reader);
                 return;
             }
             if (n.at(0) === 10) {
@@ -43,7 +44,6 @@ const readLine = (s: Socket) => {
                 return;
             }
             buffer = Buffer.concat([buffer, n]);
-            target.once("readable", reader);
         } while(true);
     };
     target.once("readable", reader);
