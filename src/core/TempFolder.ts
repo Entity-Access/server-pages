@@ -50,6 +50,17 @@ export default class TempFolder implements Disposable {
         return new LocalFile(join(this.folder, fileName), name, mimeType, keep ? doNothing : void 0);
     }
 
+    async copy(fileName: string, src: LocalFile, contentType: string) {
+        fileName ||= "temp.dat";
+        const qIndex = fileName.indexOf("?");
+        if (qIndex !== -1) {
+            fileName = fileName.substring(0, qIndex);
+        }
+        const tf = await this.get(fileName, contentType);
+        await src.copyTo(tf);
+        return tf;
+    }
+
     async createFrom(fileName: string, content: Buffer | Stream, contentType: string) {
         fileName ||= "temp.dat";
         const qIndex = fileName.indexOf("?");
