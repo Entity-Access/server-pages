@@ -77,6 +77,8 @@ export interface IWrappedResponse {
 
     send(data: Buffer | string | Blob, status?: number): Promise<void>;
 
+    sendStatus(status?: number, headers?: OutgoingHttpHeaders): Promise<void>;
+
     sendRedirect(url: string, status?: number, headers?: OutgoingHttpHeaders): void;
 
     cookie(name: string, value: string, options?: { secure?: boolean, httpOnly?: boolean, maxAge?: number });
@@ -241,6 +243,23 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
             //     const headers = this.getHeaders();
             //     headers[name] = value;
             // }
+
+            async sendStatus(this: UnwrappedResponse, status?: number, headers?: OutgoingHttpHeaders): Promise<void> {
+                const wrapped = (this as any as WrappedResponse);
+                this.statusCode = status;
+                let sent = false;
+                try {
+                    this.writeHead(this.statusCode, headers);
+                    sent = true;
+                    return (wrapped as any).asyncEnd();
+                } catch (error) {
+                    console.error(error);
+                    if (sent) {
+                        return (this as any).asyncEnd();
+                    }
+                    return (this as any).send(error.stack ?? error.toString(), 500);
+                }
+            }
         
             async send(this: UnwrappedResponse, data: Buffer | string, status: number = this.statusCode || 200) {
                 let sent = false;

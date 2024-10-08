@@ -11,6 +11,21 @@ export interface IPageResult {
     send(res: WrappedResponse, user?: SessionUser): Promise<any>;
 }
 
+export class StatusResult implements IPageResult {
+
+    constructor(
+        public readonly status,
+        public readonly headers?: OutgoingHttpHeaders
+    ) {
+
+    }
+
+    send(res: WrappedResponse, user?: SessionUser): Promise<any> {
+        return res.sendStatus(this.status, this.headers);
+    }
+
+}
+
 export class TempFileResult implements IPageResult {
 
     public contentDisposition: "inline" | "attachment" = "inline";
