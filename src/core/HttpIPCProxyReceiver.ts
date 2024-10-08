@@ -3,6 +3,7 @@ import http2 from "http2";
 import { createServer, Socket, Server as SocketServer } from "net";
 import { remoteAddressSymbol } from "./remoteAddressSymbol.js";
 import { Readable, Stream } from "stream";
+import EventEmitterPromise from "./EventEmitterPromise.js";
 
 const endSocket = (s: Socket) => {
     try {
@@ -10,43 +11,46 @@ const endSocket = (s: Socket) => {
     } catch {}
 };
 
-const read = (s: Socket, n: number) => new Promise<Buffer>((resolve, reject) => {
-    const ss = s as Readable;
+const read = (s: Socket, n: number) => {
+    const { promise, resolve, reject, target } = EventEmitterPromise.extend(s as Readable)
+        .as<Buffer>();
     const reader = () => {
-        const data = ss.read(3);
+        const data = target.read(3);
         if (!data) {
-            ss.once("readable", reader);
+            target.once("readable", reader);
             return;
         }
-        ss.off("error", reject);
         resolve(data);
     };
-    ss.once("readable", reader);
-    ss.once("error", reject);
-});
+    target.once("readable", reader);
+    target.once("error", reject);
+    target.once("end", () => reject(new Error("Socket hung up")));
+    return promise;
+};
 
-const readLine = (s: Socket) => new Promise<string>((resolve, reject) => {
-
-    const ss = s as Readable;
+const readLine = (s: Socket) => {
+    const { promise, resolve, reject, target } = EventEmitterPromise.extend(s as Readable)
+        .as<string>();
     let buffer = Buffer.from("");
     const reader = () => {
         do {
-            const n = ss.read(1) as Buffer;
+            const n = target.read(1) as Buffer;
             if (n === null || n === void 0) {
+                target.once("readable", reader);
                 return;
             }
             if (n.at(0) === 10) {
-                ss.off("error", reject);
                 resolve(buffer.toString("utf8"));
                 return;
             }
             buffer = Buffer.concat([buffer, n]);
-            ss.once("readable", reader);
         } while(true);
     };
-    ss.once("readable", reader);
-    ss.once("error", reject);
-});
+    target.once("readable", reader);
+    target.once("error", reject);
+    target.once("end", () => reject(new Error("Socket hung up")));
+    return promise;
+};
 
 /**
  * HttpIPCProxyReceiver class creates a simple socket server, this server
@@ -85,7 +89,7 @@ export default class HttpIPCProxyReceiver {
                 this.forward1.emit("connection", socket);
             }
         } catch (error) {
-            console.error(error);
+            // console.error(error);
             endSocket(socket);
         }
 

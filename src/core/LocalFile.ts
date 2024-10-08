@@ -15,6 +15,14 @@ export class LocalFile implements AsyncDisposable {
         return existsSync(this.path);
     }
 
+    public get isEmpty() {
+        if (this.exists) {
+            const s = statSync(this.path);
+            return s.size <= 0;
+        }
+        return true;
+    }
+
     public get contentSize() {
         if (!this.exists) {
             return 0;
