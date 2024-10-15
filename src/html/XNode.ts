@@ -1,3 +1,5 @@
+// use parse5 to serialize html correctly
+
 export default class XNode {
 
     public static create(
