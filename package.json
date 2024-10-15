@@ -16,7 +16,7 @@
     "@entity-access/entity-access": "^1.0.360",
     "acme-client": "^5.3.0",
     "busboy": "^1.6.0",
-    "cookie": "^0.6.0",
+    "cookie": "^1.0.1",
     "node-forge": "^1.3.1",
     "socket.io": "^4.8.0",
     "tmp-promise": "^3.0.3",
