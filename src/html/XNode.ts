@@ -14,7 +14,7 @@ export default class XNode {
         return new XNode(name, attribs, nodes);
     }
 
-    private constructor(
+    protected constructor(
         public readonly name: string,
         public readonly attributes: Record<string, any>,
         public readonly children: (XNode | string)[]
@@ -28,7 +28,7 @@ export default class XNode {
         let a = "";
         if (attributes) {
             for (const key in attributes) {
-                if (Object.prototype.hasOwnProperty.call(attributes, key)) {
+                if (Object.hasOwn(attributes, key)) {
                     const element = attributes[key];
                     a += ` ${escapeAttribute(key)}="${escapeAttribute(element)}"`;
                 }
