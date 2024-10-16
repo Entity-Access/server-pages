@@ -7,8 +7,8 @@ class Comment extends XNode {
     }
 
     public render(nest?: string): string {
-        let comments = "";
         nest ??= "";
+        let comments = "";
         for (const element of this.nodes) {
             comments += nest + element + "\n";
         }
