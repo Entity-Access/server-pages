@@ -1,6 +1,7 @@
+import HtmlComment from "./HtmlComment.js";
 import XNode from "./XNode.js";
 
-const WebAtomsLogo = () => XNode.create("", {}, `<!--
+const WebAtomsLogo = () => <HtmlComment>
 
 I8,        8        ,8I            88                     db
 \`8b       d8b       d8'            88                    d88b        ,d
@@ -16,7 +17,6 @@ I8,        8        ,8I            88                     db
                                    https://www.webatoms.in
 
 
-
--->`);
+</HtmlComment>;
 
 export default WebAtomsLogo;
