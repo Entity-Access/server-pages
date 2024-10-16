@@ -1,4 +1,5 @@
 // use parse5 to serialize html correctly
+import { escapeText, escapeAttribute } from "entities";
 
 export default class XNode {
 
@@ -29,14 +30,14 @@ export default class XNode {
             for (const key in attributes) {
                 if (Object.prototype.hasOwnProperty.call(attributes, key)) {
                     const element = attributes[key];
-                    a += ` ${key}=${JSON.stringify(element)}`;
+                    a += ` ${escapeAttribute(key)}="${escapeAttribute(element)}"`;
                 }
             }
         }
         if (this.children) {
             for (const child of this.children) {
                 if (typeof child === "string") {
-                    children.push(child);
+                    children.push(escapeText(child));
                     continue;
                 }
                 if (!child) {
@@ -47,6 +48,9 @@ export default class XNode {
         }
         if (!name) {
             return `\n${nest}\t${children.join("\n\t")}`;
+        }
+        if (!children.length) {
+            return `${nest}<${name}${a}></${name}>`;
         }
         return `${nest}<${name}${a}>\n${nest}\t${children.join("\n\t")}\n${nest}</${name}>`;
     }
