@@ -352,61 +352,74 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
                     headers?: { [key: string]: string},
                     lastModified?: boolean
                 }) {
-                    /** Calculate Size of file */
-                const { size } = await stat(filePath);
-                const range = (this as any as IWrappedResponse).request.headers.range;
-    
-                const lf = new LocalFile(filePath);
+                let sent = false;
 
-                const headers = this.getHeaders();
-                const oh = options?.headers;
-                if (oh) {
-                    for (const key in oh) {
-                        if (Object.prototype.hasOwnProperty.call(oh, key)) {
-                            const element = oh[key];
-                            headers[key] = element;
+                try {
+                    /** Calculate Size of file */
+                    const { size } = await stat(filePath);
+                    const range = (this as any as IWrappedResponse).request.headers.range;
+        
+                    const lf = new LocalFile(filePath);
+
+                    const headers = this.getHeaders();
+                    const oh = options?.headers;
+                    if (oh) {
+                        for (const key in oh) {
+                            if (Object.prototype.hasOwnProperty.call(oh, key)) {
+                                const element = oh[key];
+                                headers[key] = element;
+                            }
                         }
                     }
-                }
 
-                /** Check for Range header */
-                if (!range) {
-                    headers["content-length"] = size;
-                    this.writeHead(200, headers);
-    
-                    await lf.writeTo(this);
-    
-                    return (this as any).asyncEnd();
+                    /** Check for Range header */
+                    if (!range) {
+                        headers["content-length"] = size;
+                        this.writeHead(200, headers);
+                        sent = true;
+        
+                        await lf.writeTo(this);
+        
+                        return (this as any).asyncEnd();
+                    }
+        
+                    /** Extracting Start and End value from Range Header */
+                    let [start, end] = range.replace(/bytes=/, "").split("-") as any[];
+                    start = parseInt(start, 10);
+                    end = end ? parseInt(end, 10) : size - 1;
+        
+                    if (!isNaN(start) && isNaN(end)) {
+                        start = start;
+                        end = size - 1;
+                    }
+                    if (isNaN(start) && !isNaN(end)) {
+                        start = size - end;
+                        end = size - 1;
+                    }
+        
+                    // Handle unavailable range request
+                    if (start >= size || end >= size) {
+                        // Return the 416 Range Not Satisfiable.
+                        headers["content-range"] = `bytes */${size}`;
+                        this.writeHead(416, headers);
+                        sent = true;
+                        return (this as any).asyncEnd();
+                    }
+        
+                    /** Sending Partial Content With HTTP Code 206 */
+                    headers["accept-ranges"] = "bytes";
+                    headers["content-range"] = `bytes ${start}-${end}/${size}`;
+                    headers["content-length"] = end - start + 1;
+                    this.writeHead(206, headers);
+                    sent = true;
+                    await lf.writeTo(this, start, end);
+                } catch (error) {
+                    console.error(error);
+                    if (sent) {
+                        return (this as any).asyncEnd();
+                    }
+                    return (this as any).send(error.stack ?? error.toString(), 500);                    
                 }
-    
-                /** Extracting Start and End value from Range Header */
-                let [start, end] = range.replace(/bytes=/, "").split("-") as any[];
-                start = parseInt(start, 10);
-                end = end ? parseInt(end, 10) : size - 1;
-    
-                if (!isNaN(start) && isNaN(end)) {
-                    start = start;
-                    end = size - 1;
-                }
-                if (isNaN(start) && !isNaN(end)) {
-                    start = size - end;
-                    end = size - 1;
-                }
-    
-                // Handle unavailable range request
-                if (start >= size || end >= size) {
-                    // Return the 416 Range Not Satisfiable.
-                    headers["content-range"] = `bytes */${size}`;
-                    this.writeHead(416, headers);
-                    return (this as any).asyncEnd();
-                }
-    
-                /** Sending Partial Content With HTTP Code 206 */
-                headers["accept-ranges"] = "bytes";
-                headers["content-range"] = `bytes ${start}-${end}/${size}`;
-                headers["content-length"] = end - start + 1;
-                this.writeHead(206, headers);
-                await lf.writeTo(this, start, end);
     
             }
         }
