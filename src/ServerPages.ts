@@ -26,7 +26,7 @@ export const wsData = Symbol("wsData");
 
 const isNotConnect = (req: http.IncomingMessage) => {
     return !(/^connect/i.test(req.method)
-        || /^connect/i.test(req.method)
+        || /^websocket/i.test(req.headers["upgrade"])
         || /^upgrade/i.test(req.headers["connection"]?.toString()))
 };
 
