@@ -9,7 +9,7 @@ import { Server } from "socket.io";
 import * as http from "http";
 import * as http2 from "http2";
 import SocketService from "./socket/SocketService.js";
-import { Wrapped } from "./core/Wrapped.js";
+import { Wrapped, WrappedRequest } from "./core/Wrapped.js";
 import { SecureContext } from "node:tls";
 import  AcmeCertificateService, { IAcmeOptions } from "./ssl/AcmeCertificateService.js";
 import ChallengeServer from "./ssl/ChallengeServer.js";
@@ -24,10 +24,10 @@ import HttpIPCProxyReceiver from "./core/HttpIPCProxyReceiver.js";
 
 export const wsData = Symbol("wsData");
 
-const isConnect = (req: http2.Http2ServerRequest) => {
+const isConnect = (req: WrappedRequest) => {
     return /^connect/i.test(req.method)
-        || /^connect/i.test(req.headers[":method"])
-        || /^upgrade/i.test(req.headers["connection"])
+        || /^connect/i.test(req.headers[":method"]?.toString())
+        || /^upgrade/i.test(req.headers["connection"]?.toString())
 };
 export default class ServerPages {
 
@@ -116,7 +116,7 @@ export default class ServerPages {
                         settings: {
                             enableConnectProtocol: createSocketService
                         }
-                    }, (req, res) => !isConnect(req) && this.process(req, res, trustProxy))
+                    }, (req, res) => this.process(req, res, trustProxy))
 
                     if (acmeOptions) {
                         const cs = ServiceProvider.resolve(this, ChallengeServer);
@@ -132,7 +132,7 @@ export default class ServerPages {
                         settings: {
                             enableConnectProtocol: createSocketService
                         }
-                    },(req, res) => !isConnect(req) && this.process(req, res, trustProxy))
+                    },(req, res) => this.process(req, res, trustProxy))
                     // if (!disableNoTlsWarning) {
                     //     console.warn("Http2 without SSL should not be used in production");
                     // }
@@ -244,6 +244,11 @@ export default class ServerPages {
         // const { method, url } = req;
 
         req = Wrapped.request(req);
+
+        if (isConnect(req)) {
+            return;
+        }
+
         req.trustProxy = trustProxy;
 
         resp = Wrapped.response(req, resp);
