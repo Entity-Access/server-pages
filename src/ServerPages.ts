@@ -24,10 +24,17 @@ import HttpIPCProxyReceiver from "./core/HttpIPCProxyReceiver.js";
 
 export const wsData = Symbol("wsData");
 
-const isConnect = (req: WrappedRequest) => {
-    return /^connect/i.test(req.method)
-        || /^connect/i.test(req.headers[":method"]?.toString())
-        || /^upgrade/i.test(req.headers["connection"]?.toString())
+const isNotConnect = (req: http.IncomingMessage) => {
+    return !(/^connect/i.test(req.method)
+        || /^connect/i.test(req.method)
+        || /^upgrade/i.test(req.headers["connection"]?.toString()))
+};
+
+
+const isNotConnect2 = (req: http2.Http2ServerRequest) => {
+    return !(/^connect/i.test(req.method)
+        || /^connect/i.test(req.headers[":method"])
+        || /^upgrade/i.test(req.headers["connection"]))
 };
 export default class ServerPages {
 
@@ -94,7 +101,7 @@ export default class ServerPages {
 
             switch(protocol) {
                 case "http":
-                    httpServer = http.createServer((req, res) => this.process(req, res, trustProxy));
+                    httpServer = http.createServer((req, res) => isNotConnect(req) && this.process(req, res, trustProxy));
                     listeningServer = httpServer;
                     break;
                 case "http2":
@@ -132,7 +139,7 @@ export default class ServerPages {
                         settings: {
                             enableConnectProtocol: createSocketService
                         }
-                    },(req, res) => this.process(req, res, trustProxy))
+                    },(req, res) => isNotConnect2(req) && this.process(req, res, trustProxy))
                     // if (!disableNoTlsWarning) {
                     //     console.warn("Http2 without SSL should not be used in production");
                     // }
@@ -244,10 +251,6 @@ export default class ServerPages {
         // const { method, url } = req;
 
         req = Wrapped.request(req);
-
-        if (isConnect(req)) {
-            return;
-        }
 
         req.trustProxy = trustProxy;
 
