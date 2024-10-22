@@ -95,6 +95,8 @@ export default class ServerPages {
 
         let listeningServer = null as http.Server | http2.Http2Server | http2.Http2SecureServer | HttpIPCProxyReceiver;
 
+        let http1Server = null as http.Server;
+
         try {
 
             let httpServer = null as http.Server | http2.Http2Server | http2.Http2SecureServer;
@@ -146,7 +148,8 @@ export default class ServerPages {
                     httpServer.on("connect", () => {
                         // undocumented and needed.
                     });
-                    listeningServer = new HttpIPCProxyReceiver(httpServer, http.createServer((req, res) => this.process(req, res, trustProxy)));
+                    http1Server = http.createServer((req, res) => isNotConnect(req) && this.process(req, res, trustProxy));
+                    listeningServer = new HttpIPCProxyReceiver(httpServer, http1Server);
                     break;
                 default:
                     throw new Error(`Unknown protocol ${protocol}`);
@@ -163,6 +166,12 @@ export default class ServerPages {
                 const socketServer = new Server(httpServer, {
                     
                 });
+                if (http1Server) {
+                    // this is a special case
+                    // as HTTP2 without SSL does not accept HTTP1
+                    // so we are creating HTTP1 separately
+                    socketServer.attach(http1Server);
+                }
                 const ss = ServiceProvider.resolve(this, SocketService as any) as SocketService;
                 await (ss as any).attach(socketServer);
 
