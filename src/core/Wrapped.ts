@@ -13,6 +13,7 @@ import TokenService from "../services/TokenService.js";
 import { CacheProperty } from "./CacheProperty.js";
 import Compression from "./Compression.js";
 import { remoteAddressSymbol } from "./remoteAddressSymbol.js";
+import { StreamHelper } from "./StreamHelper.js";
 
 
 type UnwrappedRequest = IncomingMessage | Http2ServerRequest;
@@ -290,13 +291,16 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
                     headers["content-length"] = data.length.toString();
                     this.writeHead(status, headers);
                     sent = true;
-                    await new Promise<void>((resolve, reject) => {
-                        this.write(data, (error) => error ? reject(error) : resolve());
-                    });
+                    await StreamHelper.write(this, data);
                     return (this as any).asyncEnd();
                 } catch (error) {
                     console.error(error);
                     if (sent) {
+                        return (this as any).asyncEnd();
+                    }
+                    if (this.statusCode === 500) {
+                        // recursive...
+                        await StreamHelper.write(this, Buffer.from("", "utf-8"))
                         return (this as any).asyncEnd();
                     }
                     return (this as any).send(error.stack ?? error.toString(), 500);
