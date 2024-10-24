@@ -81,6 +81,14 @@ export default class RouteTree {
             const { path: [current, ... rest] } = rc;
             const childRouteCheck = { ... rc, current, path: rest };
 
+            const childRoute = this.children.get(current);
+            if (childRoute) {
+                const nested = await childRoute.getRoute(childRouteCheck);
+                if (nested) {
+                    return nested;
+                }
+            }
+
             const { regexChild } = this;
 
             if (regexChild) {
@@ -89,14 +97,6 @@ export default class RouteTree {
                     const value = m[1];
                     rc.route[regexChild.paramName] = value;
                     return regexChild.route.getRoute(childRouteCheck);
-                }
-            }
-
-            const childRoute = this.children.get(current);
-            if (childRoute) {
-                const nested = await childRoute.getRoute(childRouteCheck);
-                if (nested) {
-                    return nested;
                 }
             }
         }
