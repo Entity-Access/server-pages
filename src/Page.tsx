@@ -16,7 +16,7 @@ export interface IRouteCheck {
     method: string;
     current: string;
     path: string[];
-    route: string[];
+    route: { [key: string]: string};
     request: WrappedRequest;
 }
 

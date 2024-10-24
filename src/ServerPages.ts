@@ -305,7 +305,7 @@ export default class ServerPages {
                 
                 const path = UrlParser.parse(req.path);
                 const method = req.method;
-                const route = [];
+                const route = {};
                 const { pageClass, childPath } = (await root.getRoute({
                     scope,
                     method,
@@ -321,6 +321,7 @@ export default class ServerPages {
                 page.childPath = childPath;
                 page.request = req;
                 page.response = resp;
+                page.route = route;
                 scope.add(Page, page);
                 const content = await Executor.run(page);
                 resp.setHeader("cache-control", page.cacheControl);
