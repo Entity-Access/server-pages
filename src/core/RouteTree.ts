@@ -61,7 +61,7 @@ export default class RouteTree {
 
             this.regexChild = {
                 name,
-                paramName,
+                paramName: paramName.substring(1, paramName.length-1),
                 regex: new RegExp(tokens.join("")),
                 route
             };
