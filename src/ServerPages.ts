@@ -305,11 +305,13 @@ export default class ServerPages {
                 
                 const path = UrlParser.parse(req.path);
                 const method = req.method;
+                const route = [];
                 const { pageClass, childPath } = (await root.getRoute({
                     scope,
                     method,
                     current: "",
                     path,
+                    route,
                     request: req
                 })) ?? {
                     pageClass: Page,

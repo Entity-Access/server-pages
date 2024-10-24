@@ -16,6 +16,7 @@ export interface IRouteCheck {
     method: string;
     current: string;
     path: string[];
+    route: string[];
     request: WrappedRequest;
 }
 
@@ -44,6 +45,8 @@ export default abstract class Page<TInput = any, TQuery = any> {
     request: WrappedRequest;
 
     response: WrappedResponse;
+
+    route: {[key: string]: string};
 
     get query(): TQuery {
         return this.request?.query as any;

@@ -22,6 +22,8 @@ export default class RouteTree {
     
     private children = new Map<string,RouteTree>();
 
+    private regexChild: { regex: RegExp , name: string, route: RouteTree};
+
     private handler: IRouteHandler;
 
     constructor(public readonly path: string = "/") {
@@ -29,6 +31,27 @@ export default class RouteTree {
     }
 
     getOrCreate(name: string): RouteTree {
+
+        // if it has [ ]
+
+        const extractParams = /\[([^\]]+)\]/g.exec(name);
+        if (extractParams) {
+            if (this.regexChild) {
+                if (this.regexChild.name !== name) {
+                    throw new Error("Multiple parameters not supported in same folder");
+                }
+                return this.regexChild.route;
+            }
+            const paramName = extractParams[1];
+            const route = new RouteTree(this.path + name + "/");
+            this.regexChild = {
+                name,
+                regex: /\[([^\]]+)\]/g,
+                route
+            };
+            return route;
+        }
+
         let child = this.children.get(name);
         if (!child) {
             child = new RouteTree(this.path + name + "/");
@@ -41,6 +64,18 @@ export default class RouteTree {
         if (rc.path.length > 0) {
             const { path: [current, ... rest] } = rc;
             const childRouteCheck = { ... rc, current, path: rest };
+
+            const { regexChild } = this;
+
+            if (regexChild) {
+                const m = regexChild.regex.exec(current);
+                if (m?.length) {
+                    const value = m[1];
+                    rc.route[regexChild.name] = value;
+                    return regexChild.route.getRoute(childRouteCheck);
+                }
+            }
+
             const childRoute = this.children.get(current);
             if (childRoute) {
                 const nested = await childRoute.getRoute(childRouteCheck);
