@@ -18,11 +18,16 @@ export interface IRouteHandler {
 
 type IPageRoute = { default: typeof Page };
 
+
+function escapeRegex(string) {
+    return string.replace(/[/\-\\^$*+?.()|[\]{}]/g, '\\$&');
+}
+
 export default class RouteTree {
     
     private children = new Map<string,RouteTree>();
 
-    private regexChild: { regex: RegExp , name: string, route: RouteTree};
+    private regexChild: { regex: RegExp , name: string, paramName: string, route: RouteTree};
 
     private handler: IRouteHandler;
 
@@ -34,7 +39,7 @@ export default class RouteTree {
 
         // if it has [ ]
 
-        const extractParams = /\[([^\]]+)\]/g.exec(name);
+        const extractParams = /([^\[]+)?(\[[^\]]+\])(.+)?/.exec(name);
         if (extractParams) {
             if (this.regexChild) {
                 if (this.regexChild.name !== name) {
@@ -42,11 +47,22 @@ export default class RouteTree {
                 }
                 return this.regexChild.route;
             }
-            const paramName = extractParams[1];
+            const [text, prefix, paramName, suffix] = extractParams;
             const route = new RouteTree(this.path + name + "/");
+            const tokens = [];
+
+            if (prefix) {
+                tokens.push(escapeRegex(prefix));
+            }
+            tokens.push("(.+)")
+            if (suffix) {
+                tokens.push("(?=" + escapeRegex(suffix) + ")")
+            }
+
             this.regexChild = {
                 name,
-                regex: /\[([^\]]+)\]/g,
+                paramName,
+                regex: new RegExp(tokens.join("")),
                 route
             };
             return route;
@@ -71,7 +87,7 @@ export default class RouteTree {
                 const m = regexChild.regex.exec(current);
                 if (m?.length) {
                     const value = m[1];
-                    rc.route[regexChild.name] = value;
+                    rc.route[regexChild.paramName] = value;
                     return regexChild.route.getRoute(childRouteCheck);
                 }
             }
