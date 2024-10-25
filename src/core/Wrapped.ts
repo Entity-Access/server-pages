@@ -300,8 +300,13 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
                     }
                     if (this.statusCode === 500) {
                         // recursive...
-                        await StreamHelper.write(this, Buffer.from("", "utf-8"))
-                        return (this as any).asyncEnd();
+                        try {
+                            await StreamHelper.write(this, Buffer.from("", "utf-8"))
+                            return (this as any).asyncEnd();
+                        } catch (er) {
+                            console.error(er);
+                            return (this as any).asyncEnd();
+                        }
                     }
                     return (this as any).send(error.stack ?? error.toString(), 500);
                 }
