@@ -47,7 +47,7 @@ export default class GraphService {
 
         body[this.init]?.(sp);
 
-        const appendToGraph = body[this.appendToGraph]?.() ?? {};
+        const appendToGraph = body[this.appendToGraph]?.(sp) ?? {};
 
         const copy = {
             $id,
