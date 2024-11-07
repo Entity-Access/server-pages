@@ -26,47 +26,6 @@ export class StatusResult implements IPageResult {
 
 }
 
-export class TempFileResult implements IPageResult {
-
-    public contentDisposition: "inline" | "attachment" = "inline";
-    public cacheControl = true;
-    public maxAge = 2592000;
-    public etag = false;
-    public immutable = false;
-    constructor(
-        private file: LocalFile,
-        {
-            contentDisposition = "inline",
-            cacheControl = true,
-            maxAge = 2592000,
-            etag = false,
-            immutable = false
-        }: Partial<TempFileResult> = {}
-    ) {
-        this.contentDisposition = contentDisposition;
-        this.cacheControl = cacheControl;
-        this.maxAge = maxAge;
-        this.etag = etag;
-        this.immutable = immutable;
-    }
-
-    send(res: WrappedResponse) {
-        res.setHeader("content-disposition", `${this.contentDisposition};filename=${encodeURIComponent(this.file.fileName)}`);
-        return res.sendFile(this.file.path,{
-            headers: {
-                "content-type": this.file.contentType
-            },
-            acceptRanges: true,
-            cacheControl: this.cacheControl,
-            maxAge: this.maxAge,
-            etag: this.etag,
-            immutable: this.immutable,
-            lastModified: false
-        });
-    }
-
-}
-
 export class FileResult implements IPageResult {
 
     public contentDisposition: "inline" | "attachment" = "inline";
@@ -74,6 +33,8 @@ export class FileResult implements IPageResult {
     public maxAge = 2592000;
     public etag = false;
     public immutable = false;
+    public headers = void 0 as OutgoingHttpHeaders;
+    protected lastModified = false;
     private fileName;
     constructor(
         private filePath: string,
@@ -82,7 +43,8 @@ export class FileResult implements IPageResult {
             cacheControl = true,
             maxAge = 2592000,
             etag = false,
-            immutable = false
+            immutable = false,
+            headers
         }: Partial<FileResult> = {}
     ) {
         this.contentDisposition = contentDisposition;
@@ -90,23 +52,38 @@ export class FileResult implements IPageResult {
         this.maxAge = maxAge;
         this.etag = etag;
         this.immutable = immutable;
+        this.headers = headers ?? {};
         const parsed = parse(filePath);
         this.fileName = parsed.base;
     }
 
-    send(res: WrappedResponse) {
-    
-        res.setHeader("content-disposition", `${this.contentDisposition};filename=${encodeURIComponent(this.fileName)}`);
+    send(res: WrappedResponse) {    
+        this.headers["content-disposition"] = `${this.contentDisposition};filename=${encodeURIComponent(this.fileName)}`
         return res.sendFile(this.filePath,{
             acceptRanges: true,
             cacheControl: this.cacheControl,
             maxAge: this.maxAge,
             etag: this.etag,
-            immutable: this.immutable
+            immutable: this.immutable,
+            headers: this.headers,
+            lastModified: this.lastModified
         });
     }
 
 }
+
+export class TempFileResult extends FileResult {
+
+    constructor(
+        file: LocalFile, p: Partial<TempFileResult> = {}
+    ) {
+        super(file.path, p);
+        this.lastModified = false;
+    }
+
+}
+
+
 
 export class Redirect implements IPageResult {
 

@@ -91,7 +91,7 @@ export interface IWrappedResponse {
         maxAge?: number,
         etag?: boolean,
         immutable?: boolean,
-        headers?: { [key: string]: string},
+        headers?: { [key: string]: string | string[] | number},
         lastModified?: boolean
     }): Promise<void>;
 
