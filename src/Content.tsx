@@ -7,7 +7,9 @@ import { SessionUser } from "./core/SessionUser.js";
 import { WrappedResponse } from "./core/Wrapped.js";
 import { OutgoingHttpHeaders } from "http";
 
-export interface IPageResult extends Disposable {
+export interface IPageResult {
+    [Symbol.dispose]?();
+    [Symbol.asyncDispose]?();
     send(res: WrappedResponse, user?: SessionUser): Promise<any>;
 }
 
@@ -18,10 +20,6 @@ export class StatusResult implements IPageResult {
         public readonly headers?: OutgoingHttpHeaders
     ) {
 
-    }
-
-    [Symbol.dispose](): void {
-        // do nothing
     }
 
     send(res: WrappedResponse, user?: SessionUser): Promise<any> {
@@ -60,9 +58,6 @@ export class FileResult implements IPageResult {
         const parsed = parse(filePath);
         this.fileName = parsed.base;
     }
-    [Symbol.dispose](): void {
-        // do nothing
-    }
 
     send(res: WrappedResponse) {    
         this.headers["content-disposition"] = `${this.contentDisposition};filename=${encodeURIComponent(this.fileName)}`
@@ -82,10 +77,14 @@ export class FileResult implements IPageResult {
 export class TempFileResult extends FileResult {
 
     constructor(
-        file: LocalFile, p: Partial<TempFileResult> = {}
+        private file: LocalFile, p: Partial<TempFileResult> = {}
     ) {
         super(file.path, p);
         this.lastModified = false;
+    }
+
+    [Symbol.asyncDispose]() {
+        return this.file[Symbol.asyncDispose]();
     }
 
 }
@@ -154,9 +153,6 @@ export default class Content implements IPageResult {
             throw new Error(`Body cannot be undefined`);
         }
         return p as Content;
-    }
-    [Symbol.dispose](): void {
-        // do nothing
     }
 
     public async send(res: WrappedResponse, user?: SessionUser) {
