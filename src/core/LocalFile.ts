@@ -73,7 +73,7 @@ export class LocalFile implements AsyncDisposable {
         const readable = createReadStream(this.path, { start, end });
         return new Promise((resolve, reject) => {
             readable.pipe(writable, { end: true })
-                .on("end", resolve)
+                .on("finish", resolve)
                 .on("error", reject);
         });
     }
