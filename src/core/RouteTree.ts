@@ -3,7 +3,7 @@ import { join } from "path";
 import Page from "../Page.js";
 import { IRouteCheck, isPage } from "../Page.js";
 import { pathToFileURL } from "url";
-import Content, { IPageResult } from "../Content.js";
+import Content from "../Content.js";
 import { prepareSymbol } from "../decorators/Prepare.js";
 
 export interface IRouteHandler {

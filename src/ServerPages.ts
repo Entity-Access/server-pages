@@ -324,6 +324,7 @@ export default class ServerPages {
                 page.route = route;
                 scope.add(Page, page);
                 const content = await Executor.run(page);
+                scope.registerDisposable(content);
                 resp.setHeader("cache-control", page.cacheControl);
                 resp.removeHeader("etag");
                 sent = true;

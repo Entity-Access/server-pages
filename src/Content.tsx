@@ -7,7 +7,7 @@ import { SessionUser } from "./core/SessionUser.js";
 import { WrappedResponse } from "./core/Wrapped.js";
 import { OutgoingHttpHeaders } from "http";
 
-export interface IPageResult {
+export interface IPageResult extends Disposable {
     send(res: WrappedResponse, user?: SessionUser): Promise<any>;
 }
 
@@ -18,6 +18,10 @@ export class StatusResult implements IPageResult {
         public readonly headers?: OutgoingHttpHeaders
     ) {
 
+    }
+
+    [Symbol.dispose](): void {
+        // do nothing
     }
 
     send(res: WrappedResponse, user?: SessionUser): Promise<any> {
@@ -56,6 +60,9 @@ export class FileResult implements IPageResult {
         const parsed = parse(filePath);
         this.fileName = parsed.base;
     }
+    [Symbol.dispose](): void {
+        // do nothing
+    }
 
     send(res: WrappedResponse) {    
         this.headers["content-disposition"] = `${this.contentDisposition};filename=${encodeURIComponent(this.fileName)}`
@@ -89,6 +96,9 @@ export class Redirect implements IPageResult {
 
     constructor(public location: string, public status = 301, public headers = void 0 as OutgoingHttpHeaders) {
 
+    }
+    [Symbol.dispose](): void {
+        // do nothing
     }
 
     async send(res: WrappedResponse) {
@@ -144,6 +154,9 @@ export default class Content implements IPageResult {
             throw new Error(`Body cannot be undefined`);
         }
         return p as Content;
+    }
+    [Symbol.dispose](): void {
+        // do nothing
     }
 
     public async send(res: WrappedResponse, user?: SessionUser) {

@@ -1,5 +1,4 @@
 import Inject from "@entity-access/entity-access/dist/di/di.js";
-import { IPageResult } from "../../../../Content.js";
 import Page from "../../../../Page.js";
 import { Prepare } from "../../../../decorators/Prepare.js";
 import EntityContext from "@entity-access/entity-access/dist/model/EntityContext.js";
