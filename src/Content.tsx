@@ -8,8 +8,6 @@ import { WrappedResponse } from "./core/Wrapped.js";
 import { OutgoingHttpHeaders } from "http";
 
 export interface IPageResult {
-    [Symbol.dispose]?();
-    [Symbol.asyncDispose]?();
     send(res: WrappedResponse, user?: SessionUser): Promise<any>;
 }
 
@@ -83,10 +81,6 @@ export class TempFileResult extends FileResult {
         this.lastModified = false;
     }
 
-    [Symbol.asyncDispose]() {
-        return this.file[Symbol.asyncDispose]();
-    }
-
 }
 
 
@@ -95,9 +89,6 @@ export class Redirect implements IPageResult {
 
     constructor(public location: string, public status = 301, public headers = void 0 as OutgoingHttpHeaders) {
 
-    }
-    [Symbol.dispose](): void {
-        // do nothing
     }
 
     async send(res: WrappedResponse) {
