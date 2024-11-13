@@ -122,23 +122,36 @@ export default class EntityAccessServer {
             q = q.limit(size);
         }
 
+        let items;
+
+        const beforeSerialize = (events as any).beforeSerialize as Function;
+
+
         if (count) {
             const total = await oq.count();
             if (trace) {
                 q = q.trace(console.log);
             }
+            items = await q.toArray();
+            if (beforeSerialize) {
+                await beforeSerialize.call(this, items);
+            }
             return GraphService.prepareGraph({
                 total,
-                items: await q.toArray()
+                items
             }, user);
         }
 
         if (trace) {
             q = q.trace(console.log);
         }
+        items = await q.toArray();
+        if (beforeSerialize) {
+            await beforeSerialize.call(this, items);
+        }
         return GraphService.prepareGraph({
             total: 0,
-            items: await q.toArray()
+            items
         }, user);
 
     }
