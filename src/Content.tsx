@@ -35,7 +35,7 @@ export class FileResult implements IPageResult {
     public immutable = false;
     public headers = void 0 as OutgoingHttpHeaders;
     protected lastModified = false;
-    private fileName;
+    public fileName;
     constructor(
         private filePath: string,
         {
@@ -44,6 +44,7 @@ export class FileResult implements IPageResult {
             maxAge = 2592000,
             etag = false,
             immutable = false,
+            fileName,
             headers
         }: Partial<FileResult> = {}
     ) {
@@ -54,7 +55,7 @@ export class FileResult implements IPageResult {
         this.immutable = immutable;
         this.headers = headers ?? {};
         const parsed = parse(filePath);
-        this.fileName = parsed.base;
+        this.fileName = fileName || parsed.base;
     }
 
     send(res: WrappedResponse) {    
@@ -75,9 +76,9 @@ export class FileResult implements IPageResult {
 export class TempFileResult extends FileResult {
 
     constructor(
-        private file: LocalFile, p: Partial<TempFileResult> = {}
+        file: LocalFile, p: Partial<TempFileResult> = {}
     ) {
-        super(file.path, p);
+        super(file.path, p.fileName ? p : (p.fileName = file.fileName, p));
         this.lastModified = false;
     }
 
