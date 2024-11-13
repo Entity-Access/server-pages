@@ -134,7 +134,7 @@ export default class EntityAccessServer {
             }
             items = await q.toArray();
             if (beforeSerialize) {
-                await beforeSerialize.call(this, items);
+                await beforeSerialize.call(events, items);
             }
             return GraphService.prepareGraph({
                 total,
@@ -147,7 +147,7 @@ export default class EntityAccessServer {
         }
         items = await q.toArray();
         if (beforeSerialize) {
-            await beforeSerialize.call(this, items);
+            await beforeSerialize.call(events, items);
         }
         return GraphService.prepareGraph({
             total: 0,
