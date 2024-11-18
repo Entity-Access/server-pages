@@ -195,9 +195,12 @@ export default class extends Page {
                     body[key] = arrayCopy;
                     continue;
                 }
-                if (body[key]) {
-                    continue;
-                }
+
+                // one to one key must be added here
+
+                // if (body[key]) {
+                //     continue;
+                // }
                 const related = await this.loadEntity(element, property.relation.relatedTypeClass);
                 body[key] = related;
             }
