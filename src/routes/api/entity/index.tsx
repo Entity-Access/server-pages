@@ -72,6 +72,11 @@ export default class extends Page {
     }
 
     private async loadEntity(body: any, type?: any) {
+
+        if (body[added]) {
+            return body;
+        }
+
         if (!type) {
             type = body.$type;
             if (!type) {
