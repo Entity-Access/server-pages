@@ -164,6 +164,7 @@ export default class extends Page {
                         }
                     }
                 }
+                body[added] = true;
             } else {
                 // body = source.add(changes);
                 entry.status = "inserted";
