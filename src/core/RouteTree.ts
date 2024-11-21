@@ -117,7 +117,7 @@ export default class RouteTree {
         }
     }
     
-    public register(folder: string) {
+    public register(folder: string, log?:(text: string) => any) {
 
         for (const iterator of readdirSync(folder, { withFileTypes: true , recursive: false})) {
             if (iterator.isDirectory()) {
@@ -157,7 +157,7 @@ export default class RouteTree {
             }
 
             const handler = pathToFileURL(join(folder, iterator.name)).toString();
-            console.log(`Registering Route ${this.path} with ${handler}`);
+            log?.(`Registering Route ${this.path} with ${handler}`);
 
             const promise = (async () => {
                 const { default: pageClass } = await import(handler);

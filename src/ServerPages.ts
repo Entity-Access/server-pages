@@ -55,16 +55,16 @@ export default class ServerPages {
      * @param folder string
      * @param start string
      */
-    public registerRoutes(folder: string, start: string = "/", root = this.root) {
+    public registerRoutes(folder: string, start: string = "/", root = this.root, log?:(text: string) => any) {
         const startRoute = start.split("/").filter((x) => x);
         for (const iterator of startRoute) {
             root = root.getOrCreate(iterator);
         }
-        root.register(folder);
+        root.register(folder, log);
     }
 
-    public registerEntityRoutes(start = "/", tree = this.root) {
-        this.registerRoutes(join(fileURLToPath(dirname(import.meta.url)), "./routes"), start, tree)
+    public registerEntityRoutes(start = "/", tree = this.root, log?:(text: string) => any) {
+        this.registerRoutes(join(fileURLToPath(dirname(import.meta.url)), "./routes"), start, tree, log);
     }
 
     /**
