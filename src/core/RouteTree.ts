@@ -31,6 +31,8 @@ export default class RouteTree {
 
     private handler: IRouteHandler;
 
+    public log?: (text: string) => any;
+
     constructor(public readonly path: string = "/") {
 
     }
@@ -157,7 +159,7 @@ export default class RouteTree {
             }
 
             const handler = pathToFileURL(join(folder, iterator.name)).toString();
-            log?.(`Registering Route ${this.path} with ${handler}`);
+            this.log?.(`Registering Route ${this.path} with ${handler}`);
 
             const promise = (async () => {
                 const { default: pageClass } = await import(handler);

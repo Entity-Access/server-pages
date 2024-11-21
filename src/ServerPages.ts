@@ -45,6 +45,10 @@ export default class ServerPages {
 
     private root: RouteTree = new RouteTree();
 
+    public set logRoutes(log: (text: string) => any) {
+        this.root.log = log;
+    }
+
     /**
      * Cache routeTree based on host to improve performance
      */
@@ -55,16 +59,16 @@ export default class ServerPages {
      * @param folder string
      * @param start string
      */
-    public registerRoutes(folder: string, start: string = "/", root = this.root, log?:(text: string) => any) {
+    public registerRoutes(folder: string, start: string = "/", root = this.root) {
         const startRoute = start.split("/").filter((x) => x);
         for (const iterator of startRoute) {
             root = root.getOrCreate(iterator);
         }
-        root.register(folder, log);
+        root.register(folder);
     }
 
-    public registerEntityRoutes(start = "/", tree = this.root, log?:(text: string) => any) {
-        this.registerRoutes(join(fileURLToPath(dirname(import.meta.url)), "./routes"), start, tree, log);
+    public registerEntityRoutes(start = "/", tree = this.root) {
+        this.registerRoutes(join(fileURLToPath(dirname(import.meta.url)), "./routes"), start, tree);
     }
 
     /**
