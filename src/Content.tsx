@@ -78,7 +78,7 @@ export class TempFileResult extends FileResult {
     constructor(
         file: LocalFile, p: Partial<TempFileResult> = {}
     ) {
-        super(file.path, p.fileName ? p : (p.fileName = file.fileName, p));
+        super(file.path, p.fileName ? p : (p.fileName = file.fileName, (p.headers ??={})["content-type"] = file.contentType, p));
         this.lastModified = false;
     }
 
