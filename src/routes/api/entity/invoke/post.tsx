@@ -26,7 +26,7 @@ export default class extends Page {
         await Prepare.authorize(this);
 
 
-        const events = this.db.eventsFor(entityClass, true);
+        const events = this.db.eventsFor<object>(entityClass, true);
 
         if(!ExternalInvoke.isExternal(events, methodName)) {
             throw new EntityAccessError(`${methodName} is not marked as an externally invokable method`);
@@ -49,7 +49,7 @@ export default class extends Page {
         where = `(p) => (x) => ${where}`;
 
         // use must have read priviledge atleast
-        const e = await events.filter(this.db.model.register(entityClass).where(entity, where as any))
+        const e = await events.filter(this.db.model.register<object>(entityClass).where(entity, where as any))
             .firstOrFail();
 
         // now execute external method

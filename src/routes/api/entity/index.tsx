@@ -86,7 +86,7 @@ export default class extends Page {
         }
 
         // get entityType from type...
-        const source = this.db.model.register(type);
+        const source = this.db.model.register<object>(type);
         const entityType = this.db.model.getEntityType(type);
         Object.setPrototypeOf(body, entityType.typeClass.prototype);
         body.$type = entityType.entityName;
@@ -129,7 +129,7 @@ export default class extends Page {
         const changes = body;
         if(hasAllKeys) {
 
-            const events = this.db.eventsFor(type, true);
+            const events = this.db.eventsFor<object>(type, true);
             let q = source.asQuery();
             if (operation === "delete") {
                 q = events.delete(q);
