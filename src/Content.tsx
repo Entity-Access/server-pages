@@ -7,17 +7,17 @@ import { SessionUser } from "./core/SessionUser.js";
 import { WrappedResponse } from "./core/Wrapped.js";
 import { OutgoingHttpHeaders } from "http";
 
-export interface IPageResult {
-    send(res: WrappedResponse, user?: SessionUser): Promise<any>;
+export abstract class PageResult {
+    abstract send(res: WrappedResponse, user?: SessionUser): Promise<any>;
 }
 
-export class StatusResult implements IPageResult {
+export class StatusResult extends PageResult {
 
     constructor(
         public readonly status,
         public readonly headers?: OutgoingHttpHeaders
     ) {
-
+        super();
     }
 
     send(res: WrappedResponse, user?: SessionUser): Promise<any> {
@@ -26,7 +26,7 @@ export class StatusResult implements IPageResult {
 
 }
 
-export class FileResult implements IPageResult {
+export class FileResult extends PageResult {
 
     public contentDisposition: "inline" | "attachment" = "inline";
     public cacheControl = true;
@@ -48,6 +48,7 @@ export class FileResult implements IPageResult {
             headers
         }: Partial<FileResult> = {}
     ) {
+        super();
         this.contentDisposition = contentDisposition;
         this.cacheControl = cacheControl;
         this.maxAge = maxAge;
@@ -86,10 +87,10 @@ export class TempFileResult extends FileResult {
 
 
 
-export class Redirect implements IPageResult {
+export class Redirect extends PageResult {
 
     constructor(public location: string, public status = 301, public headers = void 0 as OutgoingHttpHeaders) {
-
+        super();
     }
 
     async send(res: WrappedResponse) {
@@ -98,7 +99,7 @@ export class Redirect implements IPageResult {
 
 }
 
-export default class Content implements IPageResult {
+export default class Content extends PageResult {
 
     public static json(json: any, status = 200) {
         return new Content({
@@ -138,6 +139,7 @@ export default class Content implements IPageResult {
     public compress: "gzip" | "deflate" | null = null;
 
     private constructor(p: Partial<Content>) {
+        super();
         Object.setPrototypeOf(p, Content.prototype);
         p.contentType ??= "text/plain";
         p.status ??= 200;

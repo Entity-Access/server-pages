@@ -1,7 +1,7 @@
 import busboy from "busboy";
 import HtmlDocument from "./html/HtmlDocument.js";
 import XNode from "./html/XNode.js";
-import Content, { IPageResult, Redirect } from "./Content.js";
+import Content, { PageResult, Redirect } from "./Content.js";
 import { LocalFile } from "./core/LocalFile.js";
 import { WrappedRequest, WrappedResponse } from "./core/Wrapped.js";
 import { ServiceProvider } from "@entity-access/entity-access/dist/di/di.js";
@@ -94,7 +94,7 @@ export default abstract class Page<TInput = any, TQuery = any> {
         this.cacheControl = "no-cache, no-store, max-age=0";
     }
 
-    abstract run(): IPageResult | Promise<IPageResult>;
+    abstract run(): PageResult | Promise<PageResult>;
 
     resolve<T>(c: IClassOf<T>): T {
         return ServiceProvider.resolve(this, c);

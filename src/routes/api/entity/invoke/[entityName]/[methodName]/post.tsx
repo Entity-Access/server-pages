@@ -7,6 +7,7 @@ import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAc
 import ExternalInvoke from "../../../../../../decorators/ExternalInvoke.js";
 import GraphService from "../../../../../../services/GraphService.js";
 import { Route } from "../../../../../../core/Route.js";
+import Content, { PageResult } from "../../../../../../Content.js";
 
 export default class extends Page {
 
@@ -61,6 +62,10 @@ export default class extends Page {
 
         // now execute external method
         const result = await events[methodName](e, ... args);
+
+        if (result instanceof PageResult) {
+            return result;
+        }
 
         return this.json(
             result
