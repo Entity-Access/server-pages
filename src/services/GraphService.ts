@@ -3,6 +3,7 @@ import ModelService from "./ModelService.js";
 import { ServiceProvider } from "@entity-access/entity-access/dist/di/di.js";
 import { SessionUser } from "../core/SessionUser.js";
 import SessionEncryption from "./SessionEncryption.js";
+import { identitySymbol } from "@entity-access/entity-access/dist/common/symbols/symbols.js";
 
 export default class GraphService {
 
@@ -12,12 +13,12 @@ export default class GraphService {
 
     static appendToGraph = Symbol("toGraph");
 
-    static prepareGraph(body, sp: SessionUser, expandable: boolean) {
+    static prepareGraph(body, sp: SessionUser, expandable: boolean = false) {
         const r = this.prepare(body, new Map(), sp, expandable);
         return r;
     }
 
-    private static prepare(body: any, visited: Map<any, any>, sp: SessionUser, expandable: boolean) {
+    private static prepare(body: any, visited: Map<any, any>, sp: SessionUser, expandable: boolean = false) {
 
         if (Array.isArray(body)) {
             const r = [];
@@ -62,9 +63,10 @@ export default class GraphService {
 
             if (expandable) {
                 const key = sp.sessionID?.toString();
-                const keys = {};
+                const keys = body[identitySymbol];
                 
-                const eKey = "e-" + SessionEncryption.encrypt(JSON.stringify(keys), key);
+                const eKey = "e-" + SessionEncryption.encrypt(keys, key);
+                copy["$key"] = eKey;
             }
         }
 
