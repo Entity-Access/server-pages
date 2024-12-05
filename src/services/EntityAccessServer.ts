@@ -26,6 +26,8 @@ const replaceArgs = (code: string, p: any, args: any[]) => {
 export interface IEntityQueryOptions {
     entity: string;
     methods: string | IQueryMethod[];
+    expand?: string;
+    expandKeys?: any;
     start: number;
     size: number;
     split: boolean;
@@ -52,7 +54,9 @@ export default class EntityAccessServer {
             start = 0,
             size = 100,
             trace,
-            function: queryFunction
+            function: queryFunction,
+            expand,
+            expandKeys
         } = options;
         let {
             count = false,
@@ -94,9 +98,13 @@ export default class EntityAccessServer {
             }
             q = FilteredExpression.markAsFiltered(q);
         } else {
-            q = events.filter(db.query(entityClass));
-            if ((q as any).then) {
-                q = await q;
+            if (expand) {
+                q = db.expand(entityClass, expandKeys, expand as any);
+            } else {
+                q = events.filter(db.query(entityClass));
+                if ((q as any).then) {
+                    q = await q;
+                }
             }
         }
 

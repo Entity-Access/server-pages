@@ -11,6 +11,9 @@ export default class GraphService {
 
     static appendToGraph = Symbol("toGraph");
 
+    static encrypt = (e: string): string => { throw new Error("Encryption not set")  };
+    static decrypt = (e: string): string => { throw new Error("Decryption not set")  };
+
     static prepareGraph(body, sp: SessionUser) {
         const r = this.prepare(body, new Map(), sp);
         return r;

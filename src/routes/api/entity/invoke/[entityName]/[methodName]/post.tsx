@@ -1,20 +1,27 @@
 import Inject from "@entity-access/entity-access/dist/di/di.js";
-import Page from "../../../../Page.js";
-import { Prepare } from "../../../../decorators/Prepare.js";
+import Page from "../../../../../../Page.js";
+import { Prepare } from "../../../../../../decorators/Prepare.js";
 import EntityContext from "@entity-access/entity-access/dist/model/EntityContext.js";
 import SchemaRegistry from "@entity-access/entity-access/dist/decorators/SchemaRegistry.js";
 import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAccessError.js";
-import ExternalInvoke from "../../../../decorators/ExternalInvoke.js";
-import GraphService from "../../../../services/GraphService.js";
+import ExternalInvoke from "../../../../../../decorators/ExternalInvoke.js";
+import GraphService from "../../../../../../services/GraphService.js";
+import { Route } from "../../../../../../core/Route.js";
 
 export default class extends Page {
 
     @Inject
     private db: EntityContext;
+
+    @Route
+    entityName: string;
+
+    @Route
+    methodName: string;
    
     async run() {
 
-        const [entityName, methodName] = this.childPath as any[];
+        const {entityName, methodName} = this;
 
         const entityClass = SchemaRegistry.classForName(entityName);
 
