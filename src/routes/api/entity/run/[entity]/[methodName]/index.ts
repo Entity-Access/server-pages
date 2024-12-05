@@ -67,7 +67,7 @@ export default class extends Page {
             throw new EntityAccessError(`${methodName} is not marked as an externally invokable method`);
         }
 
-        const entity = this.db.model.register(entityClass).statements.select({}, keys);
+        const entity = await this.db.model.register(entityClass).statements.select({}, keys);
 
         // now execute external method
         const result = await events[methodName](entity, ... args);
