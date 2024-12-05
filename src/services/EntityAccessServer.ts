@@ -34,6 +34,7 @@ export interface IEntityQueryOptions {
     trace: boolean;
     cache: number;
     count: boolean;
+    expandable?: boolean;
     function: string;
     args: string | any[];
     traceFunc?(text: string);
@@ -56,7 +57,8 @@ export default class EntityAccessServer {
             trace,
             function: queryFunction,
             expand,
-            expandKeys
+            expandKeys,
+            expandable
         } = options;
         let {
             count = false,
@@ -147,7 +149,7 @@ export default class EntityAccessServer {
             return GraphService.prepareGraph({
                 total,
                 items
-            }, user);
+            }, user, expandable);
         }
 
         if (trace) {
@@ -160,7 +162,7 @@ export default class EntityAccessServer {
         return GraphService.prepareGraph({
             total: 0,
             items
-        }, user);
+        }, user, expandable);
 
     }
 

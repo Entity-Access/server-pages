@@ -5,6 +5,7 @@ import EntityAccessServer from "../../../../../../../services/EntityAccessServer
 import { Prepare } from "../../../../../../../decorators/Prepare.js";
 import { Route } from "../../../../../../../core/Route.js";
 import GraphService from "../../../../../../../services/GraphService.js";
+import SessionEncryption from "../../../../../../../services/SessionEncryption.js";
 
 @Prepare.authorize
 @Prepare.parseJsonBody
@@ -27,15 +28,17 @@ export default class extends Page {
 
         let { keys } = this;
 
-        keys = decodeURIComponent(keys);
+        const decryptKey = this.sessionUser.sessionID?.toString();
 
         if (keys.startsWith("e-")) {
-            keys = GraphService.decrypt(keys.substring(2));
+            keys = decodeURIComponent(keys);
+            keys = SessionEncryption.decrypt(keys, decryptKey);
         } else {
+            keys = decodeURIComponent(keys);
             keys = keys.substring(2);
         }
 
-        const expandKeys = GraphService.decrypt(keys);
+        const expandKeys = JSON.parse(keys);
 
         const { property: expand } = this;
 

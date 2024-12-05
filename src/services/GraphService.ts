@@ -2,6 +2,7 @@ import SchemaRegistry from "@entity-access/entity-access/dist/decorators/SchemaR
 import ModelService from "./ModelService.js";
 import { ServiceProvider } from "@entity-access/entity-access/dist/di/di.js";
 import { SessionUser } from "../core/SessionUser.js";
+import SessionEncryption from "./SessionEncryption.js";
 
 export default class GraphService {
 
@@ -11,20 +12,17 @@ export default class GraphService {
 
     static appendToGraph = Symbol("toGraph");
 
-    static encrypt = (e: string): string => { throw new Error("Encryption not set")  };
-    static decrypt = (e: string): string => { throw new Error("Decryption not set")  };
-
-    static prepareGraph(body, sp: SessionUser) {
-        const r = this.prepare(body, new Map(), sp);
+    static prepareGraph(body, sp: SessionUser, expandable: boolean) {
+        const r = this.prepare(body, new Map(), sp, expandable);
         return r;
     }
 
-    private static prepare(body: any, visited: Map<any, any>, sp: SessionUser) {
+    private static prepare(body: any, visited: Map<any, any>, sp: SessionUser, expandable: boolean) {
 
         if (Array.isArray(body)) {
             const r = [];
             for (const iterator of body) {
-                r.push(this.prepare(iterator, visited, sp));
+                r.push(this.prepare(iterator, visited, sp, expandable));
             }
             return r;
         }
@@ -61,6 +59,13 @@ export default class GraphService {
         const { constructor } = Object.getPrototypeOf(body);
         if(constructor !== Object) {
             copy["$type"] = SchemaRegistry.entityNameForClass(constructor);
+
+            if (expandable) {
+                const key = sp.sessionID?.toString();
+                const keys = {};
+                
+                const eKey = "e-" + SessionEncryption.encrypt(JSON.stringify(keys), key);
+            }
         }
 
         body = body[this.toGraph]?.() ?? body;
