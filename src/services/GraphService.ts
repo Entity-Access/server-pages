@@ -18,7 +18,7 @@ export default class GraphService {
         return r;
     }
 
-    private static prepare(body: any, visited: Map<any, any>, sp: SessionUser, expandable: boolean = false) {
+    private static prepare(body: any, visited: Map<any, any>, sp: SessionUser, expandable) {
 
         if (Array.isArray(body)) {
             const r = [];
@@ -79,7 +79,7 @@ export default class GraphService {
 
             if (Object.prototype.hasOwnProperty.call(body, key)) {
                 const element = body[key];
-                copy[key] = this.prepare(element, visited, sp);
+                copy[key] = this.prepare(element, visited, sp, expandable);
                 continue;
             }
             const e = body[key];
