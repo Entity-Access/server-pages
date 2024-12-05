@@ -31,11 +31,12 @@ export default class extends Page {
         const decryptKey = this.sessionUser.sessionID?.toString();
 
         if (keys.startsWith("e-")) {
+            keys = keys.substring(2);
             keys = decodeURIComponent(keys);
             keys = SessionEncryption.decrypt(keys, decryptKey);
         } else {
-            keys = decodeURIComponent(keys);
             keys = keys.substring(2);
+            keys = decodeURIComponent(keys);
         }
 
         const expandKeys = JSON.parse(keys);
