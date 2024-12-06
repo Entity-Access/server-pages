@@ -9,7 +9,7 @@ import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAc
 import SchemaRegistry from "@entity-access/entity-access/dist/decorators/SchemaRegistry.js";
 import { PageResult } from "../../../../../../Content.js";
 import ExternalInvoke from "../../../../../../decorators/ExternalInvoke.js";
-import JsonService from "../../../../../../services/JsonService.js";
+import JsonService from "../../../../../../services/DbJsonService.js";
 
 @Prepare.authorize
 @Prepare.parseJsonBody
@@ -80,7 +80,7 @@ export default class extends Page {
             return this.content({ body: "{}", contentType: "application/json"});
         }
 
-        return JsonService.toJson(result, this.sessionUser);
+        return JsonService.toJson(this.db, result);
     }
 
 }

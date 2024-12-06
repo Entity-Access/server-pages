@@ -5,7 +5,7 @@ import SchemaRegistry from "@entity-access/entity-access/dist/decorators/SchemaR
 import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAccessError.js";
 import Page, { IRouteCheck } from "../../../Page.js";
 import { Prepare } from "../../../decorators/Prepare.js";
-import JsonService from "../../../services/JsonService.js";
+import JsonService from "../../../services/DbJsonService.js";
 
 const added = Symbol("added");
 
@@ -43,7 +43,7 @@ export default class extends Page {
             options.trace = console.log;
         }
         await this.db.saveChanges(options);
-        return JsonService.toJson(body, this.sessionUser);
+        return JsonService.toJson(this.db, body);
     }
 
     private async saveMultiple(body: any[]) {
@@ -57,7 +57,7 @@ export default class extends Page {
             options.trace = console.log;
         }
         await this.db.saveChanges(options);
-        return JsonService.toJson(result, this.sessionUser);
+        return JsonService.toJson(this.db, result);
     }
 
     private async delete(body: any) {

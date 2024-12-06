@@ -7,7 +7,7 @@ import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAc
 import { FilteredExpression } from "@entity-access/entity-access/dist/model/events/FilteredExpression.js";
 import type { IEntityQuery } from "@entity-access/entity-access/dist/model/IFilterWithParameter.js";
 import { SessionUser } from "../core/SessionUser.js";
-import JsonService from "./JsonService.js";
+import DbJsonService from "./DbJsonService.js";
 
 export type IQueryMethod = [string, string, ... any[]];
 
@@ -145,10 +145,10 @@ export default class EntityAccessServer {
             if (beforeSerialize) {
                 await beforeSerialize.call(events, items);
             }
-            return JsonService.toJson({
+            return DbJsonService.toJson(db, {
                 total,
                 items
-            }, user);
+            });
         }
 
         if (trace) {
@@ -158,10 +158,10 @@ export default class EntityAccessServer {
         if (beforeSerialize) {
             await beforeSerialize.call(events, items);
         }
-        return JsonService.toJson({
+        return DbJsonService.toJson(db, {
             total: 0,
             items
-        }, user);
+        });
 
     }
 
