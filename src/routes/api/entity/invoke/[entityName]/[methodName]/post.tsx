@@ -5,7 +5,6 @@ import EntityContext from "@entity-access/entity-access/dist/model/EntityContext
 import SchemaRegistry from "@entity-access/entity-access/dist/decorators/SchemaRegistry.js";
 import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAccessError.js";
 import ExternalInvoke from "../../../../../../decorators/ExternalInvoke.js";
-import GraphService from "../../../../../../services/GraphService.js";
 import { Route } from "../../../../../../core/Route.js";
 import Content, { PageResult } from "../../../../../../Content.js";
 
@@ -67,9 +66,14 @@ export default class extends Page {
             return result;
         }
 
-        return this.json(
-            result
-                ? GraphService.prepareGraph(result, this.sessionUser)
-                : {});
+        // return this.json(
+        //     result
+        //         ? GraphService.prepareGraph(result, this.sessionUser)
+        //         : {});
+        if (!result) {
+            return this.content({ body:"{}", contentType: "application/json"});
+        }
+
+        
     }
 }

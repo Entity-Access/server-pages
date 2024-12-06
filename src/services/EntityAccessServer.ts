@@ -2,13 +2,12 @@
 import SchemaRegistry from "@entity-access/entity-access/dist/decorators/SchemaRegistry.js";
 import EntityContext from "@entity-access/entity-access/dist/model/EntityContext.js";
 import { StringHelper } from "./StringHelper.js";
-import EntityQuery from "@entity-access/entity-access/dist/model/EntityQuery.js";
-import GraphService from "./GraphService.js";
 import ExternalQuery from "../decorators/ExternalQuery.js";
 import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAccessError.js";
 import { FilteredExpression } from "@entity-access/entity-access/dist/model/events/FilteredExpression.js";
 import type { IEntityQuery } from "@entity-access/entity-access/dist/model/IFilterWithParameter.js";
 import { SessionUser } from "../core/SessionUser.js";
+import JsonService from "./JsonService.js";
 
 export type IQueryMethod = [string, string, ... any[]];
 
@@ -146,10 +145,10 @@ export default class EntityAccessServer {
             if (beforeSerialize) {
                 await beforeSerialize.call(events, items);
             }
-            return GraphService.prepareGraph({
+            return JsonService.toJson({
                 total,
                 items
-            }, user, expandable);
+            }, user);
         }
 
         if (trace) {
@@ -159,10 +158,10 @@ export default class EntityAccessServer {
         if (beforeSerialize) {
             await beforeSerialize.call(events, items);
         }
-        return GraphService.prepareGraph({
+        return JsonService.toJson({
             total: 0,
             items
-        }, user, expandable);
+        }, user);
 
     }
 

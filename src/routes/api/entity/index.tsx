@@ -4,8 +4,8 @@ import EntityContext from "@entity-access/entity-access/dist/model/EntityContext
 import SchemaRegistry from "@entity-access/entity-access/dist/decorators/SchemaRegistry.js";
 import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAccessError.js";
 import Page, { IRouteCheck } from "../../../Page.js";
-import GraphService from "../../../services/GraphService.js";
 import { Prepare } from "../../../decorators/Prepare.js";
+import JsonService from "../../../services/JsonService.js";
 
 const added = Symbol("added");
 
@@ -43,7 +43,7 @@ export default class extends Page {
             options.trace = console.log;
         }
         await this.db.saveChanges(options);
-        return this.json(GraphService.prepareGraph(body, this.sessionUser));
+        return JsonService.toJson(body, this.sessionUser);
     }
 
     private async saveMultiple(body: any[]) {
@@ -57,7 +57,7 @@ export default class extends Page {
             options.trace = console.log;
         }
         await this.db.saveChanges(options);
-        return this.json(GraphService.prepareGraph(result, this.sessionUser));
+        return JsonService.toJson(result, this.sessionUser);
     }
 
     private async delete(body: any) {

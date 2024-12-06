@@ -1,19 +1,16 @@
-import busboy from "busboy";
-import { IncomingHttpHeaders, IncomingMessage, OutgoingHttpHeaders, OutgoingMessage, ServerResponse } from "http";
+import { IncomingHttpHeaders, IncomingMessage, OutgoingHttpHeaders, ServerResponse } from "http";
 import { Http2ServerRequest, Http2ServerResponse } from "http2";
 import { SessionUser } from "./SessionUser.js";
 import { SerializeOptions, parse, serialize } from "cookie";
-import TempFolder from "./TempFolder.js";
 import { LocalFile } from "./LocalFile.js";
-import { Writable } from "stream";
+import { Readable } from "stream";
 import { ServiceProvider } from "@entity-access/entity-access/dist/di/di.js";
-import CookieService from "../services/CookieService.js";
 import { stat } from "fs/promises";
-import TokenService from "../services/TokenService.js";
 import { CacheProperty } from "./CacheProperty.js";
 import Compression from "./Compression.js";
 import { remoteAddressSymbol } from "./remoteAddressSymbol.js";
 import { StreamHelper } from "./StreamHelper.js";
+import { pipeline } from "stream/promises";
 
 
 type UnwrappedRequest = IncomingMessage | Http2ServerRequest;
@@ -75,6 +72,9 @@ export interface IWrappedResponse {
     asyncWrite(buffer: Buffer): Promise<void>;
 
     // setHeader(name: string, value: string);
+
+
+    asyncPipe(status: number, headers: OutgoingHttpHeaders, readable: Readable): Promise<void>;
 
     send(data: Buffer | string | Blob, status?: number): Promise<void>;
 
@@ -226,6 +226,11 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
                 return new Promise<void>((resolve, reject) => 
                     this.write(buffer, (error) => error ? reject(error) : resolve())
                 );        
+            }
+
+            asyncPipe(this: UnwrappedResponse, status: number, headers: OutgoingHttpHeaders, readable: Readable, signal?: AbortSignal) {
+                this.writeHead(status, headers);
+                return pipeline(readable, this, { signal, end: true });
             }
         
             cookie(this: UnwrappedResponse, name: string, value: string, options: SerializeOptions = {}) {

@@ -6,9 +6,25 @@ import { LocalFile } from "./core/LocalFile.js";
 import { SessionUser } from "./core/SessionUser.js";
 import { WrappedResponse } from "./core/Wrapped.js";
 import { OutgoingHttpHeaders } from "http";
+import JsonReadable from "@entity-access/entity-access/dist/common/JsonReadable.js";
 
 export abstract class PageResult {
     abstract send(res: WrappedResponse, user?: SessionUser): Promise<any>;
+}
+
+export class JsonReaderResult extends PageResult {
+    constructor(
+        public readonly reader: JsonReadable,
+        public readonly status = 200,
+        public readonly headers?: OutgoingHttpHeaders
+    ) {
+        super();
+    }
+
+    send(res: WrappedResponse, user?: SessionUser): Promise<any> {
+        return res.asyncPipe(this.status, this.headers, this.reader);
+    }
+
 }
 
 export class StatusResult extends PageResult {
