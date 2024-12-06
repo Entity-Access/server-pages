@@ -56,7 +56,7 @@ export default class extends Page {
 
         where = `(p) => (x) => ${where}`;
 
-        // use must have read priviledge atleast
+        // use must have read privilege at least
         const e = await events.filter(this.db.model.register<object>(entityClass).where(entity, where as any))
             .firstOrFail();
 
