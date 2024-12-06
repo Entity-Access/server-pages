@@ -10,6 +10,7 @@ import SchemaRegistry from "@entity-access/entity-access/dist/decorators/SchemaR
 import { PageResult } from "../../../../../../Content.js";
 import ExternalInvoke from "../../../../../../decorators/ExternalInvoke.js";
 import JsonService from "../../../../../../services/DbJsonService.js";
+import SessionSecurity from "../../../../../../services/SessionSecurity.js";
 
 @Prepare.authorize
 @Prepare.parseJsonBody
@@ -24,25 +25,15 @@ export default class extends Page {
     @Route
     methodName: string;
 
+    @Inject
+    sessionSecurity: SessionSecurity;
+
     async run() {
         const { entity: entityName } = this;
 
         const { args = "[]" } = this.query;
 
-        let keys = this.query.key;
-
-        const decryptKey = this.sessionUser.sessionID?.toString();
-
-        if (keys.startsWith("e-")) {
-            keys = keys.substring(2);
-            keys = decodeURIComponent(keys);
-            keys = SessionEncryption.decrypt(keys, decryptKey);
-        } else {
-            keys = keys.substring(2);
-            keys = decodeURIComponent(keys);
-        }
-
-        keys = JSON.parse(keys);
+        const keys = this.sessionSecurity.decryptKey(this.query.key);
 
         const cv = this.query.cv;
         const cache = this.query.cache;

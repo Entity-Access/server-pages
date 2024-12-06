@@ -5,6 +5,7 @@ import EntityAccessServer from "../../../../../../../services/EntityAccessServer
 import { Prepare } from "../../../../../../../decorators/Prepare.js";
 import { Route } from "../../../../../../../core/Route.js";
 import SessionEncryption from "../../../../../../../services/SessionEncryption.js";
+import SessionSecurity from "../../../../../../../services/SessionSecurity.js";
 
 @Prepare.authorize
 @Prepare.parseJsonBody
@@ -22,23 +23,15 @@ export default class extends Page {
     @Route
     keys: string;
 
+    @Inject
+    sessionSecurity: SessionSecurity;
+
     async run() {
         const { entity } = this;
 
-        let { keys } = this;
+        const { keys } = this;
 
-        const decryptKey = this.sessionUser.sessionID?.toString();
-
-        if (keys.startsWith("e-")) {
-            keys = keys.substring(2);
-            keys = decodeURIComponent(keys);
-            keys = SessionEncryption.decrypt(keys, decryptKey);
-        } else {
-            keys = keys.substring(2);
-            keys = decodeURIComponent(keys);
-        }
-
-        const expandKeys = JSON.parse(keys);
+        const expandKeys = this.sessionSecurity.decryptKey(keys);
 
         const { property: expand } = this;
 

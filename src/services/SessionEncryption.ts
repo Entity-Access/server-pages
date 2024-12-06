@@ -1,4 +1,6 @@
+import { identitySymbol } from "@entity-access/entity-access/dist/common/symbols/symbols.js";
 import crypto from "node:crypto";
+import { SessionUser } from "../core/SessionUser.js";
 
 const cache = new Map<string, { key, encryptionIV }>();
 
