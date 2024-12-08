@@ -11,6 +11,14 @@ import Utf8Readable from "./core/Utf8Readable.js";
 
 const EmptyReader = Readable.from([]);
 
+export interface IContent {
+    body?: string | Buffer | XNode;
+    status?: number;
+    contentType?: string;
+    headers?: OutgoingHttpHeaders;
+    supressLog?: boolean;
+}
+
 export default class Content {
 
     public readonly reader: Readable;
@@ -58,14 +66,7 @@ export default class Content {
         })
     }
 
-    static create(p:
-        {
-            body?: string | Buffer | XNode,
-            status?: number,
-            headers?: OutgoingHttpHeaders,
-            contentType?: string,
-            suppressLog?: boolean
-        })
+    static create(p: IContent)
     {
         return this.text(p.body, p);
     }

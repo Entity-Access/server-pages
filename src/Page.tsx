@@ -7,7 +7,7 @@ import { WrappedRequest, WrappedResponse } from "./core/Wrapped.js";
 import { ServiceProvider } from "@entity-access/entity-access/dist/di/di.js";
 import { IClassOf } from "@entity-access/entity-access/dist/decorators/IClassOf.js";
 import { OutgoingHttpHeaders } from "http";
-import Content, { Redirect } from "./Content.js";
+import Content, { IContent, Redirect } from "./Content.js";
 import JsonGenerator from "@entity-access/entity-access/dist/common/JsonGenerator.js";
 
 export const isPage = Symbol("isPage");
@@ -106,9 +106,9 @@ export default abstract class Page<TInput = any, TQuery = any> {
         console.error(error);
     }
 
-    protected content(h: Partial<Content>): Content;
+    protected content(h: IContent): Content;
     protected content(body: string, status?: number, contentType?: string, headers?: OutgoingHttpHeaders): Content;
-    protected content(body: string | Partial<Content>, status?: number, contentType?: string, headers?: OutgoingHttpHeaders) {
+    protected content(body: string | Partial<IContent>, status?: number, contentType?: string, headers?: OutgoingHttpHeaders) {
         if (typeof body === "object") {
             return Content.create(body);
         }
