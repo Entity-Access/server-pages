@@ -43,8 +43,7 @@ export default class EntityAccessServer {
 
     public static async query(
         db: EntityContext,
-        options: IEntityQueryOptions,
-        user: SessionUser) {
+        options: IEntityQueryOptions) {
 
         db.verifyFilters = true;
         db.raiseEvents = true;
@@ -133,8 +132,6 @@ export default class EntityAccessServer {
 
         let items;
 
-        const beforeSerialize = (events as any).beforeSerialize as Function;
-
 
         if (count) {
             const total = await oq.count();
@@ -142,9 +139,6 @@ export default class EntityAccessServer {
                 q = q.trace(console.log);
             }
             items = await q.toArray();
-            if (beforeSerialize) {
-                await beforeSerialize.call(events, items);
-            }
             return DbJsonService.toJson(db, {
                 total,
                 items
@@ -155,9 +149,6 @@ export default class EntityAccessServer {
             q = q.trace(console.log);
         }
         items = await q.toArray();
-        if (beforeSerialize) {
-            await beforeSerialize.call(events, items);
-        }
         return DbJsonService.toJson(db, {
             total: 0,
             items

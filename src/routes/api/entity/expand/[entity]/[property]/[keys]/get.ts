@@ -42,13 +42,13 @@ export default class extends Page {
             this.cacheControl = `public, max-age=${cache}`;
         }
 
-        return this.json(await EntityAccessServer.query(this.db, {
+        return await EntityAccessServer.query(this.db, {
             entity,
             expand,
             expandKeys,
             ... this.query,
             ... this.body
-        }, this.sessionUser));
+        });
     }
 
 }
