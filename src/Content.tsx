@@ -9,7 +9,7 @@ import { OutgoingHttpHeaders } from "http";
 import { Readable } from "stream";
 import Utf8Readable from "./core/Utf8Readable.js";
 
-const EmptyReader = Readable.from([]);
+const EmptyReader = () => Readable.from([]);
 
 export interface IContent {
     body?: string | Buffer | XNode;
@@ -115,6 +115,12 @@ export default class Content {
             contentType,
             suppressLog
         });
+    }
+}
+
+export class StatusResult extends Content {
+    constructor(status, headers: OutgoingHttpHeaders) {
+        super({ reader: EmptyReader(), status, headers });
     }
 }
 
