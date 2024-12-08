@@ -356,7 +356,7 @@ export default class ServerPages {
                             return;
                         }
 
-                        const content = Content.text(`<!DOCTYPE html>\n<html><body><pre>Server Error for ${req.url}\r\n${error?.stack ?? error}</pre></body></html>`,
+                        const content = Content.html(`<!DOCTYPE html>\n<html><body><pre>Server Error for ${req.url}\r\n${error?.stack ?? error}</pre></body></html>`,
                             { status: 500});
                         await content.send(resp);
                     } catch (e1) {

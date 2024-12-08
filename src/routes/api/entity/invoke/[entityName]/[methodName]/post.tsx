@@ -74,7 +74,7 @@ export default class extends Page {
         if (!result) {
             return Content.text("{}", {
                 headers: {
-                    "content-type": "application/json; charset=utf8"
+                    "content-type": "application/json"
                 }
             });
         }

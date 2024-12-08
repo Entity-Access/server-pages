@@ -12,7 +12,7 @@ export default function(this: Page) {
         }
     }
 
-    return Content.text(<HtmlDocument>
+    return Content.html(<HtmlDocument>
         <body>
             Test 1
         </body>

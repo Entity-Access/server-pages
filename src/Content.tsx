@@ -15,6 +15,7 @@ export default class Content {
 
     public readonly reader: Readable;
     public readonly status: number = 200;
+    public readonly contentType: string = "plain/text";
     public readonly headers: OutgoingHttpHeaders;
 
     public suppressLog: boolean;
@@ -23,6 +24,10 @@ export default class Content {
         p: Partial<Content>
     ) {
         Object.setPrototypeOf(p, Content.prototype);
+        if (p.contentType) {
+            const headers = ((p as any).headers ??= {}) as OutgoingHttpHeaders;
+            headers["content-type"] = p.contentType;
+        }
         return p as Content;
     }
 
@@ -38,20 +43,36 @@ export default class Content {
         });
     }
 
+    static html(text: string | Iterable<string> | XNode, {
+        status = 200,
+        headers = void 0 as OutgoingHttpHeaders,
+        contentType = "text/html" as string,
+        suppressLog = false
+    } = {}) {
+        return this.text(text, {
+            status,
+            contentType,
+            headers,
+            suppressLog
+        })
+    }
 
     static text(
         text: string | Iterable<string> | XNode,
         {
             status = 200,
             headers = void 0 as OutgoingHttpHeaders,
+            contentType = void 0 as string,
             suppressLog = false
         } = {
         }) {
 
         let reader: Readable;
 
-        headers ??= {};
-        headers["content-type"] ??= "text/html; charset=utf-8"
+        contentType ??= "text/plain";
+        if (!contentType.includes(":")) {
+            contentType += "; charset=utf8";
+        }
 
         if (typeof text === "string") {
             reader = Readable.from([ Buffer.from(text, "utf8") ]);
@@ -65,6 +86,7 @@ export default class Content {
             reader,
             status,
             headers,
+            contentType,
             suppressLog
         });
     }

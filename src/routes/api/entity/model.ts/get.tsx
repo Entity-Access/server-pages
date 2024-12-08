@@ -14,7 +14,7 @@ export default class extends Page {
         return Content.text(
             ModelService.getModelDeclaration(this.db), {
                 headers: {
-                    "content-type": "text/typescript; charset=utf8"
+                    "content-type": "text/typescript"
                 }
             });
     }

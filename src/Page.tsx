@@ -134,7 +134,7 @@ export default abstract class Page<TInput = any, TQuery = any> {
     }
 
     protected notFound(suppressLog = true): Content | Promise<Content> {
-        return Content.text(<HtmlDocument>
+        return Content.html(<HtmlDocument>
                 <head>
                     <title>Not found</title>
                 </head>
@@ -151,7 +151,7 @@ export default abstract class Page<TInput = any, TQuery = any> {
     }
 
     protected serverError(error, status = 500): Content | Promise<Content> {
-        return Content.text(
+        return Content.html(
             <HtmlDocument>
                     <head>
                         <title>Server Error</title>
