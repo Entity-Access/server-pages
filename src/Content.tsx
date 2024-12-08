@@ -16,7 +16,7 @@ export interface IContent {
     status?: number;
     contentType?: string;
     headers?: OutgoingHttpHeaders;
-    supressLog?: boolean;
+    suppressLog?: boolean;
     compressable?: boolean;
 }
 
