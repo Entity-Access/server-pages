@@ -32,7 +32,7 @@ export default class Content {
     constructor(
         p: Partial<Content>
     ) {
-        Object.setPrototypeOf(p, Content.prototype);
+        Object.setPrototypeOf(p, new.target.prototype);
         if (p.contentType) {
             const headers = ((p as any).headers ??= {}) as OutgoingHttpHeaders;
             headers["content-type"] = p.contentType;
