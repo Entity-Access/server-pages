@@ -106,16 +106,19 @@ export default abstract class Page<TInput = any, TQuery = any> {
         console.error(error);
     }
 
-    // protected content(h: Partial<Content>): Content;
-    // protected content(body: string, status?: number, contentType?: string, headers?: OutgoingHttpHeaders): Content;
-    // protected content(body: string | Partial<Content>, status?: number, contentType?: string, headers?: OutgoingHttpHeaders) {
-    //     if (typeof body !== "object") {
-    //         body = { body, status, contentType, headers};
-    //     }
-    //     body.status ??= 200;
-    //     body.contentType ??= "text/html";
-    //     return Content.create(body);
-    // }
+    protected content(h: Partial<Content>): Content;
+    protected content(body: string, status?: number, contentType?: string, headers?: OutgoingHttpHeaders): Content;
+    protected content(body: string | Partial<Content>, status?: number, contentType?: string, headers?: OutgoingHttpHeaders) {
+        if (typeof body === "object") {
+            return Content.create(body);
+        }
+        return Content.create({
+            body,
+            status,
+            contentType,
+            headers
+        });
+    }
 
     protected json(o: any, indent = 0, headers = void 0 as OutgoingHttpHeaders) {
         // const content = indent

@@ -60,11 +60,11 @@ export default class Content {
 
     static create(p:
         {
-            body: string | Buffer | XNode,
-            status: number,
-            headers: OutgoingHttpHeaders,
-            contentType: string,
-            suppressLog: boolean
+            body?: string | Buffer | XNode,
+            status?: number,
+            headers?: OutgoingHttpHeaders,
+            contentType?: string,
+            suppressLog?: boolean
         })
     {
         return this.text(p.body, p);
