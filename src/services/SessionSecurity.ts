@@ -12,28 +12,35 @@ export default class SessionSecurity {
 
     publicKey: string;
 
-    injectKey(entity, secure = true) {
+    injectKey(entity, isPrivate = true) {
         let key = entity[identitySymbol];
         if (!key) {
             return entity;
         }
-        const { sessionID } = this.sessionUser;
-        const { publicKey } = this;
-        if (!publicKey) {
-            throw new EntityAccessError(`Public Key not set for session security`);
-        }
-        const encryptionKey = secure ? sessionID?.toString() || publicKey : publicKey;
+        const encryptionKey = this.getKey(isPrivate);
         key = SessionEncryption.encrypt(key, encryptionKey)
         entity.$key = `es-${key}`;
         return entity;
     }
 
+    private getKey(isPrivate: boolean) {
+        const { userID } = this.sessionUser;
+        if (isPrivate && userID) {
+            return userID.toString();
+        }
+        const { publicKey } = this;
+        if (!publicKey) {
+            throw new EntityAccessError(`Public Key not set for session security`);
+        }
+        return publicKey;
+    }
+
     decryptKey(key: string) {
         let encryptionKey;
         if(key.startsWith("es-")) {
-            encryptionKey = this.sessionUser.sessionID?.toString() ?? "unknown";            
+            encryptionKey = this.getKey(true);
         } else if (key.startsWith("ep-")) {
-            encryptionKey = this.publicKey;
+            encryptionKey = this.getKey(false);
         } else {
             return JSON.parse(key.substring(3));
         }
