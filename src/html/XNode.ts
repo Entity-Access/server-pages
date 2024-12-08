@@ -1,6 +1,14 @@
 // use parse5 to serialize html correctly
 import { escapeText, escapeAttribute } from "entities";
 
+type INodeToken = {
+    target: XNode;
+    token?: never;
+} | {
+    token: string;
+    target?: never;
+}
+
 export default class XNode {
 
     public static create(
@@ -53,6 +61,56 @@ export default class XNode {
             return `${nest}<${name}${a}></${name}>`;
         }
         return `${nest}<${name}${a}>\n${nest}\t${children.join("\n\t")}\n${nest}</${name}>`;
+    }
+
+    public *readable(nest = "") {
+
+        const { name, attributes, children } = this;
+
+        if (nest) {
+            yield nest;
+        }
+
+        yield `<${name}`;
+
+        if (attributes) {
+            for (const key in attributes) {
+                if (Object.hasOwn(attributes, key)) {
+                    const element = attributes[key];
+
+                    if (nest) {
+                        yield nest + "\t";
+                    }
+                    yield `${escapeAttribute(key)}="${escapeAttribute(element)}"\n`;
+                }
+            }
+        }
+
+        if (nest) {
+            yield nest;
+        }
+
+        yield ">\n";
+
+        if (children) {
+            for (const child of children) {
+                if (typeof child === "string") {
+                    yield escapeText(child);
+                    continue;
+                }
+                if (!child) {
+                    continue;
+                }
+                yield * child.readable(nest + "\t");
+            }
+        }
+
+        if (nest) {
+            yield nest;
+        }
+
+        yield `</${name}>`;
+
     }
 
 }

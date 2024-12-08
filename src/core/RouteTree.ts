@@ -179,7 +179,7 @@ export default class RouteTree {
 
                     async run() {
                         const r = await pageClass.call(this);
-                        return Content.create(r);
+                        return r;
                     }
                 }
                 return c;

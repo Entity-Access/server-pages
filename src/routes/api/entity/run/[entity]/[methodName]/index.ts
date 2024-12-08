@@ -3,14 +3,12 @@ import EntityContext from "@entity-access/entity-access/dist/model/EntityContext
 import Page from "../../../../../../Page.js";
 import { Route } from "../../../../../../core/Route.js";
 import { Prepare } from "../../../../../../decorators/Prepare.js";
-import EntityAccessServer from "../../../../../../services/EntityAccessServer.js";
-import SessionEncryption from "../../../../../../services/SessionEncryption.js";
 import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAccessError.js";
 import SchemaRegistry from "@entity-access/entity-access/dist/decorators/SchemaRegistry.js";
-import { PageResult } from "../../../../../../Content.js";
 import ExternalInvoke from "../../../../../../decorators/ExternalInvoke.js";
 import JsonService from "../../../../../../services/DbJsonService.js";
 import SessionSecurity from "../../../../../../services/SessionSecurity.js";
+import Content from "../../../../../../Content.js";
 
 @Prepare.authorize
 @Prepare.parseJsonBody
@@ -63,12 +61,16 @@ export default class extends Page {
         // now execute external method
         const result = await events[methodName](entity, ... args);
 
-        if (result instanceof PageResult) {
+        if (result instanceof Content) {
             return result;
         }
 
         if (!result) {
-            return this.content({ body: "{}", contentType: "application/json"});
+            return Content.text("{}", {
+                headers: {
+                    "content-type": "application/json; charset=utf8"
+                }
+            });
         }
 
         return JsonService.toJson(this.db, result);

@@ -21,6 +21,7 @@ import { WebSocket } from "ws";
 import { UrlParser } from "./core/UrlParser.js";
 import { createConnection } from "node:net";
 import HttpIPCProxyReceiver from "./core/HttpIPCProxyReceiver.js";
+import JsonGenerator from "@entity-access/entity-access/dist/common/JsonGenerator.js";
 
 export const wsData = Symbol("wsData");
 
@@ -338,17 +339,25 @@ export default class ServerPages {
                     try {
 
                         if (acceptJson || error.errorModel) {
-                            await Content.json(
+
+                            const json = new JsonGenerator(this);
+                            const reader = json.reader({
+                                details: error.stack ?? error,
+                                ... error.errorModel ?? {},
+                                message: error.message ?? error,
+                            })
+
+                            await new Content(
                                     {
-                                        details: error.stack ?? error,
-                                        ... error.errorModel ?? {},
-                                        message: error.message ?? error,
+                                        reader,
+                                        status: error.errorModel?.status ?? 500
                                     }
-                            , error.errorModel?.status ?? 500).send(resp);
+                            ,).send(resp);
                             return;
                         }
 
-                        const content = Content.html(`<!DOCTYPE html>\n<html><body><pre>Server Error for ${req.url}\r\n${error?.stack ?? error}</pre></body></html>`, 500);
+                        const content = Content.text(`<!DOCTYPE html>\n<html><body><pre>Server Error for ${req.url}\r\n${error?.stack ?? error}</pre></body></html>`,
+                            { status: 500});
                         await content.send(resp);
                     } catch (e1) {
                         e1 = e1.stack ?? e1.toString();

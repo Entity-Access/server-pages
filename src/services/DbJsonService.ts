@@ -1,18 +1,23 @@
-import JsonReadable from "@entity-access/entity-access/dist/common/JsonReadable.js";
-import { JsonReaderResult } from "../Content.js";
+import JsonGenerator from "@entity-access/entity-access/dist/common/JsonGenerator.js";
 import EntityContext from "@entity-access/entity-access/dist/model/EntityContext.js";
+import Content from "../Content.js";
 
-export default class DbJsonReadable extends JsonReadable {
+export default class DbJsonReadable extends JsonGenerator {
 
     static toJson(db: EntityContext, item: any) {
-        const js = new DbJsonReadable(db, item);
-        return  new JsonReaderResult(js);
+        const js = new DbJsonReadable(db);
+        const reader = js.reader(item);
+        return  new Content({
+            reader,
+            headers: {
+                "content-type": "application/json; charset=utf8"
+            }
+        });
     }
 
     constructor(
-        private readonly db: EntityContext,
-        model: any) {
-        super(model, db)
+        private readonly db: EntityContext) {
+        super(db)
     }
 
     preJSON(item: any) {

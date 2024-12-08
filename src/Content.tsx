@@ -6,43 +6,71 @@ import { LocalFile } from "./core/LocalFile.js";
 import { SessionUser } from "./core/SessionUser.js";
 import { WrappedResponse } from "./core/Wrapped.js";
 import { OutgoingHttpHeaders } from "http";
-import JsonReadable from "@entity-access/entity-access/dist/common/JsonReadable.js";
+import { Readable } from "stream";
+import Utf8Readable from "./core/Utf8Readable.js";
 
-export abstract class PageResult {
-    abstract send(res: WrappedResponse, user?: SessionUser): Promise<any>;
-}
+const EmptyReader = Readable.from([]);
 
-export class JsonReaderResult extends PageResult {
+export default class Content {
+
+    public readonly reader: Readable;
+    public readonly status: number = 200;
+    public readonly headers: OutgoingHttpHeaders;
+
+    public suppressLog: boolean;
+
     constructor(
-        public readonly reader: JsonReadable,
-        public readonly status = 200,
-        public readonly headers?: OutgoingHttpHeaders
+        p: Partial<Content>
     ) {
-        super();
+        Object.setPrototypeOf(p, Content.prototype);
+        return p as Content;
     }
 
     send(res: WrappedResponse, user?: SessionUser): Promise<any> {
-        return res.asyncPipe(this.status, this.headers, this.reader);
+        return res.sendReader(this.status, this.headers, this.reader);
     }
 
+    static readable(readable: Readable, { status = 200, headers = void 0 as OutgoingHttpHeaders }) {
+        return new Content({
+            reader: readable,
+            status,
+            headers
+        });
+    }
+
+
+    static text(
+        text: string | Iterable<string> | XNode,
+        {
+            status = 200,
+            headers = void 0 as OutgoingHttpHeaders,
+            suppressLog = false
+        } = {
+        }) {
+
+        let reader: Readable;
+
+        headers ??= {};
+        headers["content-type"] ??= "text/html; charset=utf-8"
+
+        if (typeof text === "string") {
+            reader = Readable.from([ Buffer.from(text, "utf8") ]);
+        } else if (text instanceof XNode) {
+            reader = Utf8Readable.from(text.readable());
+        } else {
+            reader = Utf8Readable.from(text);
+        }
+
+        return new Content({
+            reader,
+            status,
+            headers,
+            suppressLog
+        });
+    }
 }
 
-export class StatusResult extends PageResult {
-
-    constructor(
-        public readonly status,
-        public readonly headers?: OutgoingHttpHeaders
-    ) {
-        super();
-    }
-
-    send(res: WrappedResponse, user?: SessionUser): Promise<any> {
-        return res.sendStatus(this.status, this.headers);
-    }
-
-}
-
-export class FileResult extends PageResult {
+export class FileResult extends Content {
 
     public contentDisposition: "inline" | "attachment" = "inline";
     public cacheControl = true;
@@ -64,7 +92,7 @@ export class FileResult extends PageResult {
             headers
         }: Partial<FileResult> = {}
     ) {
-        super();
+        super({});
         this.contentDisposition = contentDisposition;
         this.cacheControl = cacheControl;
         this.maxAge = maxAge;
@@ -103,11 +131,12 @@ export class TempFileResult extends FileResult {
 
 
 
-export class Redirect extends PageResult {
+export class Redirect extends Content {
 
-    constructor(public location: string, public status = 301, public headers = void 0 as OutgoingHttpHeaders) {
-        super();
+    constructor(public location: string, status = 301, headers = void 0 as OutgoingHttpHeaders) {
+        super({ status, headers });
     }
+
 
     async send(res: WrappedResponse) {
         return res.sendRedirect(this.location, this.status, this.headers);
@@ -115,97 +144,97 @@ export class Redirect extends PageResult {
 
 }
 
-export default class Content extends PageResult {
+// export default class Content extends PageResult {
 
-    public static json(json: any, status = 200) {
-        return new Content({
-            body: JSON.stringify(json),
-            contentType: "application/json",
-            status,
-            compress: "gzip"
-        });
-    }
+//     // public static json(json: any, status = 200) {
+//     //     return new Content({
+//     //         body: JSON.stringify(json),
+//     //         contentType: "application/json",
+//     //         status,
+//     //         compress: "gzip"
+//     //     });
+//     // }
 
-    public static html(html, status = 200) {
-        return new Content({
-            body: html,
-            contentType: "text/html",
-            status,
-            compress: "gzip"
-        });
-    }
+//     // public static html(html, status = 200) {
+//     //     return new Content({
+//     //         body: html,
+//     //         contentType: "text/html",
+//     //         status,
+//     //         compress: "gzip"
+//     //     });
+//     // }
 
-    public static create(
-        body: Partial<Content>
-    ) {
-        return new Content(body);
-    }
+//     public static create(
+//         body: Partial<Content>
+//     ) {
+//         return new Content(body);
+//     }
 
 
-    public status: number;
+//     public status: number;
 
-    public contentType: string;
+//     public contentType: string;
 
-    public suppressLog: boolean;
+//     public suppressLog: boolean;
 
-    public body: string | Buffer | XNode;
+//     public body: string | Buffer | XNode;
 
-    public headers: OutgoingHttpHeaders;
+//     public headers: OutgoingHttpHeaders;
 
-    public compress: "gzip" | "deflate" | null = null;
+//     public compress: "gzip" | "deflate" | null = null;
 
-    private constructor(p: Partial<Content>) {
-        super();
-        Object.setPrototypeOf(p, Content.prototype);
-        p.contentType ??= "text/plain";
-        p.status ??= 200;
-        if (p.body === void 0) {
-            throw new Error(`Body cannot be undefined`);
-        }
-        return p as Content;
-    }
+//     private constructor(p: Partial<Content>) {
+//         super();
+//         Object.setPrototypeOf(p, Content.prototype);
+//         p.contentType ??= "text/plain";
+//         p.status ??= 200;
+//         if (p.body === void 0) {
+//             throw new Error(`Body cannot be undefined`);
+//         }
+//         return p as Content;
+//     }
 
-    public async send(res: WrappedResponse, user?: SessionUser) {
-        const { status, body, contentType } = this;
-        const { headers } = this;
-        if (headers) {
-            for (const key in headers) {
-                if (Object.hasOwn(headers, key)) {
-                    const element = headers[key];
-                    res.setHeader(key, element);
-                }
-            }
-        }
+//     public async send(res: WrappedResponse, user?: SessionUser) {
+//         const { status, body, contentType } = this;
+//         const { headers } = this;
+//         if (headers) {
+//             for (const key in headers) {
+//                 if (Object.hasOwn(headers, key)) {
+//                     const element = headers[key];
+//                     res.setHeader(key, element);
+//                 }
+//             }
+//         }
 
-        res.compress = this.compress;
+//         res.compress = this.compress;
 
-        res.setHeader("content-type", contentType);
-        res.statusCode = status;
-        if (typeof body === "string") {
-            if (status >= 300 && !this.suppressLog) {
-                const u = user ? `User: ${user.userID},${user.userName}` : "User: Anonymous";
-                console.error(`${res.req.method} ${res.req.url}\n${status}\n${u}\n${body}`);
-            } else {
-                res.compress ||= "gzip";
-            }
-            res.send(body);
-            return;
-        }
-        if (body instanceof XNode) {
-            const text = body.render();
-            if (status >= 300 && !this.suppressLog) {
-                console.error(`${res.req.method} ${res.req.url}\n${status}\n${text}`);
-            } else {
-                res.compress ||= "gzip";
-            }
-            res.send(text);
-            return;
-        }
-        if (status >= 300 && !this.suppressLog) {
-            console.error(`${res.req.method} ${res.req.url}\n${status}\nBINARY DATA`);
-        }
-        res.send(body);
-        return;
-    }
+//         res.setHeader("content-type", contentType);
+//         res.statusCode = status;
+//         if (typeof body === "string") {
+//             if (status >= 300 && !this.suppressLog) {
+//                 const u = user ? `User: ${user.userID},${user.userName}` : "User: Anonymous";
+//                 console.error(`${res.req.method} ${res.req.url}\n${status}\n${u}\n${body}`);
+//             } else {
+//                 res.compress ||= "gzip";
+//             }
+//             res.sendReader(status, headers, Readable.from([  body ]));
+//             return;
+//         }
+//         if (body instanceof XNode) {
+//             const text = body.render();
+//             if (status >= 300 && !this.suppressLog) {
+//                 console.error(`${res.req.method} ${res.req.url}\n${status}\n${text}`);
+//             } else {
+//                 res.compress ||= "gzip";
+//             }
+//             res.send(text);
+//             return;
+//         }
+//         if (status >= 300 && !this.suppressLog) {
+//             console.error(`${res.req.method} ${res.req.url}\n${status}\nBINARY DATA`);
+//         }
+//         res.send(body);
+//         return;
+//     }
 
-}
+// }

@@ -1,12 +1,14 @@
 import busboy from "busboy";
 import HtmlDocument from "./html/HtmlDocument.js";
 import XNode from "./html/XNode.js";
-import Content, { PageResult, Redirect } from "./Content.js";
+// import Content, { PageResult, Redirect } from "./Content.js";
 import { LocalFile } from "./core/LocalFile.js";
 import { WrappedRequest, WrappedResponse } from "./core/Wrapped.js";
 import { ServiceProvider } from "@entity-access/entity-access/dist/di/di.js";
 import { IClassOf } from "@entity-access/entity-access/dist/decorators/IClassOf.js";
 import { OutgoingHttpHeaders } from "http";
+import Content, { Redirect } from "./Content.js";
+import JsonGenerator from "@entity-access/entity-access/dist/common/JsonGenerator.js";
 
 export const isPage = Symbol("isPage");
 
@@ -94,7 +96,7 @@ export default abstract class Page<TInput = any, TQuery = any> {
         this.cacheControl = "no-cache, no-store, max-age=0";
     }
 
-    abstract run(): PageResult | Promise<PageResult>;
+    abstract run(): Content | Promise<Content>;
 
     resolve<T>(c: IClassOf<T>): T {
         return ServiceProvider.resolve(this, c);
@@ -104,22 +106,27 @@ export default abstract class Page<TInput = any, TQuery = any> {
         console.error(error);
     }
 
-    protected content(h: Partial<Content>): Content;
-    protected content(body: string, status?: number, contentType?: string, headers?: OutgoingHttpHeaders): Content;
-    protected content(body: string | Partial<Content>, status?: number, contentType?: string, headers?: OutgoingHttpHeaders) {
-        if (typeof body !== "object") {
-            body = { body, status, contentType, headers};
-        }
-        body.status ??= 200;
-        body.contentType ??= "text/html";
-        return Content.create(body);
-    }
+    // protected content(h: Partial<Content>): Content;
+    // protected content(body: string, status?: number, contentType?: string, headers?: OutgoingHttpHeaders): Content;
+    // protected content(body: string | Partial<Content>, status?: number, contentType?: string, headers?: OutgoingHttpHeaders) {
+    //     if (typeof body !== "object") {
+    //         body = { body, status, contentType, headers};
+    //     }
+    //     body.status ??= 200;
+    //     body.contentType ??= "text/html";
+    //     return Content.create(body);
+    // }
 
     protected json(o: any, indent = 0, headers = void 0 as OutgoingHttpHeaders) {
-        const content = indent
-            ? JSON.stringify(o, undefined, indent)
-            : JSON.stringify(o);
-        return this.content(content, 200, "application/json", headers);
+        // const content = indent
+        //     ? JSON.stringify(o, undefined, indent)
+        //     : JSON.stringify(o);
+        const jsr = new JsonGenerator(this);
+        headers ??= {};
+        headers["content-type"] = "application/json; charset=utf8";
+        return Content.readable(jsr.reader(o), {
+            headers
+        });
     }
 
     protected redirect(location: string) {
@@ -127,7 +134,7 @@ export default abstract class Page<TInput = any, TQuery = any> {
     }
 
     protected notFound(suppressLog = true): Content | Promise<Content> {
-        const c = Content.html(<HtmlDocument>
+        return Content.text(<HtmlDocument>
                 <head>
                     <title>Not found</title>
                 </head>
@@ -136,15 +143,16 @@ export default abstract class Page<TInput = any, TQuery = any> {
                     <pre>{this.url} not found</pre>
                 </body>
             </HtmlDocument>,
-            404
+            {
+                status: 404,
+                suppressLog
+            }
         );
-        c.suppressLog = suppressLog;
-        return c;
     }
 
     protected serverError(error, status = 500): Content | Promise<Content> {
-        return Content.create({
-            body: <HtmlDocument>
+        return Content.text(
+            <HtmlDocument>
                     <head>
                         <title>Server Error</title>
                     </head>
@@ -153,7 +161,9 @@ export default abstract class Page<TInput = any, TQuery = any> {
                         <pre>{error.stack ?? error}</pre>
                     </body>
                 </HtmlDocument>,
-            status
-        });
+            {
+                status
+            }
+        );
     }
 }

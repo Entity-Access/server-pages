@@ -15,6 +15,16 @@ class Comment extends XNode {
         return `<!--${comments}-->`
     }
 
+    public *readable(nest?: string) {
+        nest ??= "";
+        yield "<!--";
+        for (const element of this.nodes) {
+            yield nest;
+            yield element;
+            yield "\n";
+        }
+    }
+
 }
 
 export default function HtmlComment({}, ... nodes: string[]) {

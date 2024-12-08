@@ -9,6 +9,11 @@ class DocumentNode extends XNode {
     public render(nest?: string): string {
         return `<!DOCTYPE html>\n${super.render(nest)}`;
     }
+
+    public * readable(nest?: string) {
+        yield `<!DOCTYPE html>\n`;
+        yield * super.readable(nest);
+    }
 }
 
 export default function HtmlDocument({ lang = "en"}, ... nodes: (XNode | string)[]): XNode {

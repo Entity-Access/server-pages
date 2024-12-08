@@ -6,7 +6,8 @@ import SchemaRegistry from "@entity-access/entity-access/dist/decorators/SchemaR
 import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAccessError.js";
 import ExternalInvoke from "../../../../../../decorators/ExternalInvoke.js";
 import { Route } from "../../../../../../core/Route.js";
-import Content, { PageResult } from "../../../../../../Content.js";
+import Content from "../../../../../../Content.js";
+import DbJsonReadable from "../../../../../../services/DbJsonService.js";
 
 export default class extends Page {
 
@@ -62,7 +63,7 @@ export default class extends Page {
         // now execute external method
         const result = await events[methodName](e, ... args);
 
-        if (result instanceof PageResult) {
+        if (result instanceof Content) {
             return result;
         }
 
@@ -71,9 +72,14 @@ export default class extends Page {
         //         ? GraphService.prepareGraph(result, this.sessionUser)
         //         : {});
         if (!result) {
-            return this.content({ body:"{}", contentType: "application/json"});
+            return Content.text("{}", {
+                headers: {
+                    "content-type": "application/json; charset=utf8"
+                }
+            });
         }
 
+        return DbJsonReadable.toJson(this.db, result);
         
     }
 }
