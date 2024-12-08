@@ -43,6 +43,7 @@ export default class Content {
         });
     }
 
+
     static html(text: string | Iterable<string> | XNode, {
         status = 200,
         headers = void 0 as OutgoingHttpHeaders,
@@ -57,8 +58,29 @@ export default class Content {
         })
     }
 
+    static create(p:
+        {
+            body: string | Buffer | XNode,
+            status: number,
+            headers: OutgoingHttpHeaders,
+            contentType: string,
+            suppressLog: boolean
+        })
+    {
+        return this.text(p.body, p);
+    }
+
+    /**
+     * Do not use this to serialize large objects
+     * @param m model
+     * @returns string
+     */
+    static nativeJson(m) {
+        return this.text(JSON.stringify(m), { contentType: "applicatoin/json"});
+    }
+
     static text(
-        text: string | Iterable<string> | XNode,
+        text: string | Buffer | Iterable<string> | XNode,
         {
             status = 200,
             headers = void 0 as OutgoingHttpHeaders,
@@ -78,6 +100,8 @@ export default class Content {
             reader = Readable.from([ Buffer.from(text, "utf8") ]);
         } else if (text instanceof XNode) {
             reader = Utf8Readable.from(text.readable());
+        } else if (text instanceof Buffer) {
+            reader = Readable.from([ text]);
         } else {
             reader = Utf8Readable.from(text);
         }
