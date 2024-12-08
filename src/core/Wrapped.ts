@@ -121,7 +121,7 @@ const extendRequest = (A: typeof IncomingMessage | typeof Http2ServerRequest) =>
 
             get acceptEncodings(): string[] {
                 const r = this as any as (Http2ServerRequest  | IncomingMessage);
-                const acceptEncoding = ((r as Http2ServerRequest).authority || r.headers["accept-encoding"] || null).toString();
+                const acceptEncoding = (r.headers["accept-encoding"] || null).toString();
                 const encodings = acceptEncoding.split(/[\,\;]/);
                 return encodings;
             }
