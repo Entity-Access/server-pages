@@ -77,7 +77,7 @@ export default class Content {
      * @param m model
      * @returns string
      */
-    static nativeJson(m, { status = 200, headers = void 0 as OutgoingHttpHeaders }) {
+    static nativeJson(m, { status = 200, headers = void 0 as OutgoingHttpHeaders } = {}) {
         return this.text(JSON.stringify(m), { status, headers, contentType: "applicatoin/json"});
     }
 
