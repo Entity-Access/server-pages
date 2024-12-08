@@ -3,7 +3,7 @@ import { Http2ServerRequest, Http2ServerResponse } from "http2";
 import { SessionUser } from "./SessionUser.js";
 import { SerializeOptions, parse, serialize } from "cookie";
 import { LocalFile } from "./LocalFile.js";
-import { Readable } from "stream";
+import { Readable, Writable } from "stream";
 import { ServiceProvider } from "@entity-access/entity-access/dist/di/di.js";
 import { stat } from "fs/promises";
 import { CacheProperty } from "./CacheProperty.js";
@@ -230,17 +230,17 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
             }
 
             sendReader(this: UnwrappedResponse, status: number, headers: OutgoingHttpHeaders, readable: Readable, signal?: AbortSignal) {
-                let input = readable as any;
+                let writable = this as Writable;
                 const encodings = (this.req as WrappedRequest).acceptEncodings;
                 if (encodings.includes("gzip")) {
                     headers["accept-encoding"] = "gzip";
-                    input = Compression.gzip(readable);
+                    writable = Compression.gzip(writable);
                 } else if (encodings.includes("deflate")) {
                     headers["accept-encoding"] = "deflate";
-                    input = Compression.deflate(readable);
+                    writable = Compression.deflate(writable);
                 }
                 this.writeHead(status, headers);
-                return pipeline(input, this, { signal, end: true });
+                return pipeline(readable, writable, { signal, end: true });
             }
         
             cookie(this: UnwrappedResponse, name: string, value: string, options: SerializeOptions = {}) {

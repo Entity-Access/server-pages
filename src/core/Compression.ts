@@ -1,16 +1,16 @@
-import { Readable } from "stream";
+import { Readable, Writable } from "stream";
 import { createGzip, createDeflate } from "zlib";
 
 export default class Compression {
 
-    public static gzip(readable: Readable) {
+    public static gzip(writable: Writable) {
         const stream = createGzip();
-        return readable.pipe(stream);
+        return stream.pipe(writable);
     }
 
-    public static deflate(readable: Readable) {
+    public static deflate(writable: Writable) {
         const stream = createDeflate();
-        return readable.pipe(stream);
+        return stream.pipe(writable);
     }
 
 }
