@@ -9,8 +9,6 @@ import { stat } from "fs/promises";
 import { CacheProperty } from "./CacheProperty.js";
 import Compression from "./Compression.js";
 import { remoteAddressSymbol } from "./remoteAddressSymbol.js";
-import { StreamHelper } from "./StreamHelper.js";
-import { pipeline } from "stream/promises";
 
 
 type UnwrappedRequest = IncomingMessage | Http2ServerRequest;
@@ -240,7 +238,11 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
                     writable = Compression.deflate(writable);
                 }
                 this.writeHead(status, headers);
-                return pipeline(readable, writable, { signal, end: true });
+                return new Promise<void>((resolve, reject) => {
+                    readable.pipe(writable, { end: true })
+                        .on("finish", resolve)
+                    .on("error", reject);
+                });
             }
         
             cookie(this: UnwrappedResponse, name: string, value: string, options: SerializeOptions = {}) {
