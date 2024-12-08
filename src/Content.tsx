@@ -17,6 +17,7 @@ export interface IContent {
     contentType?: string;
     headers?: OutgoingHttpHeaders;
     supressLog?: boolean;
+    compressable?: boolean;
 }
 
 export default class Content {
