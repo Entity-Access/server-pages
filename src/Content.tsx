@@ -128,7 +128,7 @@ export class StatusResult extends Content {
 export class FileResult extends Content {
 
     public contentDisposition: "inline" | "attachment" = "inline";
-    public cacheControl = "none";
+    // public cacheControl = "none";
     public maxAge = 2592000;
     public etag = false;
     public immutable = false;
@@ -139,7 +139,7 @@ export class FileResult extends Content {
         private filePath: string,
         {
             contentDisposition = "inline",
-            cacheControl = "none",
+//             cacheControl = "none",
             maxAge = 2592000,
             etag = false,
             immutable = false,
@@ -149,7 +149,7 @@ export class FileResult extends Content {
     ) {
         super({});
         this.contentDisposition = contentDisposition;
-        this.cacheControl = cacheControl;
+        // this.cacheControl = cacheControl;
         this.maxAge = maxAge;
         this.etag = etag;
         this.immutable = immutable;
@@ -160,12 +160,12 @@ export class FileResult extends Content {
 
     send(res: WrappedResponse) {    
         this.headers["content-disposition"] = `${this.contentDisposition};filename=${encodeURIComponent(this.fileName)}`
-        if (this.cacheControl) {
-            this.headers["cache-control"] = this.cacheControl;
-        }
+        // if (this.cacheControl) {
+        //     this.headers["cache-control"] = this.cacheControl;
+        // }
         return res.sendFile(this.filePath,{
             acceptRanges: true,
-            cacheControl: this.cacheControl,
+            // cacheControl: this.cacheControl,
             maxAge: this.maxAge,
             etag: this.etag,
             immutable: this.immutable,
