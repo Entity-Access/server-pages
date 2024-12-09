@@ -230,10 +230,10 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
             sendReader(this: UnwrappedResponse, status: number, headers: OutgoingHttpHeaders, readable: Readable, signal?: AbortSignal) {
                 const encodings = (this.req as WrappedRequest).acceptEncodings;
                 if (encodings.includes("gzip")) {
-                    headers["accept-encoding"] = "gzip";
+                    headers["content-encoding"] = "gzip";
                     readable = Compression.gzip(readable);
                 } else if (encodings.includes("deflate")) {
-                    headers["accept-encoding"] = "deflate";
+                    headers["content-encoding"] = "deflate";
                     readable = Compression.deflate(readable);
                 }
                 this.writeHead(status, headers);
