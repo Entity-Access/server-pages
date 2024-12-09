@@ -63,7 +63,36 @@ export default class XNode {
         return `${nest}<${name}${a}>\n${nest}\t${children.join("\n\t")}\n${nest}</${name}>`;
     }
 
-    public *readable(nest = "") {
+    public * readable(nest = "") {
+        const iterator = this.recursiveReadable(nest);
+
+        const stack = [];
+
+        let current = iterator;
+
+        for(;;) {
+            const { value, done } = current.next();
+
+            if (typeof value === "string") {
+                yield value;
+                continue;
+            }
+
+            if (done) {
+                if (stack.length) {
+                    current = stack.pop();
+                    continue;
+                }
+                break;
+            }
+
+            stack.push(current);
+            current = value;
+        }
+
+    }
+
+    private *recursiveReadable(nest = ""): Generator<any, any, any> {
 
         const { name, attributes, children } = this;
 
@@ -101,7 +130,7 @@ export default class XNode {
                 if (!child) {
                     continue;
                 }
-                yield * child.readable(nest + "\t");
+                yield child.readable(nest + "\t");
             }
         }
 
