@@ -6,13 +6,9 @@ class DocumentNode extends XNode {
         super("html", a, children);
     }
 
-    public render(nest?: string): string {
-        return `<!DOCTYPE html>\n${super.render(nest)}`;
-    }
-
-    public * readable(nest?: string) {
+    public * recursiveReadable(nest?: string) {
         yield `<!DOCTYPE html>\n`;
-        yield * super.readable(nest);
+        yield super.recursiveReadable(nest);
     }
 }
 

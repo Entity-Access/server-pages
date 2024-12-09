@@ -6,16 +6,7 @@ class Comment extends XNode {
         super(null, {}, []);
     }
 
-    public render(nest?: string): string {
-        nest ??= "";
-        let comments = "";
-        for (const element of this.nodes) {
-            comments += nest + element + "\n";
-        }
-        return `<!--${comments}-->`
-    }
-
-    public *readable(nest?: string) {
+    public *recursiveReadable(nest?: string) {
         nest ??= "";
         yield "<!--";
         for (const element of this.nodes) {
@@ -23,6 +14,7 @@ class Comment extends XNode {
             yield element;
             yield "\n";
         }
+        yield "!-->";
     }
 
 }

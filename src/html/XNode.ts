@@ -31,36 +31,11 @@ export default class XNode {
     }
 
     public render(nest = "") {
-        const { name, attributes } = this;
-        const children = [];
-        let a = "";
-        if (attributes) {
-            for (const key in attributes) {
-                if (Object.hasOwn(attributes, key)) {
-                    const element = attributes[key];
-                    a += ` ${escapeAttribute(key)}="${escapeAttribute(element)}"`;
-                }
-            }
+        let text = "";
+        for (const element of this.readable(nest)) {
+            text += element;
         }
-        if (this.children) {
-            for (const child of this.children) {
-                if (typeof child === "string") {
-                    children.push(escapeText(child));
-                    continue;
-                }
-                if (!child) {
-                    continue;
-                }
-                children.push(child.render(nest + "\t"));
-            }
-        }
-        if (!name) {
-            return `\n${nest}\t${children.join("\n\t")}`;
-        }
-        if (!children.length) {
-            return `${nest}<${name}${a}></${name}>`;
-        }
-        return `${nest}<${name}${a}>\n${nest}\t${children.join("\n\t")}\n${nest}</${name}>`;
+        return text;
     }
 
     public * readable(nest = "") {
@@ -92,7 +67,7 @@ export default class XNode {
 
     }
 
-    private *recursiveReadable(nest = ""): Generator<any, any, any> {
+    protected *recursiveReadable(nest = ""): Generator<any, any, any> {
 
         const { name, attributes, children } = this;
 
@@ -108,9 +83,9 @@ export default class XNode {
                     const element = attributes[key];
 
                     if (nest) {
-                        yield nest + "\t";
+                        yield `\n${nest}\t`;
                     }
-                    yield `${escapeAttribute(key)}="${escapeAttribute(element)}"\n`;
+                    yield `${escapeAttribute(key)}="${escapeAttribute(element)}"`;
                 }
             }
         }
@@ -119,7 +94,7 @@ export default class XNode {
             yield nest;
         }
 
-        yield ">\n";
+        yield ">";
 
         if (children) {
             for (const child of children) {
@@ -130,6 +105,7 @@ export default class XNode {
                 if (!child) {
                     continue;
                 }
+                yield `\n`;
                 yield child.readable(nest + "\t");
             }
         }
