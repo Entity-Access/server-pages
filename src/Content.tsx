@@ -160,6 +160,9 @@ export class FileResult extends Content {
 
     send(res: WrappedResponse) {    
         this.headers["content-disposition"] = `${this.contentDisposition};filename=${encodeURIComponent(this.fileName)}`
+        if (this.cacheControl) {
+            this.headers["cache-control"] = this.cacheControl;
+        }
         return res.sendFile(this.filePath,{
             acceptRanges: true,
             cacheControl: this.cacheControl,
