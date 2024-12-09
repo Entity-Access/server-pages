@@ -11,14 +11,14 @@ export default class SessionEncryption {
     static encrypt(text: string, secretKey = "anonymous-public") {
         const { key, encryptionIV}  = this.createKey(secretKey);
         const cipher = crypto.createCipheriv("aes-256-cbc", key, encryptionIV);
-        return cipher.update(text, "utf8", "hex")
-                + cipher.final("hex");
+        return (cipher.update(text, "utf8", "base64")
+                + cipher.final("base64")).replaceAll("=", "*");
     }
 
     static decrypt(text: string, secretKey = "anonymous-public") {
         const { key, encryptionIV}  = this.createKey(secretKey);
         const decipher = crypto.createDecipheriv("aes-256-cbc", key, encryptionIV);
-        return (decipher.update(text, "hex", "utf8") + decipher.final("utf8"));
+        return (decipher.update(text, "base64", "utf8") + decipher.final("utf8"));
     }
 
     static createKey(secretKey: string) {
