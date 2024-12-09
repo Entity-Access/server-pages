@@ -227,7 +227,7 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
                 return new Promise<void>((resolve) => this.end(resolve));
             }
 
-            sendReader(this: UnwrappedResponse, status: number, headers: OutgoingHttpHeaders, readable: Readable, signal?: AbortSignal) {
+            sendReader(this: UnwrappedResponse, status: number, headers: OutgoingHttpHeaders = {}, readable: Readable, signal?: AbortSignal) {
                 const encodings = (this.req as WrappedRequest).acceptEncodings;
                 if (encodings.includes("gzip")) {
                     headers["content-encoding"] = "gzip";
