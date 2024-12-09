@@ -19,16 +19,16 @@ export default class SessionSecurity {
         }
         const encryptionKey = this.getKey(false);
         key = SessionEncryption.encrypt(key, encryptionKey)
-        entity.$key = `es-${key}`;
+        entity.$key = `ep-${key}`;
         return entity;
     }
 
-    injectKey(entity, isPrivate = true) {
+    injectKey(entity) {
         let key = entity[identitySymbol];
         if (!key) {
             return entity;
         }
-        const encryptionKey = this.getKey(isPrivate);
+        const encryptionKey = this.getKey(true);
         key = SessionEncryption.encrypt(key, encryptionKey)
         entity.$key = `es-${key}`;
         return entity;
