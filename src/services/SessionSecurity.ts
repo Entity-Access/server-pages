@@ -36,12 +36,12 @@ export default class SessionSecurity {
 
     private getKey(isPrivate: boolean) {
         const { userID } = this.sessionUser;
-        if (isPrivate && userID) {
-            return userID.toString();
-        }
         const { publicKey } = this;
         if (!publicKey) {
             throw new EntityAccessError(`Public Key not set for session security`);
+        }
+        if (isPrivate && userID) {
+            return `${publicKey}:${userID}`;
         }
         return publicKey;
     }
