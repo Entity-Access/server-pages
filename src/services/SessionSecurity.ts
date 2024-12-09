@@ -12,6 +12,17 @@ export default class SessionSecurity {
 
     publicKey: string;
 
+    injectPublicKey(entity) {
+        let key = entity[identitySymbol];
+        if (!key) {
+            return entity;
+        }
+        const encryptionKey = this.getKey(false);
+        key = SessionEncryption.encrypt(key, encryptionKey)
+        entity.$key = `es-${key}`;
+        return entity;
+    }
+
     injectKey(entity, isPrivate = true) {
         let key = entity[identitySymbol];
         if (!key) {
