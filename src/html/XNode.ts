@@ -84,6 +84,8 @@ export default class XNode {
 
                     if (nest) {
                         yield `\n${nest}\t`;
+                    } else {
+                        yield " ";
                     }
                     yield `${escapeAttribute(key)}="${escapeAttribute(element)}"`;
                 }
