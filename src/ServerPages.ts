@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { RegisterSingleton, ServiceProvider } from "@entity-access/entity-access/dist/di/di.js";
+import { ServiceProvider } from "@entity-access/entity-access/dist/di/di.js";
 import Page from "./Page.js";
 import Content from "./Content.js";
 import RouteTree from "./core/RouteTree.js";
@@ -9,7 +9,7 @@ import { Server } from "socket.io";
 import * as http from "http";
 import * as http2 from "http2";
 import SocketService from "./socket/SocketService.js";
-import { Wrapped, WrappedRequest } from "./core/Wrapped.js";
+import { Wrapped, WrappedResponse } from "./core/Wrapped.js";
 import { SecureContext } from "node:tls";
 import  AcmeCertificateService, { IAcmeOptions } from "./ssl/AcmeCertificateService.js";
 import ChallengeServer from "./ssl/ChallengeServer.js";
@@ -19,9 +19,9 @@ import TokenService from "./services/TokenService.js";
 import Executor from "./core/Executor.js";
 import { WebSocket } from "ws";
 import { UrlParser } from "./core/UrlParser.js";
-import { createConnection } from "node:net";
 import HttpIPCProxyReceiver from "./core/HttpIPCProxyReceiver.js";
 import JsonGenerator from "@entity-access/entity-access/dist/common/JsonGenerator.js";
+import { Readable } from "node:stream";
 
 export const wsData = Symbol("wsData");
 
@@ -260,7 +260,7 @@ export default class ServerPages {
         }
     }
 
-    protected async process(req: any, resp: any, trustProxy: boolean) {
+    protected async process(req: any, resp1: any, trustProxy: boolean) {
 
         // const { method, url } = req;
 
@@ -268,7 +268,7 @@ export default class ServerPages {
 
         req.trustProxy = trustProxy;
 
-        resp = Wrapped.response(req, resp);
+        const resp = Wrapped.response(req, resp1) as WrappedResponse;
 
         // console.log(JSON.stringify({ method, url}));
 
@@ -361,7 +361,7 @@ export default class ServerPages {
                         await content.send(resp);
                     } catch (e1) {
                         e1 = e1.stack ?? e1.toString();
-                        resp.send(e1, 500);
+                        await resp.sendReader(500, {}, Readable.from([ e1]));
                         console.error(e1);
                     }
                     return;
