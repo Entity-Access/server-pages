@@ -3,14 +3,14 @@ import { createGzip, createDeflate } from "zlib";
 
 export default class Compression {
 
-    public static gzip(writable: Writable) {
+    public static gzip(readable: Readable) {
         const stream = createGzip();
-        return stream.pipe(writable);
+        return readable.pipe(stream);
     }
 
-    public static deflate(writable: Writable) {
+    public static deflate(readable: Readable) {
         const stream = createDeflate();
-        return stream.pipe(writable);
+        return readable.pipe(stream);
     }
 
 }

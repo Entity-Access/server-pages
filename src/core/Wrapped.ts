@@ -228,18 +228,17 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
             }
 
             sendReader(this: UnwrappedResponse, status: number, headers: OutgoingHttpHeaders, readable: Readable, signal?: AbortSignal) {
-                let writable = this as Writable;
                 const encodings = (this.req as WrappedRequest).acceptEncodings;
                 if (encodings.includes("gzip")) {
                     headers["accept-encoding"] = "gzip";
-                    writable = Compression.gzip(writable);
+                    readable = Compression.gzip(readable);
                 } else if (encodings.includes("deflate")) {
                     headers["accept-encoding"] = "deflate";
-                    writable = Compression.deflate(writable);
+                    readable = Compression.deflate(readable);
                 }
                 this.writeHead(status, headers);
                 return new Promise<void>((resolve, reject) => {
-                    readable.pipe(writable, { end: true })
+                    readable.pipe(this, { end: true })
                         .on("finish", resolve)
                     .on("error", reject);
                 });
