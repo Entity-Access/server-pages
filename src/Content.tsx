@@ -128,7 +128,7 @@ export class StatusResult extends Content {
 export class FileResult extends Content {
 
     public contentDisposition: "inline" | "attachment" = "inline";
-    public cacheControl = true;
+    public cacheControl = "none";
     public maxAge = 2592000;
     public etag = false;
     public immutable = false;
@@ -139,7 +139,7 @@ export class FileResult extends Content {
         private filePath: string,
         {
             contentDisposition = "inline",
-            cacheControl = true,
+            cacheControl = "none",
             maxAge = 2592000,
             etag = false,
             immutable = false,

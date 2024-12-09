@@ -85,7 +85,7 @@ export interface IWrappedResponse {
     // https://github.com/phoenixinfotech1984/node-content-range
     sendFile(filePath: string, options?: {
         acceptRanges?: boolean,
-        cacheControl?: boolean,
+        cacheControl?: string,
         maxAge?: number,
         etag?: boolean,
         immutable?: boolean,
@@ -370,7 +370,7 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
 
             async sendFile(this: UnwrappedResponse, filePath: string, options?: {
                     acceptRanges?: boolean,
-                    cacheControl?: boolean,
+                    cacheControl?: string,
                     maxAge?: number,
                     etag?: boolean,
                     immutable?: boolean,
@@ -390,7 +390,7 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
                     const oh = options?.headers;
                     if (oh) {
                         for (const key in oh) {
-                            if (Object.prototype.hasOwnProperty.call(oh, key)) {
+                            if (Object.hasOwn(oh, key)) {
                                 const element = oh[key];
                                 headers[key] = element;
                             }
