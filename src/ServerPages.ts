@@ -327,6 +327,7 @@ export default class ServerPages {
                 page.request = req;
                 page.response = resp;
                 page.route = route;
+                page.signal = req.signal;
                 scope.add(Page, page);
                 const content = await Executor.run(page);
                 resp.setHeader("cache-control", page.cacheControl);
