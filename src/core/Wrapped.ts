@@ -9,6 +9,7 @@ import { stat } from "fs/promises";
 import { CacheProperty } from "./CacheProperty.js";
 import Compression from "./Compression.js";
 import { remoteAddressSymbol } from "./remoteAddressSymbol.js";
+import { pipeline } from "stream/promises";
 
 
 type UnwrappedRequest = IncomingMessage | Http2ServerRequest;
@@ -23,6 +24,8 @@ export interface IFormData {
 const extendedSymbol = Symbol("extended");
 
 export interface IWrappedRequest {
+
+    signal?: AbortSignal;
 
     headers?: IncomingHttpHeaders;
 
@@ -70,7 +73,7 @@ export interface IWrappedResponse {
     asyncEnd();
 
 
-    sendReader(status: number, headers: OutgoingHttpHeaders, readable: Readable): Promise<void>;
+    sendReader(status: number, headers: OutgoingHttpHeaders, readable: Readable, compressible: boolean): Promise<void>;
 
     // sendGenerator(data: Iterable<Buffer> | AsyncIterable<Buffer>, status: number, headers?: OutgoingHttpHeaders): Promise<void>;
 
@@ -107,6 +110,8 @@ const extendRequest = (A: typeof IncomingMessage | typeof Http2ServerRequest) =>
 
             scope: ServiceProvider;
             disposables: Disposable[];
+
+            signal?: AbortSignal;
 
             get hostName(): string {
                 let host = this.host;
@@ -230,21 +235,20 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
                 return new Promise<void>((resolve) => this.end(resolve));
             }
 
-            sendReader(this: UnwrappedResponse, status: number, headers: OutgoingHttpHeaders, readable: Readable, signal?: AbortSignal) {
-                const encodings = (this.req as WrappedRequest).acceptEncodings;
-                if (encodings.includes("gzip")) {
-                    this.setHeader("content-encoding", "gzip");
-                    readable = Compression.gzip(readable);
-                } else if (encodings.includes("deflate")) {
-                    this.setHeader("content-encoding", "deflate");
-                    readable = Compression.deflate(readable);
+            sendReader(this: UnwrappedResponse, status: number, headers: OutgoingHttpHeaders, readable: Readable, compressible: boolean = true) {
+                const signal = (this.req as WrappedRequest).signal;
+                if (compressible) {
+                    const encodings = (this.req as WrappedRequest).acceptEncodings;
+                    if (encodings.includes("gzip")) {
+                        this.setHeader("content-encoding", "gzip");
+                        readable = Compression.gzip(readable);
+                    } else if (encodings.includes("deflate")) {
+                        this.setHeader("content-encoding", "deflate");
+                        readable = Compression.deflate(readable);
+                    }
                 }
                 this.writeHead(status, headers);
-                return new Promise<void>((resolve, reject) => {
-                    readable.pipe(this, { end: true })
-                        .on("finish", resolve)
-                    .on("error", reject);
-                });
+                return pipeline(readable, this, { end: true, signal });
             }
         
             cookie(this: UnwrappedResponse, name: string, value: string, options: SerializeOptions = {}) {
@@ -463,6 +467,9 @@ export const Wrapped = {
         Object.setPrototypeOf(req, prototype);
         const wr = req as WrappedRequest;
         wr.disposables = [];
+        const ac = new AbortController();
+        wr.signal = ac.signal;
+        req.once("aborted", () => ac.abort("aborted") );
         return req;
     },
 

@@ -17,7 +17,7 @@ export interface IContent {
     contentType?: string;
     headers?: OutgoingHttpHeaders;
     suppressLog?: boolean;
-    compressable?: boolean;
+    compressible?: boolean;
 }
 
 export default class Content {
@@ -27,6 +27,8 @@ export default class Content {
     public readonly contentType: string = "plain/text";
     public readonly headers: OutgoingHttpHeaders;
 
+    public readonly compressible: boolean;
+
     public suppressLog: boolean;
 
     constructor(
@@ -34,6 +36,7 @@ export default class Content {
     ) {
         Object.setPrototypeOf(p, new.target.prototype);
         (p as any).status ??= 200;
+        (p as any).compressible ??= true;
         if (p.contentType) {
             const headers = ((p as any).headers ??= {}) as OutgoingHttpHeaders;
             headers["content-type"] = p.contentType;
@@ -42,7 +45,7 @@ export default class Content {
     }
 
     send(res: WrappedResponse, user?: SessionUser): Promise<any> {
-        return res.sendReader(this.status, this.headers, this.reader);
+        return res.sendReader(this.status, this.headers, this.reader, this.compressible);
     }
 
     static readable(readable: Readable, { status = 200, headers = void 0 as OutgoingHttpHeaders }) {
@@ -58,12 +61,14 @@ export default class Content {
         status = 200,
         headers = void 0 as OutgoingHttpHeaders,
         contentType = "text/html" as string,
+        compressible = true,
         suppressLog = false
     } = {}) {
         return this.text(text, {
             status,
             contentType,
             headers,
+            compressible,
             suppressLog
         })
     }
@@ -88,6 +93,7 @@ export default class Content {
             status = 200,
             headers = void 0 as OutgoingHttpHeaders,
             contentType = void 0 as string,
+            compressible = true,
             suppressLog = false
         } = {
         }) {
@@ -114,6 +120,7 @@ export default class Content {
             status,
             headers,
             contentType,
+            compressible,
             suppressLog
         });
     }

@@ -361,7 +361,7 @@ export default class ServerPages {
                         await content.send(resp);
                     } catch (e1) {
                         e1 = e1.stack ?? e1.toString();
-                        await resp.sendReader(500, {}, Readable.from([ e1]));
+                        await resp.sendReader(500, {}, Readable.from([ e1]), true);
                         console.error(e1);
                     }
                     return;
