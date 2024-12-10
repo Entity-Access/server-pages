@@ -47,8 +47,8 @@ export default class Content {
 
     send(res: WrappedResponse, user?: SessionUser): Promise<any> {
         let reader = this.reader;
-        if (this.status > 300 && !this.suppressLog) {
-            console.error(`${res.req.method} ${res.req.url}\n${this.status}`);
+        if (this.status >= 400 && !this.suppressLog) {
+            console.error(`${res.req.method} ${res.req.url}\n${this.status}-User-${user?.userID}`);
             reader = LogReadable.from(reader, console.error);
         }
         return res.sendReader(this.status, this.headers, reader, this.compress);
