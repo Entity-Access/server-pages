@@ -27,7 +27,7 @@ export default class Content {
     public readonly contentType: string = "plain/text";
     public readonly headers: OutgoingHttpHeaders;
 
-    public readonly compressible: boolean;
+    public readonly compress: boolean;
 
     public suppressLog: boolean;
 
@@ -36,7 +36,7 @@ export default class Content {
     ) {
         Object.setPrototypeOf(p, new.target.prototype);
         (p as any).status ??= 200;
-        (p as any).compressible ??= true;
+        (p as any).compress ??= true;
         if (p.contentType) {
             const headers = ((p as any).headers ??= {}) as OutgoingHttpHeaders;
             headers["content-type"] = p.contentType;
@@ -45,7 +45,7 @@ export default class Content {
     }
 
     send(res: WrappedResponse, user?: SessionUser): Promise<any> {
-        return res.sendReader(this.status, this.headers, this.reader, this.compressible);
+        return res.sendReader(this.status, this.headers, this.reader, this.compress);
     }
 
     static readable(readable: Readable, { status = 200, headers = void 0 as OutgoingHttpHeaders }) {
@@ -61,14 +61,14 @@ export default class Content {
         status = 200,
         headers = void 0 as OutgoingHttpHeaders,
         contentType = "text/html" as string,
-        compressible = true,
+        compress = true,
         suppressLog = false
     } = {}) {
         return this.text(text, {
             status,
             contentType,
             headers,
-            compressible,
+            compress,
             suppressLog
         })
     }
@@ -93,7 +93,7 @@ export default class Content {
             status = 200,
             headers = void 0 as OutgoingHttpHeaders,
             contentType = void 0 as string,
-            compressible = true,
+            compress = true,
             suppressLog = false
         } = {
         }) {
@@ -120,7 +120,7 @@ export default class Content {
             status,
             headers,
             contentType,
-            compressible,
+            compress,
             suppressLog
         });
     }
