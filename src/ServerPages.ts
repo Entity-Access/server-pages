@@ -335,7 +335,7 @@ export default class ServerPages {
                 sent = true;
                 await content.send(resp, user);
             } catch (error) {
-                if(error?.stack?.startsWith("Abort") || error?.toString()?.startsWith("Abort")) {
+                if(/(^Abort)|(ERR_STREAM_PREMATURE_CLOSE)/.test(error?.stack)) {
                     // we will not log this error
                     return;
                 }
