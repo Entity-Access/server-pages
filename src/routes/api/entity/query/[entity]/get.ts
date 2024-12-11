@@ -4,6 +4,9 @@ import Page from "../../../../../Page.js";
 import EntityAccessServer from "../../../../../services/EntityAccessServer.js";
 import { Prepare } from "../../../../../decorators/Prepare.js";
 import { Route } from "../../../../../core/Route.js";
+import SessionSecurity from "../../../../../services/SessionSecurity.js";
+import SchemaRegistry from "@entity-access/entity-access/dist/decorators/SchemaRegistry.js";
+import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAccessError.js";
 
 @Prepare.authorize
 @Prepare.parseJsonBody
@@ -15,6 +18,9 @@ export default class extends Page {
     @Route
     entity: string;
 
+    @Inject
+    sessionSecurity: SessionSecurity;
+
     async run() {
         const { entity } = this;
 
@@ -25,11 +31,13 @@ export default class extends Page {
             this.cacheControl = `public, max-age=${cache}`;
         }
 
-        return await EntityAccessServer.query(this.db, {
+        const p = {
             entity,
             ... this.query,
             ... this.body
-        });
+        };
+
+        return await EntityAccessServer.query(this.db, p);
     }
 
 }

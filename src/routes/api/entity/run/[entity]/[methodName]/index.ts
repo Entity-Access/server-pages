@@ -32,11 +32,8 @@ export default class extends Page {
             methodName
         } = this;
 
-        const entityClass = SchemaRegistry.classForName(entityName);
-
-        if (!entityClass) {
-            return;
-        }
+        const entityClass = SchemaRegistry.classForName(entityName)
+            ?? EntityAccessError.throw(`Entity ${entityName} not found`);
 
         let args;
         let key;

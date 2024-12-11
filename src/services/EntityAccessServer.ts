@@ -8,6 +8,8 @@ import { FilteredExpression } from "@entity-access/entity-access/dist/model/even
 import type { IEntityQuery } from "@entity-access/entity-access/dist/model/IFilterWithParameter.js";
 import { SessionUser } from "../core/SessionUser.js";
 import DbJsonService from "./DbJsonService.js";
+import { ServiceProvider } from "@entity-access/entity-access/dist/di/di.js";
+import SessionSecurity from "./SessionSecurity.js";
 
 export type IQueryMethod = [string, string, ... any[]];
 
@@ -27,6 +29,7 @@ export interface IEntityQueryOptions {
     methods: string | IQueryMethod[];
     expand?: string;
     expandKeys?: any;
+    entityKey?: string;
     start: number;
     size: number;
     split: boolean;
@@ -54,6 +57,7 @@ export default class EntityAccessServer {
             size = 100,
             trace,
             function: queryFunction,
+            entityKey,
             expand,
             expandKeys,
             expandable
@@ -74,7 +78,7 @@ export default class EntityAccessServer {
         }
 
         if (typeof args === "string") {
-            args = JSON.parse(args);
+            args = JSON.parse(args) as any[];
         }
 
         if (typeof count === "string") {
@@ -87,6 +91,14 @@ export default class EntityAccessServer {
             if(!ExternalQuery.isExternal(events, queryFunction)) {
                 throw new EntityAccessError(`${queryFunction} is not marked as an external function`);
             }
+        }
+
+        if (entityKey && queryFunction) {
+            const ss = ServiceProvider.resolve(db, SessionSecurity);
+            const keys = ss.decryptKey(entityKey);
+            const entity = (await db.model.register(entityClass).statements.select({}, keys))
+                ?? EntityAccessError.throw(`Entity not found`);
+            args.splice(0, 0, entity);
         }
 
         let q: IEntityQuery<any>;
