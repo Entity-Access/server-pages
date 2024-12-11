@@ -1,6 +1,6 @@
 {
   "name": "@entity-access/server-pages",
-  "version": "1.1.394",
+  "version": "1.1.395",
   "description": "HTTP(s) Web Server for NodeJS",
   "main": "index.js",
   "type": "module",
