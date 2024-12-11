@@ -335,7 +335,7 @@ export default class ServerPages {
                 sent = true;
                 await content.send(resp, user);
             } catch (error) {
-                if(error?.stack?.StartsWith("Abort") || error?.toString()?.StartsWith("Abort")) {
+                if(error?.stack?.startsWith("Abort") || error?.toString()?.startsWith("Abort")) {
                     // we will not log this error
                     return;
                 }
