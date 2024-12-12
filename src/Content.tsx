@@ -134,7 +134,12 @@ export default class Content {
 
 export class StatusResult extends Content {
     constructor(status, headers: OutgoingHttpHeaders) {
-        super({ reader: EmptyReader(), status, headers });
+        super({ reader: null, status, headers });
+    }
+
+    send(res: WrappedResponse, user?: SessionUser): Promise<any> {
+        res.writeHead(this.status, this.headers);
+        return res.asyncEnd();
     }
 }
 
