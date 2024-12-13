@@ -345,19 +345,12 @@ export default class ServerPages {
 
                         if (acceptJson || error.errorModel) {
 
-                            const json = new JsonGenerator(this);
-                            const reader = json.reader({
+                            await Content.nativeJson({
                                 details: error.stack ?? error,
                                 ... error.errorModel ?? {},
                                 message: error.message ?? error,
-                            })
+                            }, { status: error.errorModel?.status ?? 500}).send(resp);
 
-                            await new Content(
-                                    {
-                                        reader,
-                                        status: error.errorModel?.status ?? 500
-                                    }
-                            ,).send(resp);
                             return;
                         }
 
