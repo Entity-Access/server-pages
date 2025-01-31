@@ -111,7 +111,7 @@ const parseForm = (page?): any => {
             files: []
         };
         try {
-            const bb = busboy({ headers: req.headers, defParamCharset: "utf8" });
+            const bb = busboy({ headers: req.headers, defParamCharset: "utf-8" });
             const tasks = [];
             await new Promise((resolve, reject) => {
 

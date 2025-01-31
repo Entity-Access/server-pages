@@ -40,7 +40,7 @@ export default class CertificateStore {
 
     public async get( { host }: ICertificate): Promise<ICertificate> {
         const { certPath, keyPath } = this.getPaths(folder, host);
-        const cert = existsSync(certPath) ? readFileSync(certPath, "utf8") : "";
+        const cert = existsSync(certPath) ? readFileSync(certPath, "utf-8") : "";
         let key: Buffer;
         if (!existsSync(keyPath)) {
             key = await acme.crypto.createPrivateRsaKey();
@@ -54,7 +54,7 @@ export default class CertificateStore {
 
     public async save({ host, cert, key }: ICertificate) {
         const { certPath, keyPath } = this.getPaths(folder, host);
-        writeFileSync(certPath, cert, "utf8");
+        writeFileSync(certPath, cert, "utf-8");
         writeFileSync(keyPath, key);
     }
 

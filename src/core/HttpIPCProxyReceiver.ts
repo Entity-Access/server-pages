@@ -40,7 +40,7 @@ const readLine = (s: Socket) => {
                 return;
             }
             if (n.at(0) === 10) {
-                resolve(buffer.toString("utf8"));
+                resolve(buffer.toString("utf-8"));
                 return;
             }
             buffer = Buffer.concat([buffer, n]);

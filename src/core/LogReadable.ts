@@ -9,7 +9,7 @@ export default class LogReadable {
     static async *iterate(readable: Readable, log: (text) => void) {
         for await (const item of readable) {
             if (item instanceof Buffer) {
-                log(item.toString("utf8"));
+                log(item.toString("utf-8"));
             } else {
                 log(item);
             }

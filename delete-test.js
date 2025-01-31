@@ -5,12 +5,12 @@ const path = "./tmp.t";
 const path2 = "./t.t";
 
 function run() {
-    writeFileSync(path, "a", "utf8");
+    writeFileSync(path, "a", "utf-8");
     const lf = new LocalFile(path, void 0, void 0, void 0, true);
 }
 
 function run2() {
-    writeFileSync(path2, "a", "utf8");
+    writeFileSync(path2, "a", "utf-8");
     let lf;
     try {
         lf = new LocalFile(path2, void 0, void 0, void 0, true);

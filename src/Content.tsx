@@ -108,11 +108,11 @@ export default class Content {
 
         contentType ??= "text/plain";
         if (!contentType.includes(":")) {
-            contentType += "; charset=utf8";
+            contentType += "; charset=utf-8";
         }
 
         if (typeof text === "string") {
-            reader = Readable.from([ Buffer.from(text, "utf8") ]);
+            reader = Readable.from([ Buffer.from(text, "utf-8") ]);
         } else if (text instanceof XNode) {
             reader = Utf8Readable.from(text.readable());
         } else if (text instanceof Buffer) {

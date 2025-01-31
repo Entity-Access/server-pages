@@ -13,11 +13,11 @@ export default class AcmeChallengeStore {
     }
 
     async get(name: string) {
-        return readFileSync(join(path, name), "utf8");
+        return readFileSync(join(path, name), "utf-8");
     }
 
     async save(name: string, value: string) {
-        writeFileSync(join(path, name), value, "utf8");
+        writeFileSync(join(path, name), value, "utf-8");
     }
 
     async remove(name: string) {

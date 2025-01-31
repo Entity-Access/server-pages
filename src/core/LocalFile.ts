@@ -104,11 +104,11 @@ export class LocalFile implements AsyncDisposable {
 
                 const index = buffer.indexOf("\n", start);
                 if (index === -1) {
-                    line += buffer.toString("utf8", start);
+                    line += buffer.toString("utf-8", start);
                     break;
                 }
 
-                yield trimEndR(line + buffer.toString("utf8", start, index));
+                yield trimEndR(line + buffer.toString("utf-8", start, index));
                 start = index + 1;
                 line = "";
             } while (true);

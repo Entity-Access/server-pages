@@ -8,7 +8,7 @@ export default class Utf8Readable {
 
     private static *toUtf8Iterable(text: Iterable<string>) {
         for (const element of text) {
-            yield Buffer.from(element, "utf8");
+            yield Buffer.from(element, "utf-8");
         }
     }
 
