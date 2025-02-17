@@ -2,13 +2,10 @@ import * as forge from "node-forge";
 import * as crypto from "crypto";
 import * as acme from "acme-client";
 import DateTime from "@entity-access/entity-access/dist/types/DateTime.js";
-import cluster from "cluster";
-import { existsSync, writeFileSync, readFileSync, unlinkSync, mkdirSync } from "fs";
-import { join } from "path"
-import ensureDir, { deleteIfExists } from "../core/FileApi.js";
+import { existsSync, writeFileSync, readFileSync } from "fs";
+import ensureDir from "../core/FileApi.js";
 import Inject, { RegisterSingleton } from "@entity-access/entity-access/dist/di/di.js";
 import ChallengeStore from "./AcmeChallengeStore.js";
-import * as tls from "node:tls";
 import CertificateStore from "./CertificateStore.js";
 import { FileLock } from "../core/FileLock.js";
 
@@ -31,23 +28,6 @@ export default class AcmeCertificateService {
     @Inject
     private certificateStore: CertificateStore;
 
-    private map = new Map<string, tls.SecureContext>();
-
-    public async getSecureContext(host, options: IAcmeOptions) {
-
-        using fl = await FileLock.lock(host + ".lck");
-
-        let sc = this.map.get(host);
-        if (sc) {
-            return sc;
-        }
-        
-        const { key , cert } = await this.setup(host,  options)
-        sc = tls.createSecureContext({ cert, key });
-        this.map.set(host, sc);
-        return sc;
-    }
-
     public async setup(host, {
         sslMode = "/data/certs",
         emailAddress = "",
@@ -56,6 +36,8 @@ export default class AcmeCertificateService {
         eabKid = "",
         eabHmac = ""
     }) {
+
+        using fl = await FileLock.lock(host + ".lck");
 
         if (mode === "self-signed") {
             return this.setupSelfSigned(sslMode);

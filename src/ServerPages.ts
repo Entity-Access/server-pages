@@ -22,6 +22,7 @@ import { UrlParser } from "./core/UrlParser.js";
 import HttpIPCProxyReceiver from "./core/HttpIPCProxyReceiver.js";
 import JsonGenerator from "@entity-access/entity-access/dist/common/JsonGenerator.js";
 import { Readable } from "node:stream";
+import SecureContextService from "./ssl/SecureContextService.js";
 
 export const wsData = Symbol("wsData");
 
@@ -45,9 +46,6 @@ export default class ServerPages {
     }
 
     private root: RouteTree = new RouteTree();
-
-    @Inject
-    private acme: AcmeCertificateService;
 
     public set logRoutes(log: (text: string) => any) {
         this.root.log = log;
@@ -104,7 +102,8 @@ export default class ServerPages {
 
         let http1Server = null as http.Server;
 
-        let acme = this.acme;
+        let acme = ServiceProvider.resolve(this, SecureContextService);
+        acme.options = acmeOptions ?? {};
 
         acmeOptions ??= {};
 
@@ -119,11 +118,7 @@ export default class ServerPages {
                     break;
                 case "http2":
                     let sc = null;
-                    SNICallback ??= (servername, cb) => {
-                        acme.getSecureContext(servername || host, acmeOptions).then((v) => {
-                            cb(null, v);
-                        },cb);
-                    };
+                    SNICallback ??= acme.SNICallback;
                     httpServer = http2.createSecureServer({
                         SNICallback,
                         allowHTTP1,
