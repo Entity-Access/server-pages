@@ -134,6 +134,8 @@ export default class ServerPages {
                     httpServer.on("connect", () => {
                         // undocumented and needed.
                     });
+                    httpServer.on("error", console.error);
+                    httpServer.on("sessionError" ,console.error);
                     listeningServer = httpServer;
                     break;
                 case "http2NoTLS":
