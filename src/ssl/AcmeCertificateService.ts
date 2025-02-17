@@ -22,10 +22,6 @@ export interface IAcmeOptions {
     eabHmac?: string   
 }
 
-export interface ICertOptions extends IAcmeOptions {
-    host: string,
-};
-
 @RegisterSingleton
 export default class AcmeCertificateService {
 
@@ -37,24 +33,22 @@ export default class AcmeCertificateService {
 
     private map = new Map<string, tls.SecureContext>();
 
-    public async getSecureContext(options: ICertOptions) {
+    public async getSecureContext(host, options: IAcmeOptions) {
 
-        using fl = await FileLock.lock(options.host + ".lck");
+        using fl = await FileLock.lock(host + ".lck");
 
-        const { host } = options;
         let sc = this.map.get(host);
         if (sc) {
             return sc;
         }
         
-        const { key , cert } = await this.setup(options)
+        const { key , cert } = await this.setup(host,  options)
         sc = tls.createSecureContext({ cert, key });
         this.map.set(host, sc);
         return sc;
     }
 
-    public async setup({
-        host,
+    public async setup(host, {
         sslMode = "/data/certs",
         emailAddress = "",
         mode = "production" as "production" | "self-signed" | "staging",

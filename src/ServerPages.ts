@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { ServiceProvider } from "@entity-access/entity-access/dist/di/di.js";
+import Inject, { ServiceProvider } from "@entity-access/entity-access/dist/di/di.js";
 import Page from "./Page.js";
 import Content from "./Content.js";
 import RouteTree from "./core/RouteTree.js";
@@ -46,6 +46,9 @@ export default class ServerPages {
 
     private root: RouteTree = new RouteTree();
 
+    @Inject
+    private acme: AcmeCertificateService;
+
     public set logRoutes(log: (text: string) => any) {
         this.root.log = log;
     }
@@ -80,7 +83,6 @@ export default class ServerPages {
         createSocketService = true,
         port = 8080,
         protocol = "http",
-        disableNoTlsWarning = false,
         SNICallback,
         acmeOptions,
         host,
@@ -102,6 +104,10 @@ export default class ServerPages {
 
         let http1Server = null as http.Server;
 
+        let acme = this.acme;
+
+        acmeOptions ??= {};
+
         try {
 
             let httpServer = null as http.Server | http2.Http2Server | http2.Http2SecureServer;
@@ -113,14 +119,8 @@ export default class ServerPages {
                     break;
                 case "http2":
                     let sc = null;
-                    SNICallback ??= (name, cb) => {
-                        if (host) {
-                            if (name !== host) {
-                                name = host;
-                            }
-                        }
-                        const acme = ServiceProvider.resolve(this, AcmeCertificateService);
-                        acme.getSecureContext({ ... ( acmeOptions ?? {}),  host: name }).then((v) => {
+                    SNICallback ??= (servername, cb) => {
+                        acme.getSecureContext(host, acmeOptions).then((v) => {
                             cb(null, v);
                         },cb);
                     };
