@@ -120,7 +120,7 @@ export default class ServerPages {
                 case "http2":
                     let sc = null;
                     SNICallback ??= (servername, cb) => {
-                        acme.getSecureContext(host, acmeOptions).then((v) => {
+                        acme.getSecureContext(servername || host, acmeOptions).then((v) => {
                             cb(null, v);
                         },cb);
                     };
