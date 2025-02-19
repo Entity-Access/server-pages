@@ -27,7 +27,7 @@ export default class SecureContextService {
         let c = this.map.get(host);
         if (!c) {
             c = this.certificateService.setup(host, this.options)
-                .then(({ cert, key }) => createSecureContext({ cert, key }));
+                .then(({ cert, key }) => createSecureContext({ cert, key, sessionIdContext: host }));
         }
         return c;
     }
