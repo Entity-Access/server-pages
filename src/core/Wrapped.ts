@@ -248,17 +248,17 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
                     }
                 }
                 this.writeHead(status, headers);
-                // return pipeline(readable, this, { end: true, signal });
+                return pipeline(readable, this, { end: true, signal });
                 // return new Promise<void>((resolve, reject) => {
                 //     readable.pipe(this, { end: true })
                 //         .on("finish", resolve)
                 //         .on("error", reject);
                 // });
-                for await(const chunk of readable.iterator()) {
-                    signal.throwIfAborted();
-                    await new Promise((resolve) => this.write(chunk, resolve));
-                }
-                await new Promise<void>((resolve) => this.end(resolve));
+                // for await(const chunk of readable.iterator()) {
+                //     signal.throwIfAborted();
+                //     await new Promise((resolve) => this.write(chunk, resolve));
+                // }
+                // await new Promise<void>((resolve) => this.end(resolve));
             }
         
             cookie(this: UnwrappedResponse, name: string, value: string, options: SerializeOptions = {}) {
