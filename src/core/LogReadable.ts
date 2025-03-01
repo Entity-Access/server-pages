@@ -7,13 +7,17 @@ export default class LogReadable {
     }
 
     static async *iterate(readable: Readable, log: (text) => void) {
+        let buffer = "";
         for await (const item of readable) {
-            if (item instanceof Buffer) {
-                log(item.toString("utf-8"));
-            } else {
-                log(item);
+            if (buffer.length < 4096) {
+                if (item instanceof Buffer) {
+                    buffer += item.toString("utf-8");
+                } else {
+                    buffer += item.toString();
+                }
             }
             yield item;
         }
+        log(buffer);
     }
 }
