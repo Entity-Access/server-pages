@@ -11,6 +11,8 @@ import ExternalInvoke from "../decorators/ExternalInvoke.js";
 
 const modelProperties = Symbol("modelProperty");
 
+const toJson = (x) => JSON.stringify(x, void 0, 4);
+
 interface IModelProperty {
     type?: string;
     name?: string;
@@ -92,7 +94,7 @@ const modelFrom = (type: EntityType): IEntityModel => {
 const getJSType = (column: { type?: any, enum?: readonly string[]}) => {
     const { type, enum: enumValues } = column;
     if (enumValues) {
-        return enumValues.map((x) => JSON.stringify(x)).join(" | ");
+        return enumValues.map((x) => toJson(x)).join(" | ");
     }
     switch(type) {
         case Number:
@@ -129,7 +131,7 @@ const getDefaults = (column: IColumn): [string, any] => {
     }
     const { type, enum: enumValues } = column;
     if (enumValues) {
-        return [ column.name,  JSON.stringify(enumValues[0])];
+        return [ column.name,  toJson(enumValues[0])];
     }
     switch(type) {
         case Number:
@@ -298,7 +300,7 @@ export default class ModelService {
                 }
 
                 if (column.enum) {
-                    enums.push(`export const ${name}${column.name[0].toUpperCase()}${column.name.substring(1)}Array = ${JSON.stringify(column.enum.map((x) => ({label: x, value: x})))};`);
+                    enums.push(`export const ${name}${column.name[0].toUpperCase()}${column.name.substring(1)}Array = ${toJson(column.enum.map((x) => ({label: x, value: x})))};`);
                 }
                 const jsType = getJSType(column);
                 if (column.nullable) {
@@ -350,18 +352,18 @@ export default class ModelService {
             const schema = this.getSchema(entityType, events);
             let queries = ",any";
             if (schema.queries) {
-                queries = "," + JSON.stringify(schema.queries);
+                queries = "," + toJson(schema.queries);
             }
             let actions = ",any";
             if (schema.actions) {
-                actions = "," + JSON.stringify(schema.actions);
+                actions = "," + toJson(schema.actions);
             }
 
             writer.writeLine(`export const ${name}: IModel<I${name}${queries}${actions}> = new Model<I${name}>(
                             "${entityName}",
-                            ${JSON.stringify(keys)},
+                            ${toJson(keys)},
                             { ${defaults.join(",")} },
-                            ${JSON.stringify(schema)}
+                            ${toJson(schema)}
                         );`);
 
             writer.writeLine(`modelEntitySchemas["${name}"] = ${name};`)
