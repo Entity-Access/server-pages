@@ -117,7 +117,7 @@ export default class extends Page {
                     continue;
                 }
             }
-            p[name] = body[name];
+            p[name] = keyValue;
             const condition = `x.${name} === p.${name}`;
             where = where
                 ? `${where} && ${condition}`

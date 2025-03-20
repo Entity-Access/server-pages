@@ -35,6 +35,12 @@ export default class extends Page {
         const entityClass = SchemaRegistry.classForName(entityName)
             ?? EntityAccessError.throw(`Entity ${entityName} not found`);
 
+        const events = this.db.eventsFor<object>(entityClass, true);
+
+        if(!ExternalInvoke.isExternal(events, methodName)) {
+            throw new EntityAccessError(`${methodName} is not marked as an externally invokable method`);
+        }
+
         let args;
         let key;
 
@@ -44,11 +50,35 @@ export default class extends Page {
             key = k;
             args = a;
         }  else {
-            key = this.query.key;
-            args = JSON.parse(this.query.args || "[]");
+            key = this.body?.key ?? this.query.key;
+            args = JSON.parse((this.body?.args ?? this.query.args) || "[]");
         }
 
-        const keys = this.sessionSecurity.decryptKey(key);
+        let entity;
+
+        if (key) {
+            const keys = this.sessionSecurity.decryptKey(key);
+            entity = await this.db.model.register(entityClass).statements.select({}, keys);
+        } else {
+            const keys = this.body?.keys ?? this.query.keys;
+            let where = "";
+            const p = {};
+            const entityType = this.db.model.getEntityType(entityClass);
+            for (const { name } of entityType.keys) {
+                const keyValue = keys[name];
+                if (keyValue === void 0 || keyValue === null) {
+                    throw new EntityAccessError(`All keys must be present`);
+                }
+                p[name] = keyValue;
+                const condition = `x.${name} === p.${name}`;
+                where = where
+                    ? `${where} && ${condition}`
+                    : condition;
+            }
+            entity = await this.db.filteredQuery(entityClass, "read")
+                .where(p, `(p) => (x) => ${where}` as any)
+                .first();
+        }
 
         const cv = this.query.cv;
         const cache = this.query.cache;
@@ -58,13 +88,6 @@ export default class extends Page {
         }
 
 
-        const events = this.db.eventsFor<object>(entityClass, true);
-
-        if(!ExternalInvoke.isExternal(events, methodName)) {
-            throw new EntityAccessError(`${methodName} is not marked as an externally invokable method`);
-        }
-
-        const entity = await this.db.model.register(entityClass).statements.select({}, keys);
 
         // now execute external method
         const result = await events[methodName](entity, ... args);
