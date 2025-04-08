@@ -113,7 +113,7 @@ export default class ServerPages {
 
             switch(protocol) {
                 case "http":
-                    httpServer = http.createServer((req, res) => isNotConnect(req) && this.process(req, res, trustProxy));
+                    httpServer = http.createServer((req, res) => isNotConnect(req) && this.process(req, res, trustProxy).catch(console.error));
                     listeningServer = httpServer;
                     break;
                 case "http2":
@@ -125,7 +125,7 @@ export default class ServerPages {
                         settings: {
                             enableConnectProtocol: createSocketService
                         }
-                    }, (req, res) => this.process(req, res, trustProxy))
+                    }, (req, res) => this.process(req, res, trustProxy).catch(console.error))
 
                     if (acmeOptions) {
                         const cs = ServiceProvider.resolve(this, ChallengeServer);
@@ -141,14 +141,14 @@ export default class ServerPages {
                         settings: {
                             enableConnectProtocol: createSocketService
                         }
-                    },(req, res) => isNotConnect2(req) && this.process(req, res, trustProxy))
+                    },(req, res) => isNotConnect2(req) && this.process(req, res, trustProxy).catch(console.error))
                     // if (!disableNoTlsWarning) {
                     //     console.warn("Http2 without SSL should not be used in production");
                     // }
                     httpServer.on("connect", () => {
                         // undocumented and needed.
                     });
-                    http1Server = http.createServer((req, res) => isNotConnect(req) && this.process(req, res, trustProxy));
+                    http1Server = http.createServer((req, res) => isNotConnect(req) && this.process(req, res, trustProxy).catch(console.error));
                     listeningServer = new HttpIPCProxyReceiver(httpServer, http1Server);
                     break;
                 default:

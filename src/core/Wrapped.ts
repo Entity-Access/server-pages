@@ -479,7 +479,6 @@ export const Wrapped = {
         wr.disposables = [];
         const ac = new AbortController();
         wr.signal = ac.signal;
-        req.on("error", console.error);
         req.once("close", () => req.complete
             ? void 0
             : ac.abort("aborted")
