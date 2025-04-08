@@ -134,8 +134,6 @@ export default class ServerPages {
                     httpServer.on("connect", () => {
                         // undocumented and needed.
                     });
-                    httpServer.on("error", console.error);
-                    httpServer.on("sessionError" ,console.error);
                     listeningServer = httpServer;
                     break;
                 case "http2NoTLS":
@@ -157,6 +155,11 @@ export default class ServerPages {
                     throw new Error(`Unknown protocol ${protocol}`);
             }
 
+            httpServer.on("error", console.error);
+            httpServer.on("sessionError" ,console.error);
+
+            http1Server?.on("error", console.error);
+            http1Server?.on("sessionError" ,console.error);
 
             await new Promise<void>((resolve, reject) => {
                 listeningServer.listen(port, () => {
