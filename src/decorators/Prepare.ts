@@ -133,6 +133,7 @@ const parseForm = (page?): any => {
                 bb.on("close", resolve);
                 req.pipe(bb);
             });
+            bb.on("error", console.error);
             await Promise.all(tasks);
         } catch (error) {
             page.reportError(error);        
