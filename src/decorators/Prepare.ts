@@ -113,6 +113,7 @@ const parseForm = (page?): any => {
         try {
             const bb = busboy({ headers: req.headers, defParamCharset: "utf-8" });
             const tasks = [];
+            bb.on("error", console.error);
             await new Promise((resolve, reject) => {
 
                 bb.on("field", (name, value) => {
@@ -133,7 +134,6 @@ const parseForm = (page?): any => {
                 bb.on("close", resolve);
                 req.pipe(bb);
             });
-            bb.on("error", console.error);
             await Promise.all(tasks);
         } catch (error) {
             page.reportError(error);        
