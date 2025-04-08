@@ -479,7 +479,10 @@ export const Wrapped = {
         wr.disposables = [];
         const ac = new AbortController();
         wr.signal = ac.signal;
-        req.once("aborted", () => ac.abort("aborted") );
+        req.once("close", () => req.complete
+            ? void 0
+            : ac.abort("aborted")
+        );
         return req;
     },
 
