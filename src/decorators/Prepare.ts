@@ -128,7 +128,7 @@ const parseForm = (page?): any => {
                     const tf = tempFolder.get(info.filename, info.mimeType, false, true);
                     tasks.push(tf.writeAll(file).then(() => {
                         result.files.push(tf);
-                    }));
+                    }, console.error));
                 });
                 bb.on("error", reject);
                 bb.on("close", resolve);
