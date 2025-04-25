@@ -134,10 +134,14 @@ export default class EntityAccessServer {
         }
 
         const unions = [];
+        const orderBy = [];
         const initialQuery = q;
 
         if (methods) {
             for (const [method, code, ... methodArgs] of methods) {
+                if (!allowedMethods[method]) {
+                    throw new EntityAccessError(`Invalid method name ${method} allowed methods are ${Object.keys(allowedMethods).join(",")}`)
+                }
                 const p = {};
                 if (method === "include") {
                     q = q[method](code);
@@ -148,8 +152,9 @@ export default class EntityAccessServer {
                     unions.push(q);
                     q = initialQuery;
                 }
-                if (!allowedMethods[method]) {
-                    throw new EntityAccessError(`Invalid method name ${method} allowed methods are ${Object.keys(allowedMethods).join(",")}`)
+                if (/^(order|then)By(Descending)?$/i.test(method)) {
+                    orderBy.push(() => q = q[method](p, `(p) => ${arrow}`));
+                    continue;
                 }
                 q = q[method](p, `(p) => ${arrow}`);
             }
@@ -157,6 +162,12 @@ export default class EntityAccessServer {
 
         if (unions.length) {
             q = q.unions(...unions);
+        }
+
+        if (orderBy) {
+            for (const o of orderBy) {
+                o();
+            }
         }
 
         const oq = q;
