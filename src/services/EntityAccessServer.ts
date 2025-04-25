@@ -5,7 +5,7 @@ import { StringHelper } from "./StringHelper.js";
 import ExternalQuery from "../decorators/ExternalQuery.js";
 import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAccessError.js";
 import { FilteredExpression } from "@entity-access/entity-access/dist/model/events/FilteredExpression.js";
-import type { IEntityQuery } from "@entity-access/entity-access/dist/model/IFilterWithParameter.js";
+import type { IEntityQuery, IOrderedEntityQuery } from "@entity-access/entity-access/dist/model/IFilterWithParameter.js";
 import { SessionUser } from "../core/SessionUser.js";
 import DbJsonService from "./DbJsonService.js";
 import { ServiceProvider } from "@entity-access/entity-access/dist/di/di.js";
@@ -40,6 +40,22 @@ export interface IEntityQueryOptions {
     function: string;
     args: string | any[];
     traceFunc?(text: string);
+};
+
+const allowedMethods = {
+    where: 1,
+    union: 1,
+    exists: 1,
+    select: 1,
+    selectView: 1,
+    include: 1,
+    trace: 1,
+    orderBy: 1,
+    orderByDescending: 1,
+    thenBy: 1,
+    thenByDescending: 1,
+    sum: 1,
+    count: 1
 };
 
 export default class EntityAccessServer {
@@ -128,6 +144,9 @@ export default class EntityAccessServer {
                     continue;
                 }
                 const arrow = replaceArgs(code, p, methodArgs);
+                if (!allowedMethods[method]) {
+                    throw new EntityAccessError(`Invalid method name ${method} allowed methods are ${Object.keys(allowedMethods).join(",")}`)
+                }
                 q = q[method](p, `(p) => ${arrow}`);
             }
         }
