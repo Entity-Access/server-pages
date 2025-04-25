@@ -43,8 +43,6 @@ export interface IEntityQueryOptions {
 
 const allowedMethods = {
     where: 1,
-    union: 1,
-    exists: 1,
     select: 1,
     selectView: 1,
     include: 1,
@@ -133,10 +131,6 @@ export default class EntityAccessServer {
             }
         }
 
-        const unions = [];
-        const orderBy = [];
-        const initialQuery = q;
-
         if (methods) {
             for (const [method, code, ... methodArgs] of methods) {
                 if (!allowedMethods[method]) {
@@ -148,25 +142,7 @@ export default class EntityAccessServer {
                     continue;
                 }
                 const arrow = replaceArgs(code, p, methodArgs);
-                if (method === "union") {
-                    unions.push(q);
-                    q = initialQuery;
-                }
-                if (/^(order|then)By(Descending)?$/i.test(method)) {
-                    orderBy.push(() => q = q[method](p, `(p) => ${arrow}`));
-                    continue;
-                }
                 q = q[method](p, `(p) => ${arrow}`);
-            }
-        }
-
-        if (unions.length) {
-            q = q.unions(...unions);
-        }
-
-        if (orderBy) {
-            for (const o of orderBy) {
-                o();
             }
         }
 
