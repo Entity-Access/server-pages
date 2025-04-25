@@ -8,6 +8,7 @@ import SessionSecurity from "../../../../../services/SessionSecurity.js";
 import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAccessError.js";
 
 @Prepare.authorize
+@Prepare.parseJsonBody
 export default class extends Page {
 
     @Inject
@@ -24,9 +25,7 @@ export default class extends Page {
 
         const { method } = this.request;
 
-        if (/^post$/i.test(method)) {
-            await Prepare.parseJsonBody(this);
-        } else if (!/^get$/i.test(method)) {
+        if (!/^(get|post)$/i.test(method)) {
             throw new EntityAccessError(`Invalid method ${method}`);
         }
 
