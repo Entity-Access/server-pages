@@ -136,6 +136,9 @@ export default class EntityAccessServer {
             }
         }
 
+        const unions = [];
+        const initialQuery = q;
+
         if (methods) {
             for (const [method, code, ... methodArgs] of methods) {
                 const p = {};
@@ -144,11 +147,19 @@ export default class EntityAccessServer {
                     continue;
                 }
                 const arrow = replaceArgs(code, p, methodArgs);
+                if (method === "union") {
+                    unions.push(q);
+                    q = initialQuery;
+                }
                 if (!allowedMethods[method]) {
                     throw new EntityAccessError(`Invalid method name ${method} allowed methods are ${Object.keys(allowedMethods).join(",")}`)
                 }
                 q = q[method](p, `(p) => ${arrow}`);
             }
+        }
+
+        if (unions.length) {
+            q = q.unions(...unions);
         }
 
         const oq = q;
