@@ -75,7 +75,6 @@ export default class EntityAccessServer {
             function: queryFunction,
             entityKey,
             expand,
-            expandKeys,
             expandable
         } = options;
         let {
@@ -109,7 +108,7 @@ export default class EntityAccessServer {
             }
         }
 
-        if (entityKey && queryFunction) {
+        if (entityKey && (queryFunction || expand)) {
             const ss = ServiceProvider.resolve(db, SessionSecurity);
             const keys = ss.decryptKey(entityKey);
             const entity = (await db.model.register(entityClass).statements.select({}, keys))
@@ -127,7 +126,7 @@ export default class EntityAccessServer {
             q = FilteredExpression.markAsFiltered(q);
         } else {
             if (expand) {
-                q = db.expand(entityClass, expandKeys, expand as any);
+                q = db.expand(entityClass, entityKey, expand as any);
             } else {
                 q = events.filter(db.query(entityClass));
                 if ((q as any).then) {

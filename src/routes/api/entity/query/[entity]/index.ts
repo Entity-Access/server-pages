@@ -5,11 +5,9 @@ import EntityAccessServer from "../../../../../services/EntityAccessServer.js";
 import { Prepare } from "../../../../../decorators/Prepare.js";
 import { Route } from "../../../../../core/Route.js";
 import SessionSecurity from "../../../../../services/SessionSecurity.js";
-import SchemaRegistry from "@entity-access/entity-access/dist/decorators/SchemaRegistry.js";
 import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAccessError.js";
 
 @Prepare.authorize
-@Prepare.parseJsonBody
 export default class extends Page {
 
     @Inject
@@ -23,6 +21,14 @@ export default class extends Page {
 
     async run() {
         const { entity } = this;
+
+        const { method } = this.request;
+
+        if (/^post$/i.test(method)) {
+            await Prepare.parseJsonBody(this);
+        } else if (!/^get$/i.test(method)) {
+            throw new EntityAccessError(`Invalid method ${method}`);
+        }
 
         const cv = this.query.cv;
         const cache = this.query.cache;
