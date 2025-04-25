@@ -165,7 +165,7 @@ export default class EntityAccessServer {
 
 
         if (count) {
-            const total = await oq.count();
+            const total = await oq.slice().count();
             if (trace) {
                 q = q.trace(console.log);
             }
