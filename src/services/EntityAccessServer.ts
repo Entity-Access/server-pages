@@ -124,7 +124,7 @@ export default class EntityAccessServer {
             q = FilteredExpression.markAsFiltered(q);
         } else {
             if (navigation) {
-                q = events.includeFilter( db.expand(entityClass, entityKey, navigation as any), entityClass);
+                q = events.includeFilter( db.expand(entityClass, args[0], navigation as any), entityClass);
             } else {
                 q = events.filter(db.query(entityClass));
                 if ((q as any).then) {
