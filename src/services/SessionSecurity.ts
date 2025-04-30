@@ -53,7 +53,7 @@ export default class SessionSecurity {
         } else if (key.startsWith("ep-")) {
             encryptionKey = this.getKey(false);
         } else {
-            return JSON.parse(key.substring(3));
+            throw new EntityAccessError(`Key ${key} is not valid encrypted key`);
         }
 
         key = key.substring(3);
