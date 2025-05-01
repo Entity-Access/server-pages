@@ -162,9 +162,20 @@ export default class ServerPages {
             http1Server?.on("sessionError" ,console.error);
 
             await new Promise<void>((resolve, reject) => {
-                listeningServer.listen({ port, host }, () => {
-                    resolve();
-                });
+
+                if (/^\d+$/.test(port as any)) {
+
+                    listeningServer.listen({
+                        port,
+                        host
+                    }, () => {
+                        resolve();
+                    });
+                } else {
+                    listeningServer.listen(port, () => {
+                        resolve();
+                    });
+                }
             });
 
             if (createSocketService) {
