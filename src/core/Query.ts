@@ -1,18 +1,20 @@
-import { prepareSymbol } from "../decorators/Prepare.js";
-import Page from "../Page.js";
-
-export const Query = (page, name) => {
-    // (page[prepareSymbol] ??= []).push((p: Page) => {
-    //     p[name] = p.query[name];
-    // })
-
+const query = (page, name, routeName = name): any => {
     Object.defineProperty(page, name, {
         enumerable: true,
         get() {
-            const value = this.query[name];
+            const value = this.query[routeName];
             Object.defineProperty(this, name, { value });
             return value;
         }
     })
+}
 
+
+export const Query = (page, name?) => {
+
+    if (name === void 0) {
+        return (p, n) => query(p, n, page);
+    }
+
+    return query(page, name, name);
 };
