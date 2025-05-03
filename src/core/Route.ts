@@ -1,8 +1,11 @@
-const route = (page, name, routeName = name): any => {
+const route = (page, name, routeName = name, vc?: (v) => any): any => {
     Object.defineProperty(page, name, {
         enumerable: true,
         get() {
-            const value = this.route[routeName];
+            let value = this.route[routeName];
+            if (value !== void 0 && vc) {
+                value = vc(value);
+            }
             Object.defineProperty(this, name, { value });
             return value;
         }
@@ -18,3 +21,17 @@ export const Route = (page, name?) => {
 
     return route(page, name, name);
 };
+
+Route.asBoolean = (page, name?) => {
+    if (name === void 0) {
+        return (p, n) => route(p, n, page, (v) => /true|yes/i.test(v));
+    }
+    return route(page, name, name, (v) => /true|yes/i.test(v));
+}
+
+Route.asNumber = (page, name?) => {
+    if (name === void 0) {
+        return (p, n) => route(p, n, page, (v) => Number(v));
+    }
+    return route(page, name, name, (v) => Number(v));
+}
