@@ -122,10 +122,10 @@ export class SessionUser {
         this.resp?.cookie(cookie.name, cookie.value, cookie.options);
     }
 
-    clearAuthCookie() {
-        this.resp?.cookie(this.tokenService.authCookieName, "{}", {
-            secure,
-            httpOnly: true
-        });
+    async clearAuthCookie() {
+        const authService = ServiceProvider.resolve(this, AuthenticationService);
+        const cookie = await authService.setAuthCookie(this, null);
+        (cookie.options ??= {} as any).httpOnly = true;
+        this.resp?.cookie(cookie.name, cookie.value, cookie.options);
     }
 }
