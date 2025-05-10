@@ -10,6 +10,8 @@ import CookieService from "../services/CookieService.js";
 import TokenService from "../services/TokenService.js";
 import SocketNamespace, { SocketNamespaceClient } from "./SocketNamespace.js";
 import { camelToChain } from "../core/camelToChain.js";
+import AuthenticationService from "../services/AuthenticationService.js";
+import { SessionUser } from "../core/SessionUser.js";
 
 export default abstract class SocketService {
 
@@ -64,15 +66,15 @@ export default abstract class SocketService {
         const s = this.server.of("/" + name);
         (sns as any).namespace = name;
         (sns as any).server = s;
-        const { tokenService } = this;
         s.on("connection", (socket) => {
             socket.onAny(async (methodName, ... args: any[]) => {
                 const cookies = parse(socket.request.headers.cookie);
                 const scope = ServiceProvider.createScope(this);
+                const authService = ServiceProvider.resolve(this, AuthenticationService);
                 try {
-                    const cookieService = scope.resolve(CookieService);
-                    const cookie = cookies[tokenService.authCookieName];
-                    await cookieService.createSessionUserFromCookie(cookie, socket.handshake.address);
+                    const user = scope.resolve(SessionUser);
+                    const ip = socket.conn.remoteAddress;
+                    await authService.authorize(user, { ip, cookies });
                     scope.add(Socket, socket);
                     const clientClass = sns.clientClass ?? SocketNamespaceClient;
                     let c = scope.resolve(clientClass, true);

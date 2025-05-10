@@ -1,9 +1,10 @@
 import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAccessError.js";
-import Inject, { RegisterScoped } from "@entity-access/entity-access/dist/di/di.js";
+import Inject, { RegisterScoped, ServiceProvider } from "@entity-access/entity-access/dist/di/di.js";
 import DateTime from "@entity-access/entity-access/dist/types/DateTime.js";
 import TokenService, { IAuthCookie } from "../services/TokenService.js";
 import { WrappedResponse } from "./Wrapped.js";
 import { CacheProperty } from "./CacheProperty.js";
+import AuthenticationService from "../services/AuthenticationService.js";
 
 const secure = (process.env["SOCIAL_MAIL_AUTH_COOKIE_SECURE"] ?? "true") === "true";
 
@@ -115,15 +116,10 @@ export class SessionUser {
     }
 
     async setAuthCookie(authCookie: Omit<IAuthCookie, "sign">) {
-        const cookie = await this.tokenService.getAuthToken(authCookie);
-        const maxAge = ((authCookie.expiry ?  DateTime.from(authCookie.expiry) : null) ?? DateTime.now.addDays(30)).diff(DateTime.now).totalMilliseconds;
-        this.resp?.cookie(
-            cookie.cookieName,
-            cookie.cookie, {
-                secure,
-                httpOnly: true,
-                maxAge
-            });
+        const authService = ServiceProvider.resolve(this, AuthenticationService);
+        const cookie = await authService.setAuthCookie(this, authCookie);
+        (cookie.options ??= {} as any).httpOnly = true;
+        this.resp?.cookie(cookie.name, cookie.value, cookie.options);
     }
 
     clearAuthCookie() {
