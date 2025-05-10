@@ -23,6 +23,7 @@ import HttpIPCProxyReceiver from "./core/HttpIPCProxyReceiver.js";
 import JsonGenerator from "@entity-access/entity-access/dist/common/JsonGenerator.js";
 import { Readable } from "node:stream";
 import SecureContextService from "./ssl/SecureContextService.js";
+import AuthenticationService from "./services/AuthenticationService.js";
 
 export const wsData = Symbol("wsData");
 
@@ -300,13 +301,10 @@ export default class ServerPages {
             let sent = false;
             const user = scope.resolve(SessionUser);
             user.resp = resp;
-            user.authorize = async () => {
-                const cookieService = scope.resolve(CookieService);
-                const tokenService = scope.resolve(TokenService);
-                const cookie = req.cookies[tokenService.authCookieName];
-                await cookieService.createSessionUserFromCookie(cookie, req.remoteIPAddress);
-                (user as any).isAuthorized = true;
-            };
+
+            const authService = scope.resolve(AuthenticationService);
+
+            user.authorize = () => authService.authorize(user, { ip: req.remoteIPAddress, cookies: req.cookies });
             const acceptJson = req.accepts("json");
 
             const hostName = req.hostName;
