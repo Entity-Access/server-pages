@@ -3,9 +3,16 @@ import { SessionUser } from "../core/SessionUser.js";
 import CookieService from "./CookieService.js";
 import TokenService from "./TokenService.js";
 import DateTime from "@entity-access/entity-access/dist/types/DateTime.js";
-import { IAuthorizationCookie } from "./IAuthorizationCookie.js";
+import type { IAuthorizationCookie } from "./IAuthorizationCookie.js";
+import type { SerializeOptions } from "cookie";
 
 const secure = (process.env["SOCIAL_MAIL_AUTH_COOKIE_SECURE"] ?? "true") === "true";
+
+export interface ICookie {
+    name: string,
+    value: string,
+    options?: SerializeOptions
+}
 @RegisterSingleton
 export default class AuthenticationService {
 
@@ -18,7 +25,7 @@ export default class AuthenticationService {
         (user as any).isAuthorized = true;
     }
 
-    async setAuthCookie(user: SessionUser, authCookie: IAuthorizationCookie) {
+    async setAuthCookie(user: SessionUser, authCookie: IAuthorizationCookie): Promise<ICookie> {
 
         const scope = ServiceProvider.from(user);
         const tokenService = scope.resolve(TokenService);
