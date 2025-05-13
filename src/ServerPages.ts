@@ -301,6 +301,7 @@ export default class ServerPages {
             let sent = false;
             const user = scope.resolve(SessionUser);
             user.resp = resp;
+            user.ipAddress = req.remoteIPAddress;
 
             const authService = scope.resolve(AuthenticationService);
 
