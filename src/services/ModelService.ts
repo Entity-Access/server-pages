@@ -91,8 +91,8 @@ const modelFrom = (type: EntityType): IEntityModel => {
     return model;
 };
 
-const getJSType = (column: { type?: any, enum?: readonly string[]}) => {
-    const { type, enum: enumValues } = column;
+const getJSType = (column: { type?: any, enum?: readonly string[], dataType?: string}) => {
+    const { type, enum: enumValues, dataType } = column;
     if (enumValues) {
         return enumValues.map((x) => toJson(x)).join(" | ");
     }
@@ -108,6 +108,9 @@ const getJSType = (column: { type?: any, enum?: readonly string[]}) => {
         case Date:
         case DateTime:
             return "DateTime";
+    }
+    if (dataType === "Geometry") {
+        return "IGeometry";
     }
     if (typeof type == "function") {
         const mps = type.prototype[modelProperties];
@@ -211,7 +214,7 @@ export default class ModelService {
             name: type.name,
             keys: type.keys.map((k) => ({
                 name: k.name,
-                type: getJSType({ type: k.type }),
+                type: getJSType({ type: k.type, dataType: k.dataType }),
                 generated: k.generated,
                 dataType: k.dataType,
                 length: k.length,
@@ -219,7 +222,7 @@ export default class ModelService {
             })),
             properties: type.nonKeys.map((k) => ({
                 name: k.name,
-                type: getJSType({ type: k.type }),
+                type: getJSType({ type: k.type, dataType: k.dataType }),
                 generated: k.generated,
                 dataType: k.dataType,
                 length: k.length,
@@ -255,6 +258,7 @@ export default class ModelService {
         writer.writeLine(`import DateTime from "@web-atoms/date-time/dist/DateTime";
             import type IClrEntity from "@web-atoms/entity/dist/models/IClrEntity";
             import { ICollection, IGeometry, IModel, Model, DefaultFactory } from "@web-atoms/entity/dist/services/BaseEntityService";
+            export type IGeometryType = IGeometry;
         `);
 
         writer.writeLine(`
