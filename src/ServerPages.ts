@@ -41,6 +41,8 @@ const isNotConnect2 = (req: http2.Http2ServerRequest) => {
 };
 export default class ServerPages {
 
+    serverID: any;
+
     public static create(globalServiceProvider: ServiceProvider = new ServiceProvider()) {
         const sp = globalServiceProvider.create(ServerPages);
         return sp;
@@ -349,7 +351,11 @@ export default class ServerPages {
                     // we will not log this error
                     return;
                 }
-                console.error(`Failed: ${req.URL}`);
+                if (this.serverID) {
+                    console.error(`Failed: ${this.serverID}:  ${req.URL}`);
+                } else {
+                    console.error(`Failed: ${req.URL}`);
+                }
                 if (!sent) {
                     try {
 
