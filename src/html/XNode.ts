@@ -101,7 +101,12 @@ export default class XNode {
         if (children) {
             for (const child of children) {
                 if (typeof child === "string") {
-                    yield escapeText(child);
+                    if (/^(script|style)$/i.test(name)) {
+                        /** script and style are not escaped */
+                        yield child;
+                    } else {
+                        yield escapeText(child);
+                    }
                     continue;
                 }
                 if (!child) {
