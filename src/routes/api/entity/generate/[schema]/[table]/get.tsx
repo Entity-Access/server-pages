@@ -4,6 +4,7 @@ import Page from "../../../../../../Page.js";
 import EntityContext from "@entity-access/entity-access/dist/model/EntityContext.js";
 import { Route } from "../../../../../../core/Route.js";
 import { ISqlType } from "@entity-access/entity-access/dist/decorators/ISqlType.js";
+import IColumnSchema from "@entity-access/entity-access/dist/common/IColumnSchema.js";
 
 const typeFor = (dataType: ISqlType) => {
     switch(dataType) {
@@ -33,6 +34,17 @@ const typeFor = (dataType: ISqlType) => {
             return "string";
     }
 };
+
+const encode = (x: IColumnSchema) => {
+    x = { ... x, name: void 0};
+    let t = JSON.stringify(x);
+    for (const key in x) {
+        if (Object.hasOwn(x, key)) {
+            t = t.replace(`"${key}"`, key);
+        }
+    }
+    return t;
+}
 
 @Prepare.authorize
 export default class extends Page {
@@ -72,7 +84,7 @@ export default class extends Page {
         }
 
         return this.content({
-            body: columns.map((x)=> `\t@Column(${ JSON.stringify(x) })\n\t${x.name}:${typeFor(x.dataType as ISqlType)};\n\n`).join("\n\n"),
+            body: columns.map((x)=> `\t@Column(${ encode(x) })\n\t${x.name}:${typeFor(x.dataType as ISqlType)};\n\n`).join("\n\n"),
             contentType: "text/plain"
         });
     }
