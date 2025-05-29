@@ -73,6 +73,9 @@ export default class extends Page {
             if (!column.length) {
                 delete column.length;
             }
+            if (column.length <=0 ) {
+                delete column.length;
+            }
             if (!column.key) {
                 delete column.key;
             } else {
