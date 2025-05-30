@@ -27,7 +27,7 @@ export default class extends Page {
         const entityClass = SchemaRegistry.classForName(entityName);
 
         if (!entityClass) {
-            return;
+            throw new EntityAccessError(`${entityName} entity not found`);
         }
 
         await Prepare.parseJsonBody(this);
