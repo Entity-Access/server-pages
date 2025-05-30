@@ -47,7 +47,7 @@ const encode = (x: IColumnSchema) => {
     if (g) {
         t = t.replace(g[2], g[3]);
     }
-    return t;
+    return t.replace(`"() => 1"`, `() => 1`);
 }
 
 @Prepare.authorize
@@ -87,6 +87,11 @@ export default class extends Page {
             }
             if (!column.default) {
                 delete column.default;
+            }
+            if (!column.computed) {
+                delete column.computed;
+            } else {
+                column.computed = `() => 1`
             }
         }
 
