@@ -43,6 +43,10 @@ const encode = (x: IColumnSchema) => {
             t = t.replace(`"${key}"`, key);
         }
     }
+    const g = /(default\:\s*(\"([^\"]+)\"))/gm.exec(t);
+    if (g) {
+        t = t.replace(g[2], g[3]);
+    }
     return t;
 }
 
