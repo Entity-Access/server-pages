@@ -39,15 +39,32 @@ const isNotConnect2 = (req: http2.Http2ServerRequest) => {
         || /^connect/i.test(req.headers[":method"])
         || /^upgrade/i.test(req.headers["connection"]))
 };
+
+const sensitiveRoutes = (name: string) => name;
+
 export default class ServerPages {
 
     serverID: any;
+
 
     public static create(globalServiceProvider: ServiceProvider = new ServiceProvider()) {
         const sp = globalServiceProvider.create(ServerPages);
         return sp;
     }
 
+    public get caseInsensitiveRoutes() {
+        return this.rewriteFileRoute == sensitiveRoutes;
+    }
+
+    public set caseInsensitiveRoutes(v: boolean) {
+        if (v) {
+            this.rewriteFileRoute = (x) => x.toLowerCase();
+        } else {
+            this.rewriteFileRoute = sensitiveRoutes;
+        }
+    }
+
+    private rewriteFileRoute = sensitiveRoutes;
     private root: RouteTree = new RouteTree();
 
     public set logRoutes(log: (text: string) => any) {
@@ -67,9 +84,9 @@ export default class ServerPages {
     public registerRoutes(folder: string, start: string = "/", root = this.root) {
         const startRoute = start.split("/").filter((x) => x);
         for (const iterator of startRoute) {
-            root = root.getOrCreate(iterator);
+            root = root.getOrCreate(this.rewriteFileRoute(iterator));
         }
-        root.register(folder);
+        root.register(folder, this.rewriteFileRoute);
     }
 
     public registerEntityRoutes(start = "/", tree = this.root) {
@@ -330,7 +347,7 @@ export default class ServerPages {
                     path,
                     route,
                     request: req
-                })) ?? {
+                }, this.rewriteFileRoute)) ?? {
                     pageClass: Page,
                     childPath: path
                 };

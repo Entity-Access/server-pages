@@ -78,14 +78,14 @@ export default class RouteTree {
         return child;
     }
 
-    public async getRoute(rc: IRouteCheck): Promise<{ pageClass: typeof Page, childPath: string[] }> {
+    public async getRoute(rc: IRouteCheck, rewriteFileRoute: (name: string) => string): Promise<{ pageClass: typeof Page, childPath: string[] }> {
         if (rc.path.length > 0) {
             const { path: [current, ... rest] } = rc;
             const childRouteCheck = { ... rc, current, path: rest };
 
-            const childRoute = this.children.get(current);
+            const childRoute = this.children.get( rewriteFileRoute(current));
             if (childRoute) {
-                const nested = await childRoute.getRoute(childRouteCheck);
+                const nested = await childRoute.getRoute(childRouteCheck, rewriteFileRoute);
                 if (nested) {
                     return nested;
                 }
@@ -98,7 +98,7 @@ export default class RouteTree {
                 if (m?.length) {
                     const value = m[1];
                     rc.route[regexChild.paramName] = value;
-                    return regexChild.route.getRoute(childRouteCheck);
+                    return regexChild.route.getRoute(childRouteCheck, rewriteFileRoute);
                 }
             }
         }
@@ -119,12 +119,12 @@ export default class RouteTree {
         }
     }
     
-    public register(folder: string, log?:(text: string) => any) {
+    public register(folder: string, routeRewrite: (text: string) => string) {
 
         for (const iterator of readdirSync(folder, { withFileTypes: true , recursive: false})) {
             if (iterator.isDirectory()) {
-                const rt = this.getOrCreate(iterator.name);
-                rt.register(folder + "/" + iterator.name);
+                const rt = this.getOrCreate(routeRewrite(iterator.name));
+                rt.register(folder + "/" + iterator.name, routeRewrite);
                 continue;
             }
 
