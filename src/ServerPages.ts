@@ -58,7 +58,7 @@ export default class ServerPages {
 
     public set caseInsensitiveRoutes(v: boolean) {
         if (v) {
-            this.rewriteFileRoute = (x) => x.toLowerCase();
+            this.rewriteFileRoute = (x) => /[\[\]]/i.test(x) ? x : x.toLowerCase();
         } else {
             this.rewriteFileRoute = sensitiveRoutes;
         }
