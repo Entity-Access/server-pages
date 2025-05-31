@@ -5,6 +5,7 @@ import TempFolder from "../core/TempFolder.js";
 import { LocalFile } from "../core/LocalFile.js";
 import { ServiceProvider } from "@entity-access/entity-access/dist/di/di.js";
 import { SessionUser } from "../core/SessionUser.js";
+import { StatusResult } from "../Content.js";
 
 export const prepareSymbol = Symbol("Parse");
 
@@ -88,6 +89,23 @@ const authorize = (page?): any => {
     })();
 };
 
+const authorizeRedirect = (
+    fx: (user: SessionUser) => boolean = (u) => u.userID as any as boolean,
+    redirectUrl: string = "/user/login"
+): any => {
+    
+    return (target) => {
+        (target[prepareSymbol] ??= []).push(async (page: Page) => {
+            const sessionUser = ServiceProvider.resolve(page, SessionUser);
+            await sessionUser.authorize();
+            if (!fx(sessionUser)) {
+                return new StatusResult(301, { location: redirectUrl });
+            }
+            setValue(page, "sessionUser", sessionUser);
+        });
+    }
+};
+
 const parseForm = (page?): any => {
     if (!page) {
         return (target) => parseForm(target);
@@ -145,5 +163,6 @@ const parseForm = (page?): any => {
 export const Prepare = {
     parseJsonBody,
     authorize,
-    parseForm
+    parseForm,
+    authorizeRedirect
 };
