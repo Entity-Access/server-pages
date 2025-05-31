@@ -91,7 +91,8 @@ const authorize = (page?): any => {
 
 const authorizeRedirect = (
     fx: (user: SessionUser) => boolean = (u) => u.userID as any as boolean,
-    redirectUrl: string = "/user/login"
+    redirectUrl: string = "/user/login",
+    queryParameterName: string = "returnUrl"
 ): any => {
     
     return (target) => {
@@ -99,6 +100,12 @@ const authorizeRedirect = (
             const sessionUser = ServiceProvider.resolve(page, SessionUser);
             await sessionUser.authorize();
             if (!fx(sessionUser)) {
+                let location = redirectUrl;
+                if (location.includes("?")) {
+                    location += `&${queryParameterName}=${encodeURIComponent(page.request.url)}`;
+                } else {
+                    location += `?${queryParameterName}=${encodeURIComponent(page.request.url)}`;
+                }
                 return new StatusResult(301, { location: redirectUrl });
             }
             setValue(page, "sessionUser", sessionUser);
