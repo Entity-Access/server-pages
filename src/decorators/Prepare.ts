@@ -106,7 +106,7 @@ const authorizeRedirect = (
                 } else {
                     location += `?${queryParameterName}=${encodeURIComponent(page.request.url)}`;
                 }
-                return new StatusResult(301, { location: redirectUrl });
+                return new StatusResult(301, { location });
             }
             setValue(page, "sessionUser", sessionUser);
         });
