@@ -51,6 +51,8 @@ export interface IWrappedRequest {
 
     get query(): { [key: string]: string};
 
+    get queryCaseInsensitive(): { [key: string]: string};
+
     get cookies(): { [key: string]: string};
 
     get URL(): URL;
@@ -198,6 +200,21 @@ const extendRequest = (A: typeof IncomingMessage | typeof Http2ServerRequest) =>
                     value[key] = v;
                 }
                 return CacheProperty.value(this, "query", value);
+            }
+
+            get queryCaseInsensitive(): any {
+                const value = {};
+                for (const [key, v] of this.URL.searchParams.entries()) {
+                    value[key.toLowerCase()] = v;
+                }
+                return CacheProperty.value(this, "query", new Proxy(value, {
+                    get(t, p) {
+                        if(typeof p === "string") {
+                            return value[p.toLowerCase()];
+                        }
+                        return value[p];
+                    }
+                }));
             }
         
             get body(): any {
