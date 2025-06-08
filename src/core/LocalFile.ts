@@ -4,6 +4,7 @@ import { basename  } from "path";
 import mime from "mime-types";
 import internal, { Readable, Stream, Writable } from "stream";
 import { appendFile, copyFile, open, readFile, writeFile } from "fs/promises";
+import { pipeline } from "stream/promises";
 
 export class LocalFile implements AsyncDisposable {
 
@@ -71,11 +72,7 @@ export class LocalFile implements AsyncDisposable {
 
     public async writeTo(writable: Writable, start?: number, end?: number) {
         const readable = createReadStream(this.path, { start, end });
-        return new Promise((resolve, reject) => {
-            readable.pipe(writable, { end: true })
-                .on("finish", resolve)
-                .on("error", reject);
-        });
+        return pipeline(readable, writable, { end: true });
     }
 
     public async delete() {

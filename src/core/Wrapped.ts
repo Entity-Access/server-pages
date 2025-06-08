@@ -436,10 +436,9 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
                         headers["content-length"] = size;
                         this.writeHead(200, headers);
                         sent = true;
+                        return await lf.writeTo(this);
         
-                        await lf.writeTo(this);
-        
-                        return (this as any).asyncEnd();
+                        // return (this as any).asyncEnd();
                     }
         
                     /** Extracting Start and End value from Range Header */
@@ -471,7 +470,7 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
                     headers["content-length"] = end - start + 1;
                     this.writeHead(206, headers);
                     sent = true;
-                    await lf.writeTo(this, start, end);
+                    return await lf.writeTo(this, start, end);
                 } catch (error) {
                     console.error(error);
                     if (sent) {
