@@ -187,7 +187,7 @@ export default class ServerPages {
                         settings: {
                             enableConnectProtocol: createSocketService
                         }
-                    }, (req, res) => this.process(req, res, true))
+                    }, (req, res) => isNotConnect2(req) && this.process(req, res, true))
 
                     httpServer.on("connect", () => {
                         // undocumented and needed.
