@@ -239,12 +239,12 @@ export default class ServerPages {
                 const socketServer = new Server(httpServer, {
                     
                 });
-                if (http1Server) {
-                    // this is a special case
-                    // as HTTP2 without SSL does not accept HTTP1
-                    // so we are creating HTTP1 separately
-                    socketServer.attach(http1Server);
-                }
+                // if (http1Server) {
+                //     // this is a special case
+                //     // as HTTP2 without SSL does not accept HTTP1
+                //     // so we are creating HTTP1 separately
+                //     socketServer.attach(http1Server);
+                // }
                 const ss = ServiceProvider.resolve(this, SocketService as any) as SocketService;
                 await (ss as any).attach(socketServer);
 
