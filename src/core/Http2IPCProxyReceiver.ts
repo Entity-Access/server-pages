@@ -64,7 +64,7 @@ export default class Http2IPCProxyReceiver {
 
             socket[remoteAddressSymbol] = ipAddress;
             console.log(tokens);
-            (socket as any).alpnProtocol = alpnProtocol;
+            (socket as any).alpnProtocol = alpnProtocol || "http/1.1";
             this.forward.emit("secureConnection", socket);
         } catch (error) {
             // console.error(error);
