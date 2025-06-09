@@ -189,7 +189,7 @@ export default class ServerPages {
                     httpServer.on("connect", () => {
                         // undocumented and needed.
                     });
-                    httpServer.on("clientError",() => {
+                    httpServer.on("tlsClientError",() => {
                         // ignore
                     });
                     listeningServer = new Http2IPCProxyReceiver(httpServer as Http2SecureServer);
