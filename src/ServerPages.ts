@@ -183,16 +183,12 @@ export default class ServerPages {
                         settings: {
                             enableConnectProtocol: createSocketService
                         }
-                    }, (req, res) => this.process(req, res, trustProxy))
+                    }, (req, res) => this.process(req, res, true))
 
-                    if (acmeOptions) {
-                        const cs = ServiceProvider.resolve(this, ChallengeServer);
-                        cs.start();
-                    }
                     httpServer.on("connect", () => {
                         // undocumented and needed.
                     });
-                    listeningServer = listeningServer = new Http2IPCProxyReceiver(httpServer as Http2SecureServer);
+                    listeningServer = new Http2IPCProxyReceiver(httpServer as Http2SecureServer);
 
                     break;
                 default:
