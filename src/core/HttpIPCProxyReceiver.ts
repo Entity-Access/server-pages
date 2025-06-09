@@ -77,17 +77,20 @@ export default class HttpIPCProxyReceiver {
                 throw new Error(`Invalid HTTP IPC Forward Protocol, received ${address}`);
             }
             
-            address = address.substring(4);
+            const tokens = address.split(">");
+            address = tokens[2];
 
             socket[remoteAddressSymbol] = address;
 
-            const prefix = await read(socket, 3);
-            socket.unshift(prefix);
-            if (/pri/i.test(prefix.toString("ascii"))) {
+            const alpnProtocol = tokens[1];
+            (socket as any).alpnProtocol = alpnProtocol;
+
+            if (alpnProtocol === "h2") {
                 this.forward.emit("connection", socket);
             } else {
                 this.forward1.emit("connection", socket);
             }
+
         } catch (error) {
             // console.error(error);
             endSocket(socket);
@@ -98,7 +101,7 @@ export default class HttpIPCProxyReceiver {
     constructor(private forward: http.Server | http2.Http2Server | http2.Http2SecureServer,
         private forward1: http.Server
     ) {
-        this.server = createServer(this.onConnection);
+        this.server = createServer({ keepAlive: true, keepAliveInitialDelay: 5000, noDelay: true }, this.onConnection);
         this.server.on("error", console.error);
     }
 

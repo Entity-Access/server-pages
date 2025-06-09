@@ -27,6 +27,7 @@ import AuthenticationService from "./services/AuthenticationService.js";
 import TimeoutTracker from "./core/TimeoutTracker.js";
 import { Http2SecureServer } from "node:http2";
 import { randomUUID } from "node:crypto";
+import HttpIPCProxyReceiver from "./core/HttpIPCProxyReceiver.js";
 
 export const wsData = Symbol("wsData");
 
@@ -121,7 +122,7 @@ export default class ServerPages {
         allowHTTP1?: boolean
     }) {
 
-        let listeningServer = null as http.Server | http2.Http2Server | http2.Http2SecureServer | Http2IPCProxyReceiver;
+        let listeningServer = null as http.Server | http2.Http2Server | http2.Http2SecureServer | HttpIPCProxyReceiver;
 
         let http1Server = null as http.Server;
 
@@ -162,39 +163,39 @@ export default class ServerPages {
                     listeningServer = httpServer;
                     break;
                 case "http2NoTLS":
-                    // httpServer = http2.createServer({
-                    //     settings: {
-                    //         enableConnectProtocol: createSocketService,
-                    //     }
-                    // },(req, res) => isNotConnect2(req) && this.process(req, res, trustProxy))
-                    // // if (!disableNoTlsWarning) {
-                    // //     console.warn("Http2 without SSL should not be used in production");
-                    // // }
-                    // httpServer.on("connect", () => {
-                    //     // undocumented and needed.
-                    // });
-                    // http1Server = http.createServer((req, res) => isNotConnect(req) && this.process(req, res, trustProxy));
-                    // listeningServer = new HttpIPCProxyReceiver(httpServer, http1Server);
-
-                    httpServer = http2.createSecureServer({
-                        SNICallback: null,
-                        allowHTTP1,
-                        keepAlive: true,
-                        keepAliveInitialDelay: 5000,
+                    httpServer = http2.createServer({
                         settings: {
-                            enableConnectProtocol: createSocketService
+                            enableConnectProtocol: createSocketService,
                         }
-                    }, (req, res) => this.process(req, res, true))
-
+                    },(req, res) => isNotConnect2(req) && this.process(req, res, trustProxy))
+                    // if (!disableNoTlsWarning) {
+                    //     console.warn("Http2 without SSL should not be used in production");
+                    // }
                     httpServer.on("connect", () => {
                         // undocumented and needed.
                     });
-                    httpServer.on("tlsClientError",() => {
-                        // ignore
-                    });
-                    listeningServer = new Http2IPCProxyReceiver(httpServer as Http2SecureServer);
+                    http1Server = http.createServer((req, res) => isNotConnect(req) && this.process(req, res, trustProxy));
+                    listeningServer = new HttpIPCProxyReceiver(httpServer, http1Server);
 
-                    httpServer.listen(0, () => console.log(`Http2IPC Started`));
+                    // httpServer = http2.createSecureServer({
+                    //     SNICallback: null,
+                    //     allowHTTP1,
+                    //     keepAlive: true,
+                    //     keepAliveInitialDelay: 5000,
+                    //     settings: {
+                    //         enableConnectProtocol: createSocketService
+                    //     }
+                    // }, (req, res) => this.process(req, res, true))
+
+                    // httpServer.on("connect", () => {
+                    //     // undocumented and needed.
+                    // });
+                    // httpServer.on("tlsClientError",() => {
+                    //     // ignore
+                    // });
+                    // listeningServer = new Http2IPCProxyReceiver(httpServer as Http2SecureServer);
+
+                    // httpServer.listen(0, () => console.log(`Http2IPC Started`));
 
                     break;
                 default:
