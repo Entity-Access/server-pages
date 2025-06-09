@@ -24,6 +24,7 @@ import JsonGenerator from "@entity-access/entity-access/dist/common/JsonGenerato
 import { Readable } from "node:stream";
 import SecureContextService from "./ssl/SecureContextService.js";
 import AuthenticationService from "./services/AuthenticationService.js";
+import TimeoutTracker from "./core/TimeoutTracker.js";
 
 export const wsData = Symbol("wsData");
 
@@ -295,7 +296,10 @@ export default class ServerPages {
 
         // const { method, url } = req;
 
+
         req = Wrapped.request(req);
+
+        req.disposables.push(TimeoutTracker.create(() => `Request: ${req.url} took longer than 30 seconds`));
 
         req.trustProxy = trustProxy;
 
