@@ -194,7 +194,7 @@ export default class ServerPages {
                     });
                     listeningServer = new Http2IPCProxyReceiver(httpServer as Http2SecureServer);
 
-                    httpServer.listen(`/tmp/tmp-https/${process.pid}-${randomUUID()}.sock`);
+                    httpServer.listen(0, () => console.log(`Http2IPC Started`));
 
                     break;
                 default:
