@@ -26,6 +26,7 @@ import SecureContextService from "./ssl/SecureContextService.js";
 import AuthenticationService from "./services/AuthenticationService.js";
 import TimeoutTracker from "./core/TimeoutTracker.js";
 import { Http2SecureServer } from "node:http2";
+import { randomUUID } from "node:crypto";
 
 export const wsData = Symbol("wsData");
 
@@ -188,7 +189,12 @@ export default class ServerPages {
                     httpServer.on("connect", () => {
                         // undocumented and needed.
                     });
+                    httpServer.on("clientError",() => {
+                        // ignore
+                    });
                     listeningServer = new Http2IPCProxyReceiver(httpServer as Http2SecureServer);
+
+                    httpServer.listen(`/tmp/tmp-https/${process.pid}-${randomUUID()}.sock`);
 
                     break;
                 default:
