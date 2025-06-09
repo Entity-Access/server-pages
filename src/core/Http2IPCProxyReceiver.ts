@@ -65,7 +65,7 @@ export default class Http2IPCProxyReceiver {
             socket[remoteAddressSymbol] = address;
 
             (socket as any).alpnProtocol = tokens[1];
-
+            this.forward.emit("connection", socket);
         } catch (error) {
             // console.error(error);
             endSocket(socket);
