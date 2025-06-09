@@ -60,11 +60,11 @@ export default class Http2IPCProxyReceiver {
             }
             
             const tokens = address.split(">");
-            address = tokens[2];
+            const [_1, alpnProtocol, ipAddress] = tokens;
 
-            socket[remoteAddressSymbol] = address;
-
-            (socket as any).alpnProtocol = tokens[1];
+            socket[remoteAddressSymbol] = ipAddress;
+            console.log(tokens);
+            (socket as any).alpnProtocol = alpnProtocol;
             this.forward.emit("secureConnection", socket);
         } catch (error) {
             // console.error(error);
