@@ -75,7 +75,10 @@ export default class Http2IPCProxyReceiver {
 
     constructor(private forward: http2.Http2SecureServer
     ) {
-        this.server = createServer(this.onConnection);
+        this.server = createServer({ 
+            keepAlive: true,
+            keepAliveInitialDelay: 5000
+         }, this.onConnection);
         this.server.on("error", console.error);
     }
 
