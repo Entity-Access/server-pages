@@ -1,30 +1,13 @@
 import http2 from "http2";
 import { createServer, Socket, Server as SocketServer } from "net";
 import { remoteAddressSymbol } from "./remoteAddressSymbol.js";
-import { Readable, Stream } from "stream";
+import { Readable } from "stream";
 import EventEmitterPromise from "./EventEmitterPromise.js";
 
 const endSocket = (s: Socket) => {
     try {
         s.end();
     } catch {}
-};
-
-const read = (s: Socket, n: number) => {
-    const { promise, resolve, reject, target } = EventEmitterPromise.extend(s as Readable)
-        .as<Buffer>();
-    const reader = () => {
-        const data = target.read(3);
-        if (!data) {
-            target.once("readable", reader);
-            return;
-        }
-        resolve(data);
-    };
-    target.once("readable", reader);
-    target.once("error", reject);
-    target.once("end", () => reject(new Error("Socket hung up")));
-    return promise;
 };
 
 const readLine = (s: Socket) => {
