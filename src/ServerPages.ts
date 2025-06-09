@@ -149,7 +149,7 @@ export default class ServerPages {
                         SNICallback,
                         allowHTTP1,
                         keepAlive: true,
-                        keepAliveInitialDelay: 5000,
+                        keepAliveInitialDelay: 10000,
                         settings: {
                             enableConnectProtocol: createSocketService
                         }

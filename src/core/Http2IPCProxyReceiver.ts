@@ -77,7 +77,7 @@ export default class Http2IPCProxyReceiver {
     ) {
         this.server = createServer({ 
             keepAlive: true,
-            keepAliveInitialDelay: 5000
+            keepAliveInitialDelay: 10000
          }, this.onConnection);
         this.server.on("error", console.error);
     }
