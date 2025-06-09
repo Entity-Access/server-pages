@@ -4,7 +4,7 @@ import Page from "./Page.js";
 import Content from "./Content.js";
 import RouteTree from "./core/RouteTree.js";
 import { fileURLToPath } from "node:url";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { Server } from "socket.io";
 import * as http from "http";
 import * as http2 from "http2";
@@ -104,6 +104,7 @@ export default class ServerPages {
     public async build({
         createSocketService = true,
         port = 8080,
+        http1Port = 8081,
         protocol = "http",
         SNICallback,
         acmeOptions,
@@ -113,6 +114,7 @@ export default class ServerPages {
     }:{
         createSocketService?: boolean,
         port: number,
+        http1Port: number,
         trustProxy: boolean,
         disableNoTlsWarning?: boolean,
         protocol: "http" | "http2" | "http2NoTLS",
@@ -122,7 +124,7 @@ export default class ServerPages {
         allowHTTP1?: boolean
     }) {
 
-        let listeningServer = null as http.Server | http2.Http2Server | http2.Http2SecureServer | HttpIPCProxyReceiver;
+        let listeningServer = null as http.Server | http2.Http2Server | http2.Http2SecureServer | Http2IPCProxyReceiver;
 
         let http1Server = null as http.Server;
 
@@ -163,39 +165,41 @@ export default class ServerPages {
                     listeningServer = httpServer;
                     break;
                 case "http2NoTLS":
-                    httpServer = http2.createServer({
-                        settings: {
-                            enableConnectProtocol: createSocketService,
-                        }
-                    },(req, res) => isNotConnect2(req) && this.process(req, res, trustProxy))
-                    // if (!disableNoTlsWarning) {
-                    //     console.warn("Http2 without SSL should not be used in production");
-                    // }
-                    httpServer.on("connect", () => {
-                        // undocumented and needed.
-                    });
-                    http1Server = http.createServer((req, res) => isNotConnect(req) && this.process(req, res, trustProxy));
-                    listeningServer = new HttpIPCProxyReceiver(httpServer, http1Server);
-
-                    // httpServer = http2.createSecureServer({
-                    //     SNICallback: null,
-                    //     allowHTTP1,
-                    //     keepAlive: true,
-                    //     keepAliveInitialDelay: 5000,
+                    // httpServer = http2.createServer({
                     //     settings: {
-                    //         enableConnectProtocol: createSocketService
+                    //         enableConnectProtocol: createSocketService,
                     //     }
-                    // }, (req, res) => this.process(req, res, true))
-
+                    // },(req, res) => isNotConnect2(req) && this.process(req, res, trustProxy))
+                    // // if (!disableNoTlsWarning) {
+                    // //     console.warn("Http2 without SSL should not be used in production");
+                    // // }
                     // httpServer.on("connect", () => {
                     //     // undocumented and needed.
                     // });
-                    // httpServer.on("tlsClientError",() => {
-                    //     // ignore
-                    // });
-                    // listeningServer = new Http2IPCProxyReceiver(httpServer as Http2SecureServer);
+                    // http1Server = http.createServer((req, res) => isNotConnect(req) && this.process(req, res, trustProxy));
+                    // listeningServer = new HttpIPCProxyReceiver(httpServer, http1Server);
 
-                    // httpServer.listen(0, () => console.log(`Http2IPC Started`));
+                    httpServer = http2.createSecureServer({
+                        SNICallback: null,
+                        allowHTTP1,
+                        keepAlive: true,
+                        keepAliveInitialDelay: 5000,
+                        settings: {
+                            enableConnectProtocol: createSocketService
+                        }
+                    }, (req, res) => this.process(req, res, true))
+
+                    httpServer.on("connect", () => {
+                        // undocumented and needed.
+                    });
+                    httpServer.on("tlsClientError",() => {
+                        // ignore
+                    });
+                    listeningServer = new Http2IPCProxyReceiver(httpServer as Http2SecureServer);
+
+                    httpServer.listen(0, () => console.log(`Http2IPC Started`));
+
+                    http1Server = http.createServer((req, res) => isNotConnect(req) && this.process(req, res, trustProxy));
 
                     break;
                 default:
@@ -224,6 +228,12 @@ export default class ServerPages {
                     });
                 }
             });
+
+            if (http1Server) {
+                await new Promise<void>((resolve) => {
+                    http1Server.listen(http1Port, resolve);
+                });
+            }
 
             if (createSocketService) {
                 const socketServer = new Server(httpServer, {
