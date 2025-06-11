@@ -136,7 +136,7 @@ const extendRequest = (A: typeof IncomingMessage | typeof Http2ServerRequest) =>
 
             get host(): string {
                 const r = this as any as (Http2ServerRequest  | IncomingMessage);
-                const host = (r as Http2ServerRequest).authority || r.headers[":authority"] || r.headers.host || null;
+                const host = (r as Http2ServerRequest).authority || r.headers[":authority"] || r.headers.host || "";
                 return CacheProperty.value(this, "host", host);
             }
             get path(): string {
