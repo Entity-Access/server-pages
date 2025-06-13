@@ -5,9 +5,12 @@ import TempFolder from "../core/TempFolder.js";
 import { LocalFile } from "../core/LocalFile.js";
 import { ServiceProvider } from "@entity-access/entity-access/dist/di/di.js";
 import { SessionUser } from "../core/SessionUser.js";
-import { StatusResult } from "../Content.js";
+import Content, { StatusResult } from "../Content.js";
+import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAccessError.js";
 
 export const prepareSymbol = Symbol("Parse");
+
+const fileSize = 16*1024*1024;
 
 export interface IFormData {
     fields: { [key: string]: string};
@@ -135,8 +138,15 @@ const parseForm = (page?): any => {
             fields: {},
             files: []
         };
+        let lastError = null;
         try {
-            const bb = busboy({ headers: req.headers, defParamCharset: "utf-8" });
+            const bb = busboy({
+                headers: req.headers,
+                defParamCharset: "utf-8",
+                limits: {
+                    fileSize
+                }
+            });
             const tasks = [];
             bb.on("error", console.error);
             await new Promise((resolve, reject) => {
@@ -151,19 +161,34 @@ const parseForm = (page?): any => {
                         req.disposables.push(tempFolder);
                     }
                     const tf = tempFolder.get(info.filename, info.mimeType, false, true);
+                    file.on("limit", () => lastError = new EntityAccessError(`File size exceeded`));
                     tasks.push(tf.writeAll(file).then(() => {
                         result.files.push(tf);
                     }, console.error));
                 });
+                bb.on("filesLimit", () => lastError = new EntityAccessError(`File size exceeded`) );
                 bb.on("error", reject);
                 bb.on("close", resolve);
                 req.pipe(bb);
             });
             await Promise.all(tasks);
         } catch (error) {
-            page.reportError(error);        
+            page.reportError(error);
         }
         setValue(page, "form", result);
+
+        if (lastError) {
+
+            // delete all
+            try {
+                tempFolder[Symbol.dispose]();
+            } catch (error) {
+                // delete folder
+                console.error(error);
+            }
+
+            return Content.text(lastError.stack ?? lastError, { status: 500, contentType: "text/plain"})
+        }
     })();
 };
 
