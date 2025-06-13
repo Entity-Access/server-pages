@@ -18,7 +18,7 @@ export default class extends Page {
     }
 
     @Inject
-    private db: AppDbContext;
+    db: AppDbContext;
 
     async run() {
 
