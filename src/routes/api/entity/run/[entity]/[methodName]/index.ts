@@ -1,5 +1,4 @@
 import Inject from "@entity-access/entity-access/dist/di/di.js";
-import EntityContext from "@entity-access/entity-access/dist/model/EntityContext.js";
 import Page from "../../../../../../Page.js";
 import { Route } from "../../../../../../core/Route.js";
 import { Prepare } from "../../../../../../decorators/Prepare.js";
@@ -9,13 +8,14 @@ import ExternalInvoke from "../../../../../../decorators/ExternalInvoke.js";
 import JsonService from "../../../../../../services/DbJsonService.js";
 import SessionSecurity from "../../../../../../services/SessionSecurity.js";
 import Content from "../../../../../../Content.js";
+import AppDbContext from "../../../../../../core/AppDbContext.js";
 
 @Prepare.authorize
 @Prepare.parseJsonBody
 export default class extends Page {
 
     @Inject
-    private db: EntityContext;
+    db: AppDbContext;
 
     @Route
     entity: string;

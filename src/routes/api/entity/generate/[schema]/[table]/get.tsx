@@ -1,10 +1,10 @@
-import Inject, { ServiceProvider } from "@entity-access/entity-access/dist/di/di.js";
+import Inject from "@entity-access/entity-access/dist/di/di.js";
 import { Prepare } from "../../../../../../decorators/Prepare.js";
 import Page from "../../../../../../Page.js";
-import EntityContext from "@entity-access/entity-access/dist/model/EntityContext.js";
 import { Route } from "../../../../../../core/Route.js";
 import { ISqlType } from "@entity-access/entity-access/dist/decorators/ISqlType.js";
 import IColumnSchema from "@entity-access/entity-access/dist/common/IColumnSchema.js";
+import AppDbContext from "../../../../../../core/AppDbContext.js";
 
 const typeFor = (dataType: ISqlType) => {
     switch(dataType) {
@@ -54,7 +54,7 @@ const encode = (x: IColumnSchema) => {
 export default class extends Page {
 
     @Inject
-    db: EntityContext;
+    db: AppDbContext;
 
     @Route
     schema: string;

@@ -1,13 +1,12 @@
 import { IColumn, IEntityRelation } from "@entity-access/entity-access/dist/decorators/IColumn.js";
-import SchemaRegistry from "@entity-access/entity-access/dist/decorators/SchemaRegistry.js";
-import EntityType, { addColumnSymbol } from "@entity-access/entity-access/dist/entity-query/EntityType.js";
-import EntityContext from "@entity-access/entity-access/dist/model/EntityContext.js";
+import EntityType from "@entity-access/entity-access/dist/entity-query/EntityType.js";
 import IndentedStringWriter from "./IndentedStringWriter.js";
 import DateTime from "@entity-access/entity-access/dist/types/DateTime.js";
 import { IClassOf } from "@entity-access/entity-access/dist/decorators/IClassOf.js";
 import EntityEvents from "@entity-access/entity-access/dist/model/events/EntityEvents.js";
 import ExternalQuery from "../decorators/ExternalQuery.js";
 import ExternalInvoke from "../decorators/ExternalInvoke.js";
+import AppDbContext from "../core/AppDbContext.js";
 
 const modelProperties = Symbol("modelProperty");
 
@@ -243,7 +242,7 @@ export default class ModelService {
         };
     }
 
-    public static getModel(context: EntityContext) {
+    public static getModel(context: AppDbContext) {
         const model = [] as IEntityModel[];
 
         for (const [type] of context.model.sources) {
@@ -253,7 +252,7 @@ export default class ModelService {
         return model;
     }
 
-    public static getModelDeclaration(context: EntityContext) {
+    public static getModelDeclaration(context: AppDbContext) {
         const writer = new IndentedStringWriter("\t");
         writer.writeLine(`import DateTime from "@web-atoms/date-time/dist/DateTime";
             import type IClrEntity from "@web-atoms/entity/dist/models/IClrEntity";

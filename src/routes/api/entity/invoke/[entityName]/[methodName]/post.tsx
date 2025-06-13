@@ -1,18 +1,18 @@
 import Inject from "@entity-access/entity-access/dist/di/di.js";
 import Page from "../../../../../../Page.js";
 import { Prepare } from "../../../../../../decorators/Prepare.js";
-import EntityContext from "@entity-access/entity-access/dist/model/EntityContext.js";
 import SchemaRegistry from "@entity-access/entity-access/dist/decorators/SchemaRegistry.js";
 import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAccessError.js";
 import ExternalInvoke from "../../../../../../decorators/ExternalInvoke.js";
 import { Route } from "../../../../../../core/Route.js";
 import Content from "../../../../../../Content.js";
 import DbJsonReadable from "../../../../../../services/DbJsonService.js";
+import AppDbContext from "../../../../../../core/AppDbContext.js";
 
 export default class extends Page {
 
     @Inject
-    private db: EntityContext;
+    db: AppDbContext;
 
     @Route
     entityName: string;

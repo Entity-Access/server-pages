@@ -1,11 +1,11 @@
 /* eslint-disable no-console */
 import Inject from "@entity-access/entity-access/dist/di/di.js";
-import EntityContext from "@entity-access/entity-access/dist/model/EntityContext.js";
 import SchemaRegistry from "@entity-access/entity-access/dist/decorators/SchemaRegistry.js";
 import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAccessError.js";
 import Page, { IRouteCheck } from "../../../Page.js";
 import { Prepare } from "../../../decorators/Prepare.js";
 import JsonService from "../../../services/DbJsonService.js";
+import AppDbContext from "../../../core/AppDbContext.js";
 
 const added = Symbol("added");
 
@@ -18,7 +18,7 @@ export default class extends Page {
     }
 
     @Inject
-    private db: EntityContext;
+    private db: AppDbContext;
 
     async run() {
 

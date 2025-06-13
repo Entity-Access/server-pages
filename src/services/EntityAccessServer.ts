@@ -1,15 +1,14 @@
 /* eslint-disable no-console */
 import SchemaRegistry from "@entity-access/entity-access/dist/decorators/SchemaRegistry.js";
-import EntityContext from "@entity-access/entity-access/dist/model/EntityContext.js";
 import { StringHelper } from "./StringHelper.js";
 import ExternalQuery from "../decorators/ExternalQuery.js";
 import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAccessError.js";
 import { FilteredExpression } from "@entity-access/entity-access/dist/model/events/FilteredExpression.js";
 import type { IEntityQuery, IOrderedEntityQuery } from "@entity-access/entity-access/dist/model/IFilterWithParameter.js";
-import { SessionUser } from "../core/SessionUser.js";
 import DbJsonService from "./DbJsonService.js";
 import { ServiceProvider } from "@entity-access/entity-access/dist/di/di.js";
 import SessionSecurity from "./SessionSecurity.js";
+import AppDbContext from "../core/AppDbContext.js";
 
 export type IQueryMethod = [string, string, ... any[]];
 
@@ -58,7 +57,7 @@ const allowedMethods = {
 export default class EntityAccessServer {
 
     public static async query(
-        db: EntityContext,
+        db: AppDbContext,
         options: IEntityQueryOptions) {
 
         db.verifyFilters = true;
