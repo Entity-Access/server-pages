@@ -10,7 +10,7 @@ import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAc
 
 export const prepareSymbol = Symbol("Parse");
 
-const fileSize = 16*1024*1024;
+const fileSize = 50*1024*1024;
 
 export interface IFormData {
     fields: { [key: string]: string};
