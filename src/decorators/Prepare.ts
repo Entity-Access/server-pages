@@ -10,7 +10,7 @@ import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAc
 
 export const prepareSymbol = Symbol("Parse");
 
-const fileSize = 50*1024*1024;
+const fileSize = 16*1024*1024;
 
 export interface IFormData {
     fields: { [key: string]: string};
@@ -133,6 +133,8 @@ const parseForm = (page?): any => {
     return (async () => {
         const req = page.request;
 
+        const pageMaxSize = page.maxUploadSize ?? fileSize;
+
         let tempFolder: TempFolder;
         const result: IFormData = {
             fields: {},
@@ -144,7 +146,7 @@ const parseForm = (page?): any => {
                 headers: req.headers,
                 defParamCharset: "utf-8",
                 limits: {
-                    fileSize
+                    fileSize: pageMaxSize
                 }
             });
             const tasks = [];

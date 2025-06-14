@@ -50,6 +50,8 @@ export default abstract class Page<TInput = any, TQuery = any> {
 
     route: {[key: string]: string};
 
+    maxUploadSize = void 0 as number;
+
     get query(): TQuery {
         return this.request?.query as any;
     }
