@@ -26,9 +26,9 @@ export default class TempFolder implements Disposable {
 
     public readonly folder: string;
 
-    constructor() {
+    constructor(suffix = "") {
         for(;;) {
-            let folder = join(tmpFolder, `tf-${id++}`);
+            let folder = join(tmpFolder, suffix ? `tf-${suffix}-${id++}` : `tf-${id++}`);
             if (existsSync(folder)) {
                 continue;
             }
