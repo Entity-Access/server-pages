@@ -26,9 +26,9 @@ export default class TempFolder implements Disposable {
 
     public readonly folder: string;
 
-    constructor(suffix = "") {
+    constructor(suffix = "", root = tmpFolder) {
         for(;;) {
-            let folder = join(tmpFolder, suffix ? `tf-${suffix}-${id++}` : `tf-${id++}`);
+            let folder = join(root, suffix ? `tf-${suffix}-${id++}` : `tf-${id++}`);
             if (existsSync(folder)) {
                 continue;
             }
@@ -74,7 +74,7 @@ export default class TempFolder implements Disposable {
 
     [Symbol.dispose]() {
         try {
-            rmSync(this.folder, { recursive: true, force: true, maxRetries: 10, retryDelay: 10000});
+            fsp.rm(this.folder, { recursive: true, force: true, maxRetries: 10, retryDelay: 10000}).catch(console.warn);
         } catch (error) {
             console.warn(error);
         }
