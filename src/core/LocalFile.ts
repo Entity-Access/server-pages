@@ -1,8 +1,7 @@
-import { createReadStream, createWriteStream, existsSync, read, statSync, openSync } from "fs";
-import * as fs from "fs";
+import { createReadStream, createWriteStream, existsSync, statSync } from "fs";
 import { basename  } from "path";
 import mime from "mime-types";
-import internal, { Readable, Stream, Writable } from "stream";
+import internal, { Stream, Writable } from "stream";
 import { appendFile, copyFile, open, readFile, writeFile } from "fs/promises";
 import { pipeline } from "stream/promises";
 
@@ -83,8 +82,12 @@ export class LocalFile implements AsyncDisposable {
         return writeFile(this.path, text);
     }
 
-    public writeAll(buffer: string | Buffer | internal.Readable | Stream) {
-        return writeFile(this.path, buffer);
+    public writeAll(buffer: string | Buffer | internal.Readable) {
+        if (buffer instanceof Buffer || typeof buffer === "string") {
+            return writeFile(this.path, buffer);
+        }
+        const writable = createWriteStream(this.path);
+        return pipeline(buffer, writable, { end: true });
     }
 
     public async *lines() {
