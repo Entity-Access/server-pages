@@ -156,7 +156,7 @@ const extendRequest = (A: typeof IncomingMessage | typeof Http2ServerRequest) =>
             }
             get URL(): URL {
                 const r = this as any as (Http2ServerRequest  | IncomingMessage);
-                const url = new URL(r.url.replace(/\/{2,100}/g, "/"), `https://${this.host}`);
+                const url = new URL(r.url.replace(/\/{2,100}/g, "/"), `https://${this.host || "0.0.0.0"}`);
                 return CacheProperty.value(this, "URL", url);
             }
             get remoteIPAddress(): string {
