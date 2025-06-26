@@ -51,7 +51,7 @@ export default class extends Page {
             args = a;
         }  else {
             key = this.body?.key ?? this.query.key;
-            args = JSON.parse((this.body?.args ?? this.query.args) || "[]");
+            args = this.body?.args ?? JSON.parse(this.query.args || "[]");
         }
 
         let entity;
