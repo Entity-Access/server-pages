@@ -28,6 +28,7 @@ import TimeoutTracker from "./core/TimeoutTracker.js";
 import { Http2SecureServer } from "node:http2";
 import { randomUUID } from "node:crypto";
 import HttpIPCProxyReceiver from "./core/HttpIPCProxyReceiver.js";
+import { Socket } from "node:net";
 
 export const wsData = Symbol("wsData");
 
@@ -126,7 +127,7 @@ export default class ServerPages {
 
         let listeningServer = null as http.Server | http2.Http2Server | http2.Http2SecureServer | Http2IPCProxyReceiver;
 
-        let http1Server = null as http.Server;
+        // let http1Server = null as http.Server;
 
         let acme = ServiceProvider.resolve(this, SecureContextService);
         acme.options = acmeOptions ?? {};
@@ -195,11 +196,25 @@ export default class ServerPages {
                     httpServer.on("tlsClientError",() => {
                         // ignore
                     });
+
+                    httpServer.on("clientError", (err, socket: Socket) => {
+                        if (err.code === "ERR_HTTP_REQUEST_TIMEOUT") {
+                            try {
+                                if (!socket.destroyed) {
+                                    socket.destroy(err);
+                                }
+                            } catch {
+                                // do nothing...
+                            }
+                            return;
+                        }
+                    });
+
                     listeningServer = new Http2IPCProxyReceiver(httpServer as Http2SecureServer);
 
                     httpServer.listen(0, () => console.log(`Http2IPC Started`));
 
-                    http1Server = http.createServer((req, res) => isNotConnect(req) && this.process(req, res, trustProxy));
+                    // http1Server = http.createServer((req, res) => isNotConnect(req) && this.process(req, res, trustProxy));
 
                     break;
                 default:
@@ -209,8 +224,8 @@ export default class ServerPages {
             httpServer.on("error", console.error);
             httpServer.on("sessionError" ,console.error);
 
-            http1Server?.on("error", console.error);
-            http1Server?.on("sessionError" ,console.error);
+            // http1Server?.on("error", console.error);
+            // http1Server?.on("sessionError" ,console.error);
 
             await new Promise<void>((resolve, reject) => {
 
@@ -229,11 +244,11 @@ export default class ServerPages {
                 }
             });
 
-            if (http1Server) {
-                await new Promise<void>((resolve) => {
-                    http1Server.listen(http1Port, resolve);
-                });
-            }
+            // if (http1Server) {
+            //     await new Promise<void>((resolve) => {
+            //         http1Server.listen(http1Port, resolve);
+            //     });
+            // }
 
             if (createSocketService) {
                 const socketServer = new Server(httpServer, {
