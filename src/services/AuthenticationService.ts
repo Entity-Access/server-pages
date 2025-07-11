@@ -30,7 +30,7 @@ export default class AuthenticationService {
         const scope = ServiceProvider.from(user);
         const tokenService = scope.resolve(TokenService);
         const cookie = await tokenService.getAuthToken(authCookie);
-        const maxAge = ((authCookie.expiry ?  DateTime.from(authCookie.expiry) : null) ?? DateTime.now.addDays(30)).diff(DateTime.now).totalMilliseconds;
+        const maxAge = ((authCookie?.expiry ?  DateTime.from(authCookie.expiry) : null) ?? DateTime.now.addDays(30)).diff(DateTime.now).totalMilliseconds;
         const name = cookie.cookieName;
         const value = cookie.cookie;
         const options = {
