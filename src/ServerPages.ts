@@ -25,10 +25,12 @@ import { Readable } from "node:stream";
 import SecureContextService from "./ssl/SecureContextService.js";
 import AuthenticationService from "./services/AuthenticationService.js";
 import TimeoutTracker from "./core/TimeoutTracker.js";
-import { Http2SecureServer } from "node:http2";
+import { Http2SecureServer, Http2ServerRequest, Http2ServerResponse } from "node:http2";
 import { randomUUID } from "node:crypto";
 import HttpIPCProxyReceiver from "./core/HttpIPCProxyReceiver.js";
 import { Socket } from "node:net";
+import { IncomingMessage, OutgoingMessage, ServerResponse } from "node:http";
+import sleep from "./sleep.js";
 
 export const wsData = Symbol("wsData");
 
@@ -343,18 +345,24 @@ export default class ServerPages {
         }
     }
 
-    protected async process(req: any, resp1: any, trustProxy: boolean) {
+    protected async process(rIn: IncomingMessage | Http2ServerRequest, resp1: ServerResponse | Http2ServerResponse, trustProxy: boolean) {
 
         // const { method, url } = req;
 
+        const req = Wrapped.request(rIn);
+        const resp = Wrapped.response(req, resp1) as WrappedResponse;
+        
+        const url = rIn.url;
+        if (/\%00/.test(url)) {
+            await sleep(5000);
+            resp.sendRedirect("https://0.0.0.0", 419);
+            return;
+        }
 
-        req = Wrapped.request(req);
-
+        
         req.disposables.push(TimeoutTracker.create(() => `Request: ${req.url} took longer than 30 seconds`));
 
         req.trustProxy = trustProxy;
-
-        const resp = Wrapped.response(req, resp1) as WrappedResponse;
 
         // console.log(JSON.stringify({ method, url}));
 

@@ -33,6 +33,8 @@ export interface IWrappedRequest {
 
     response?: WrappedResponse;
 
+    trustProxy?: boolean;
+
     /** host name without port */
     get hostName(): string;
 
@@ -112,6 +114,8 @@ const extendRequest = (A: typeof IncomingMessage | typeof Http2ServerRequest) =>
 
             scope: ServiceProvider;
             disposables: Disposable[];
+
+            trustProxy: boolean;
 
             signal?: AbortSignal;
 
@@ -487,7 +491,7 @@ const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) =
 
 
 export const Wrapped = {
-    request: (req: UnwrappedRequest) => {
+    request: (req: UnwrappedRequest): WrappedRequest => {
         const { constructor } = Object.getPrototypeOf(req);
         const { prototype } = extendRequest(constructor);
         Object.setPrototypeOf(req, prototype);
@@ -499,16 +503,16 @@ export const Wrapped = {
             ? void 0
             : ac.abort("aborted")
         );
-        return req;
+        return req as any;
     },
 
-    response: (req: WrappedRequest, res: UnwrappedResponse) => {
+    response: (req: WrappedRequest, res: UnwrappedResponse): WrappedResponse => {
         const { constructor } = Object.getPrototypeOf(res);
         const { prototype } = extendResponse(constructor);
         Object.setPrototypeOf(res, prototype);
         const wr = res as WrappedResponse;
         wr.request = req;
         req.response = wr;
-        return res;
+        return res as any;
     }
 }
