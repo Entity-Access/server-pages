@@ -2,6 +2,7 @@
 import cluster, { Worker } from "cluster";
 import { Invokable } from "./Invokable.js";
 import { availableParallelism } from "os";
+import sleep from "./sleep.js";
 
 export class RecycledWorker<T = any> {
 
@@ -56,6 +57,10 @@ const numCPUs = availableParallelism();
 
 export default abstract class ClusterInstance<T> extends Invokable {
 
+    public get maxWorkerCount() {
+        return numCPUs;
+    }
+
     protected isPrimary: boolean;
 
     protected readonly workers: RecycledWorker[] = [];
@@ -74,12 +79,6 @@ export default abstract class ClusterInstance<T> extends Invokable {
     protected abstract runPrimary(arg: T): Promise<void>;
     protected abstract runWorker(arg: T): Promise<void>;
 
-    protected startWorkers(env?, total = numCPUs) {        
-        for (let index = 0; index < total; index++) {
-            this.fork(env);
-        }
-    }
-
     protected fork(env?) {
         const worker = new RecycledWorker(env);
         this.install(worker);
@@ -89,7 +88,34 @@ export default abstract class ClusterInstance<T> extends Invokable {
 
     protected async setupPrimary(arg: T) {
         try {
+
             await this.runPrimary(arg);
+
+            console.log(`Starting Clusters`);
+
+            while (true) {
+
+                const workers = this.workers;
+                workers.length = 0;
+
+                // Start workers and listen for messages containing notifyRequest
+                const n = this.maxWorkerCount;
+                for (let i = 0; i < n; i++) {
+                    const worker = this.fork();
+                    workers.push(worker);
+                }
+
+                // sleep for 60 days
+                for (let index = 0; index < 60; index++) {
+                    await sleep(24*60*60*1000);
+                }
+
+                for (const worker of workers) {
+                    worker.destroy();
+                }
+
+            }
+
         } catch (error) {
             console.error(error);
         }
