@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import cluster, { Worker } from "cluster";
-import { IProcessLike, Invokable } from "./Invokable.js";
+import { Invokable } from "./Invokable.js";
 
 export class RecycledWorker<T = any> {
 
@@ -43,8 +43,9 @@ export class RecycledWorker<T = any> {
 
     public destroy() {
         this.destroyed = true;
+        const { currentWorker } = this;
         this.currentWorker = null;
-        this.currentWorker.destroy();
+        currentWorker?.destroy();
     }
 
 }
