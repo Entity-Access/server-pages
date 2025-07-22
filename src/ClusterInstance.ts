@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import cluster, { Worker } from "cluster";
 import { Invokable } from "./Invokable.js";
+import { availableParallelism } from "os";
 
 export class RecycledWorker<T = any> {
 
@@ -50,6 +51,9 @@ export class RecycledWorker<T = any> {
 
 }
 
+const numCPUs = availableParallelism();
+
+
 export default abstract class ClusterInstance<T> extends Invokable {
 
     protected isPrimary: boolean;
@@ -69,6 +73,12 @@ export default abstract class ClusterInstance<T> extends Invokable {
 
     protected abstract runPrimary(arg: T): Promise<void>;
     protected abstract runWorker(arg: T): Promise<void>;
+
+    protected startWorkers(env?, total = numCPUs) {        
+        for (let index = 0; index < total; index++) {
+            this.fork(env);
+        }
+    }
 
     protected fork(env?) {
         const worker = new RecycledWorker(env);
