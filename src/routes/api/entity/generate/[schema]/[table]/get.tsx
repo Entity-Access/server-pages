@@ -65,40 +65,44 @@ export default class extends Page {
     async run() {
         this.sessionUser.ensureIsAdmin();
 
-        const columns = await this.db.connection.getSchema(this.schema, this.table);
+        // this.db.connection.automaticMigrations(this.db).getSchema()
 
-        for (const column of columns) {
-            column.name = column.name.substring(0, 1).toLowerCase() + column.name.substring(1);
-            if (!column.nullable) {
-                delete column.nullable;
-            } else {
-                column.nullable = true;
-            }
-            if (!column.length) {
-                delete column.length;
-            }
-            if (column.length <=0 ) {
-                delete column.length;
-            }
-            if (!column.key) {
-                delete column.key;
-            } else {
-                column.key = true;
-            }
-            if (!column.default) {
-                delete column.default;
-            }
-            if (!column.computed) {
-                delete column.computed;
-            } else {
-                column.computed = `() => 1`
-            }
-        }
+        // const columns = await this.db.connection.automaticMigrations().getSchema(this.schema, this.table);
 
-        return this.content({
-            body: columns.map((x)=> `\t@Column(${ encode(x) })\n\t${x.name}:${typeFor(x.dataType as ISqlType)};\n\n`).join("\n\n"),
-            contentType: "text/plain"
-        });
+        // for (const column of columns) {
+        //     column.name = column.name.substring(0, 1).toLowerCase() + column.name.substring(1);
+        //     if (!column.nullable) {
+        //         delete column.nullable;
+        //     } else {
+        //         column.nullable = true;
+        //     }
+        //     if (!column.length) {
+        //         delete column.length;
+        //     }
+        //     if (column.length <=0 ) {
+        //         delete column.length;
+        //     }
+        //     if (!column.key) {
+        //         delete column.key;
+        //     } else {
+        //         column.key = true;
+        //     }
+        //     if (!column.default) {
+        //         delete column.default;
+        //     }
+        //     if (!column.computed) {
+        //         delete column.computed;
+        //     } else {
+        //         column.computed = `() => 1`
+        //     }
+        // }
+
+        // return this.content({
+        //     body: columns.map((x)=> `\t@Column(${ encode(x) })\n\t${x.name}:${typeFor(x.dataType as ISqlType)};\n\n`).join("\n\n"),
+        //     contentType: "text/plain"
+        // });
+
+        return this.notFound();
     }
 
 }
