@@ -68,7 +68,7 @@ export default class TempFolder implements Disposable {
             fileName = fileName.substring(0, qIndex);
         }
         const tf = await this.get(fileName, contentType);
-        await fsp.writeFile(tf.path, content);
+        await fsp.writeFile(tf.path, content as any);
         return tf;
     }
 
