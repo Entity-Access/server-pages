@@ -118,7 +118,7 @@ export default class Content {
         } else if (text instanceof Buffer) {
             reader = Readable.from([ text]);
         } else {
-            reader = Utf8Readable.from(text);
+            reader = Utf8Readable.from(text as Iterable<string>);
         }
 
         return new Content({
