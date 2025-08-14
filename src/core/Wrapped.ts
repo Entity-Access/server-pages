@@ -243,7 +243,7 @@ const extendRequest = (A: typeof IncomingMessage | typeof Http2ServerRequest) =>
     return c;
 };
 
-const extendResponse = (A: typeof ServerResponse | typeof Http2ServerResponse) => {
+const extendResponse = (A: (new() => ServerResponse) | (new () => Http2ServerResponse)) => {
     let c = A[extendedSymbol];
     if (!c) {
         c = class WrappedResponse extends A implements IWrappedResponse {

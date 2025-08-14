@@ -21,7 +21,7 @@ const readLine = (s: Socket) => {
                 target.once("readable", reader);
                 return;
             }
-            if (n.at(0) === 10) {
+            if (n[0] === 10) {
                 resolve(buffer.toString("utf-8"));
                 return;
             }
