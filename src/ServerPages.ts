@@ -185,8 +185,8 @@ export default class ServerPages {
                     httpServer = http2.createSecureServer({
                         SNICallback: null,
                         allowHTTP1: true,
-                        keepAlive: true,
-                        keepAliveInitialDelay: 10000,
+                        // keepAlive: true,
+                        // keepAliveInitialDelay: 10000,
                         settings: {
                             enableConnectProtocol: createSocketService
                         }
