@@ -343,10 +343,8 @@ export default class ServerPages {
 
     protected async process(rIn: IncomingMessage | Http2ServerRequest, resp1: ServerResponse | Http2ServerResponse, trustProxy: boolean) {
 
-        // const { method, url } = req;
-
-        const req = Wrapped.request(rIn);
-        await using resp = Wrapped.response(req, resp1) as WrappedResponse;
+        using req = Wrapped.request(rIn);
+        using resp = Wrapped.response(req, resp1) as WrappedResponse;
         
         const url = rIn.url;
         if (/\%00/.test(url)) {
@@ -369,106 +367,98 @@ export default class ServerPages {
         }
         (req as any).processed = true;
 
+        // defaulting to no cache
+        // static content delivery should override this
+        resp.setHeader("cache-control", "no-cache");
+
+        using scope = ServiceProvider.createScope(this);
+        let sent = false;
+        const user = scope.resolve(SessionUser);
+        user.resp = resp;
+        user.ipAddress = req.remoteIPAddress;
+
+        const authService = scope.resolve(AuthenticationService);
+
+        user.authorize = () => authService.authorize(user, { ip: req.remoteIPAddress, cookies: req.cookies });
+        const acceptJson = req.accepts("json");
+
+        const hostName = req.hostName;
+
+
         try {
 
-            // defaulting to no cache
-            // static content delivery should override this
-            resp.setHeader("cache-control", "no-cache");
+            const root = this.getRouteTreeForHost
+                ? (await this.getRouteTreeForHost(hostName)) ?? this.root
+                : this.root;
 
-            using scope = ServiceProvider.createScope(this);
-            let sent = false;
-            const user = scope.resolve(SessionUser);
-            user.resp = resp;
-            user.ipAddress = req.remoteIPAddress;
+            
+            const path = UrlParser.parse(req.path);
+            const method = req.method;
+            const route = {};
+            const { pageClass, childPath } = (await root.getRoute({
+                scope,
+                method,
+                current: "",
+                path,
+                route,
+                request: req
+            }, this.rewriteFileRoute)) ?? {
+                pageClass: Page,
+                childPath: path
+            };
+            const page = scope.create(pageClass as any) as Page;
+            page.childPath = childPath;
+            page.request = req;
+            page.response = resp;
+            page.route = route;
+            page.signal = req.signal;
+            scope.add(Page, page);
+            const content = await Executor.run(page);
+            resp.setHeader("cache-control", page.cacheControl);
+            resp.removeHeader("etag");
+            sent = true;
+            await content.send(resp, user);
+        } catch (error) {
+            if(/(^Abort)|(ERR_STREAM_PREMATURE_CLOSE)/.test(error?.stack)) {
+                // we will not log this error
+                return;
+            }
+            if (this.serverID) {
+                console.error(`Failed: ${this.serverID}:  ${req.URL}`);
+            } else {
+                console.error(`Failed: ${req.URL}`);
+            }
+            if (!sent) {
+                try {
 
-            const authService = scope.resolve(AuthenticationService);
+                    if (acceptJson || error.errorModel) {
 
-            user.authorize = () => authService.authorize(user, { ip: req.remoteIPAddress, cookies: req.cookies });
-            const acceptJson = req.accepts("json");
+                        await Content.nativeJson({
+                            details: error.stack ?? error,
+                            ... error.errorModel ?? {},
+                            message: error.message ?? error,
+                        }, { status: error.errorModel?.status ?? 500}).send(resp);
 
-            const hostName = req.hostName;
-
-
-            try {
-
-                const root = this.getRouteTreeForHost
-                    ? (await this.getRouteTreeForHost(hostName)) ?? this.root
-                    : this.root;
-
-                
-                const path = UrlParser.parse(req.path);
-                const method = req.method;
-                const route = {};
-                const { pageClass, childPath } = (await root.getRoute({
-                    scope,
-                    method,
-                    current: "",
-                    path,
-                    route,
-                    request: req
-                }, this.rewriteFileRoute)) ?? {
-                    pageClass: Page,
-                    childPath: path
-                };
-                const page = scope.create(pageClass as any) as Page;
-                page.childPath = childPath;
-                page.request = req;
-                page.response = resp;
-                page.route = route;
-                page.signal = req.signal;
-                scope.add(Page, page);
-                const content = await Executor.run(page);
-                resp.setHeader("cache-control", page.cacheControl);
-                resp.removeHeader("etag");
-                sent = true;
-                await content.send(resp, user);
-            } catch (error) {
-                if(/(^Abort)|(ERR_STREAM_PREMATURE_CLOSE)/.test(error?.stack)) {
-                    // we will not log this error
-                    return;
-                }
-                if (this.serverID) {
-                    console.error(`Failed: ${this.serverID}:  ${req.URL}`);
-                } else {
-                    console.error(`Failed: ${req.URL}`);
-                }
-                if (!sent) {
-                    try {
-
-                        if (acceptJson || error.errorModel) {
-
-                            await Content.nativeJson({
-                                details: error.stack ?? error,
-                                ... error.errorModel ?? {},
-                                message: error.message ?? error,
-                            }, { status: error.errorModel?.status ?? 500}).send(resp);
-
-                            return;
-                        }
-
-                        const content = Content.html(`<!DOCTYPE html>\n<html><body><pre>Server Error for ${req.url}\r\n${error?.stack ?? error}</pre></body></html>`,
-                            { status: 500});
-                        await content.send(resp);
-                    } catch (e1) {
-                        e1 = e1.stack ?? e1.toString();
-                        console.error(e1);
-                        try {
-                            await resp.sendReader(500, {}, Readable.from([ e1]), true);
-                        } catch {
-                            // do nothing
-                        }
+                        return;
                     }
-                    return;
+
+                    const content = Content.html(`<!DOCTYPE html>\n<html><body><pre>Server Error for ${req.url}\r\n${error?.stack ?? error}</pre></body></html>`,
+                        { status: 500});
+                    await content.send(resp);
+                } catch (e1) {
+                    e1 = e1.stack ?? e1.toString();
+                    console.error(e1);
+                    try {
+                        await resp.sendReader(500, {}, Readable.from([ e1]), true);
+                    } catch {
+                        // do nothing
+                    }
                 }
-                console.error(error.stack ?? error.toString());
+                return;
             }
-        } finally {
-            if(Array.isArray(req.disposables)) {
-                for (const iterator of req.disposables) {
-                    iterator[Symbol.dispose]?.();
-                }
-            }
+            console.error(error.stack ?? error.toString());
         }
+
     }
 
 }

@@ -23,7 +23,7 @@ export interface IFormData {
 
 const extendedSymbol = Symbol("extended");
 
-export interface IWrappedRequest {
+export interface IWrappedRequest extends Disposable {
 
     signal?: AbortSignal;
 
@@ -68,7 +68,7 @@ export interface IWrappedRequest {
 }
 
 
-export interface IWrappedResponse extends AsyncDisposable {
+export interface IWrappedResponse extends Disposable {
 
     request?: WrappedRequest;
 
@@ -169,6 +169,20 @@ const extendRequest = (A: typeof IncomingMessage | typeof Http2ServerRequest) =>
                 return CacheProperty.value(this, "remoteIPAddress", ip);
             }
 
+            [Symbol.dispose]() {
+                const { disposables } = this;
+                if (!disposables) {
+                    return;
+                }
+                this.disposables = null;
+                if (!Array.isArray(disposables)) {
+                    return;
+                }
+                for (const disposable of disposables) {
+                    disposable?.[Symbol.dispose]();
+                }
+            }
+
             accepts(... types: string[]): any {
                 const h = this as any as IncomingMessage;
                 const accepts = (h.headers.accept ?? "").split(";");
@@ -250,8 +264,12 @@ const extendResponse = (A: (new() => ServerResponse) | (new () => Http2ServerRes
 
             compress?: "gzip" | "deflate" | null;
 
-            [Symbol.asyncDispose](this: UnwrappedResponse) {
-                return (this as any).disposed ??= new Promise<void>((resolve) => this.end(resolve));
+            [Symbol.dispose](this: UnwrappedResponse) {
+                if ((this as any as WrappedResponse).disposed) {
+                    return true;
+                }
+                (this as any as WrappedResponse).disposed = true;
+                return this.end();
             }
 
             async sendReader(this: UnwrappedResponse, status: number, headers: OutgoingHttpHeaders, readable: Readable, compressible: boolean = true) {
