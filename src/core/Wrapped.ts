@@ -269,7 +269,8 @@ const extendResponse = (A: (new() => ServerResponse) | (new () => Http2ServerRes
                     }
                 }
                 this.writeHead(status, headers);
-                return pipeline(readable, this, { end: true, signal });
+                await pipeline(readable, this, { end: true, signal });
+                return (this as any).asyncEnd();
                 // return new Promise<void>((resolve, reject) => {
                 //     readable.pipe(this, { end: true })
                 //         .on("finish", resolve)
@@ -440,8 +441,8 @@ const extendResponse = (A: (new() => ServerResponse) | (new () => Http2ServerRes
                         headers["content-length"] = size;
                         this.writeHead(200, headers);
                         sent = true;
-                        return await lf.writeTo(this);
-        
+                        await lf.writeTo(this);
+                        return (this as any).asyncEnd();
                         // return (this as any).asyncEnd();
                     }
         
@@ -474,7 +475,8 @@ const extendResponse = (A: (new() => ServerResponse) | (new () => Http2ServerRes
                     headers["content-length"] = end - start + 1;
                     this.writeHead(206, headers);
                     sent = true;
-                    return await lf.writeTo(this, start, end);
+                    await lf.writeTo(this, start, end);
+                    return (this as any).asyncEnd();
                 } catch (error) {
                     console.error(error);
                     if (sent) {
