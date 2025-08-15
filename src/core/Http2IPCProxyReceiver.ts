@@ -49,6 +49,8 @@ export default class Http2IPCProxyReceiver {
     onConnection = async (socket: Socket) => {
         try {
 
+            socket.setKeepAlive(false);
+
             socket.on("error", (error) => {
                 console.error(error);
                 endSocket(socket);
