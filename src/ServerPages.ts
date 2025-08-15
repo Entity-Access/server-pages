@@ -199,18 +199,19 @@ export default class ServerPages {
                         // ignore
                     });
 
-                    // httpServer.on("clientError", (err, socket: Socket) => {
-                    //     if (err.code === "ERR_HTTP_REQUEST_TIMEOUT") {
-                    //         try {
-                    //             if (!socket.destroyed) {
-                    //                 socket.destroy(err);
-                    //             }
-                    //         } catch {
-                    //             // do nothing...
-                    //         }
-                    //         return;
-                    //     }
-                    // });
+                    httpServer.on("clientError", (err, socket: Socket) => {
+                        console.error(err);
+                        // if (err.code === "ERR_HTTP_REQUEST_TIMEOUT") {
+                        //     try {
+                        //         if (!socket.destroyed) {
+                        //             socket.destroy(err);
+                        //         }
+                        //     } catch {
+                        //         // do nothing...
+                        //     }
+                        //     return;
+                        // }
+                    });
 
                     listeningServer = new Http2IPCProxyReceiver(httpServer as Http2SecureServer);
 
