@@ -139,7 +139,7 @@ export class StatusResult extends Content {
 
     send(res: WrappedResponse, user?: SessionUser): Promise<any> {
         res.writeHead(this.status, this.headers);
-        return res.asyncEnd();
+        return Promise.resolve();
     }
 }
 

@@ -346,7 +346,7 @@ export default class ServerPages {
         // const { method, url } = req;
 
         const req = Wrapped.request(rIn);
-        const resp = Wrapped.response(req, resp1) as WrappedResponse;
+        await using resp = Wrapped.response(req, resp1) as WrappedResponse;
         
         const url = rIn.url;
         if (/\%00/.test(url)) {

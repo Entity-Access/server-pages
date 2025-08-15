@@ -68,14 +68,11 @@ export interface IWrappedRequest {
 }
 
 
-export interface IWrappedResponse {
+export interface IWrappedResponse extends AsyncDisposable {
 
     request?: WrappedRequest;
 
     compress?: "gzip" | "deflate" | null;
-
-    asyncEnd();
-
 
     sendReader(status: number, headers: OutgoingHttpHeaders, readable: Readable, compressible: boolean): Promise<void>;
 
@@ -249,11 +246,12 @@ const extendResponse = (A: (new() => ServerResponse) | (new () => Http2ServerRes
         c = class WrappedResponse extends A implements IWrappedResponse {
 
             statusCode: number;
+            disposed = null;
 
             compress?: "gzip" | "deflate" | null;
 
-            asyncEnd(this: UnwrappedResponse) {
-                return new Promise<void>((resolve) => this.end(resolve));
+            [Symbol.asyncDispose](this: UnwrappedResponse) {
+                return (this as any).disposed ??= new Promise<void>((resolve) => this.end(resolve));
             }
 
             async sendReader(this: UnwrappedResponse, status: number, headers: OutgoingHttpHeaders, readable: Readable, compressible: boolean = true) {
@@ -270,7 +268,7 @@ const extendResponse = (A: (new() => ServerResponse) | (new () => Http2ServerRes
                 }
                 this.writeHead(status, headers);
                 await pipeline(readable, this, { end: true, signal });
-                return (this as any).asyncEnd();
+                return;
                 // return new Promise<void>((resolve, reject) => {
                 //     readable.pipe(this, { end: true })
                 //         .on("finish", resolve)
@@ -295,116 +293,10 @@ const extendResponse = (A: (new() => ServerResponse) | (new () => Http2ServerRes
                 this.setHeader("set-cookie",nk);
             }
 
-            // setHeader(this: UnwrappedResponse, name: string, value: string) {
-            //     const headers = this.getHeaders();
-            //     headers[name] = value;
-            // }
-
-            // async sendStatus(this: UnwrappedResponse, status?: number, headers?: OutgoingHttpHeaders): Promise<void> {
-            //     const wrapped = (this as any as WrappedResponse);
-            //     this.statusCode = status;
-            //     let sent = false;
-            //     try {
-            //         this.writeHead(this.statusCode, headers);
-            //         sent = true;
-            //         return (wrapped as any).asyncEnd();
-            //     } catch (error) {
-            //         console.error(error);
-            //         if (sent) {
-            //             return (this as any).asyncEnd();
-            //         }
-            //         return (this as any).send(error.stack ?? error.toString(), 500);
-            //     }
-            // }
-        
-            // async send(this: UnwrappedResponse, data: Buffer | string, status: number = this.statusCode || 200) {
-            //     let sent = false;
-            //     const wrapped = (this as any as WrappedResponse);
-            //     try {
-            //         wrapped.statusCode = status;
-            //         const headers = this.getHeaders();
-            //         headers["content-type"] ??= "text/html";
-            //         if (typeof data === "string") {
-            //             data = Buffer.from(data, "utf-8");
-            //             let ct = headers["content-type"];
-            //             if (Array.isArray(ct)) {
-            //                 ct = ct.join(";");
-            //             } else {
-            //                 ct = ct.toString();
-            //             }
-            //             const index = ct.indexOf(";");
-            //             if (index !== -1) {
-            //                 ct = ct.substring(0, index);
-            //             }
-            //             ct += "; charset=utf-8";
-            //         }
-            //         // compress if required...
-            //         if (data === null || data === void 0) {
-            //             throw new Error("Data cannot be null or undefined.");
-            //         }
-            //         data = wrapped.compressData(data, headers);
-            //         headers["content-length"] = data.length.toString();
-            //         this.writeHead(status, headers);
-            //         sent = true;
-            //         await StreamHelper.write(this, data);
-            //         return (this as any).asyncEnd();
-            //     } catch (error) {
-            //         console.error(error);
-            //         if (sent) {
-            //             return (this as any).asyncEnd();
-            //         }
-            //         if (this.statusCode === 500) {
-            //             // recursive...
-            //             try {
-            //                 await StreamHelper.write(this, Buffer.from("", "utf-8"))
-            //                 return (this as any).asyncEnd();
-            //             } catch (er) {
-            //                 console.error(er);
-            //                 return (this as any).asyncEnd();
-            //             }
-            //         }
-            //         return (this as any).send(error.stack ?? error.toString(), 500);
-            //     }
-            // }
-
-            // private compressData(data: string | Buffer, headers: OutgoingHttpHeaders) {
-            //     const { compress } = this;
-            //     if (!compress) {
-            //         return data;
-            //     }
-            //     let { "accept-encoding": accept } = (this as IWrappedResponse).request?.headers;
-            //     if (!accept) {
-            //         return data;
-            //     }
-            //     if (typeof accept === "string") {
-            //         accept = accept.split(",");
-            //     } else {
-            //         if (!Array.isArray(accept)) {
-            //             return data;
-            //         }
-            //         accept = accept.flatMap((x) => x.split(","));
-            //     }
-            //     if (!accept.includes(compress)) {
-            //         return data;
-            //     }
-            //     switch (compress) {
-            //         case "deflate":
-            //             data = Compression.deflateSync(data);
-            //             headers["content-encoding"] = compress;
-            //             break;
-            //         case "gzip":
-            //             data = Compression.gzipSync(data);
-            //             headers["content-encoding"] = compress;
-            //             break;
-            //     }                
-            //     return data;
-            // }
-
             async sendRedirect(this: UnwrappedResponse, location: string, status = 301, headers: OutgoingHttpHeaders = {}) {
                 this.statusCode = status;
                 headers.location = location;
                 this.writeHead(this.statusCode, headers);
-                return (this as any as IWrappedResponse).asyncEnd();
             }
 
             async sendFile(this: UnwrappedResponse, filePath: string, options?: {
@@ -442,8 +334,7 @@ const extendResponse = (A: (new() => ServerResponse) | (new () => Http2ServerRes
                         this.writeHead(200, headers);
                         sent = true;
                         await lf.writeTo(this);
-                        return (this as any).asyncEnd();
-                        // return (this as any).asyncEnd();
+                        return;
                     }
         
                     /** Extracting Start and End value from Range Header */
@@ -466,7 +357,7 @@ const extendResponse = (A: (new() => ServerResponse) | (new () => Http2ServerRes
                         headers["content-range"] = `bytes */${size}`;
                         this.writeHead(416, headers);
                         sent = true;
-                        return (this as any).asyncEnd();
+                        return;
                     }
         
                     /** Sending Partial Content With HTTP Code 206 */
@@ -476,11 +367,11 @@ const extendResponse = (A: (new() => ServerResponse) | (new () => Http2ServerRes
                     this.writeHead(206, headers);
                     sent = true;
                     await lf.writeTo(this, start, end);
-                    return (this as any).asyncEnd();
+                    return;
                 } catch (error) {
                     console.error(error);
                     if (sent) {
-                        return (this as any).asyncEnd();
+                        return;
                     }
                     return (this as any).send(error.stack ?? error.toString(), 500);                    
                 }
