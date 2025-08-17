@@ -105,10 +105,7 @@ export default abstract class ClusterInstance<T> extends Invokable {
                     workers.push(worker);
                 }
 
-                // sleep for 60 days
-                for (let index = 0; index < 60; index++) {
-                    await sleep(24*60*60*1000);
-                }
+                await this.keepAlive();
 
                 for (const worker of workers) {
                     worker.destroy();
@@ -119,6 +116,17 @@ export default abstract class ClusterInstance<T> extends Invokable {
         } catch (error) {
             console.error(error);
         }
+    }
+
+    /**
+     * keep worker process alive for 4 hours by default
+     * you can choose your own recycle schedule.
+     *
+     * Recycling process is important to flush out dead connections.
+     */
+    protected async keepAlive() {
+        // sleep for 4 hour
+        await sleep(4 * 60 * 60 * 1000);
     }
 
     protected async setupWorker(arg: T) {
