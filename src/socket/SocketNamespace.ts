@@ -22,6 +22,9 @@ export function Send(target: SocketNamespace, key) {
     const value = function(this: SocketNamespace, room, ... args: any[]) {
         try {
             const socketRoom = target.server.to(room);
+            if (!socketRoom) {
+                console.error(`No room for ${room}`);
+            }
             return socketRoom.emit(key, ... args);
         } catch (error) {
             console.error(error);
