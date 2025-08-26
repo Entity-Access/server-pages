@@ -18,7 +18,7 @@ export function Receive(target, key) {
     };
 }
 
-export function Send(target: typeof SocketNamespace, key) {
+export function Send(target: SocketNamespace, key) {
     const value = function(this: SocketNamespace, room, ... args: any[]) {
         try {
             const socketRoom = this.server.to(room);
