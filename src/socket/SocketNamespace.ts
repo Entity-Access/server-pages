@@ -1,7 +1,6 @@
 /* eslint-disable no-console */
-import { RegisterScoped, RegisterSingleton, RegisterTransient, ServiceProvider, injectServiceKeysSymbol } from "@entity-access/entity-access/dist/di/di.js";
-import { Namespace, Server, Socket } from "socket.io";
-import ServerPages from "../ServerPages.js";
+import { ServiceProvider, injectServiceKeysSymbol } from "@entity-access/entity-access/dist/di/di.js";
+import { Namespace, Socket } from "socket.io";
 import { IClassOf } from "@entity-access/entity-access/dist/decorators/IClassOf.js";
 
 
@@ -21,7 +20,12 @@ export function Receive(target, key) {
 
 export function Send(target: SocketNamespace, key) {
     const value = function(this: SocketNamespace, room, ... args: any[]) {
-        return target.server?.to(room)?.emit(key, ... args);
+        try {
+            const socketRoom = target.server.to(room);
+            return socketRoom.emit(key, ... args);
+        } catch (error) {
+            console.error(error);
+        }
     };
     return {
         value
