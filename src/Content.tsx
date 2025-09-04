@@ -168,6 +168,7 @@ export class FileResult extends Content {
         }: Partial<FileResult> = {}
     ) {
         super({ contentType, headers });
+        this.headers ??= {};
         this.contentDisposition = contentDisposition;
         // this.cacheControl = cacheControl;
         this.maxAge = maxAge;
