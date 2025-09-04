@@ -38,9 +38,9 @@ export default class Content {
         Object.setPrototypeOf(p, new.target.prototype);
         (p as any).status ??= 200;
         (p as any).compress ??= true;
+        //@ts-expect-error readonly
+        const headers = p.headers = p.headers ? { ... p.headers } : {};
         if (p.contentType) {
-            //@ts-expect-error readonly
-            const headers = p.headers = p.headers ? { ... p.headers } : {};
             headers["content-type"] = p.contentType;
         }
         return p as Content;
