@@ -181,6 +181,7 @@ export class FileResult extends Content {
         // if (this.cacheControl) {
         //     this.headers["cache-control"] = this.cacheControl;
         // }
+        this.headers["content-type"] ??= this.contentType;
         return res.sendFile(this.filePath,{
             acceptRanges: true,
             // cacheControl: this.cacheControl,
@@ -199,7 +200,9 @@ export class TempFileResult extends FileResult {
     constructor(
         file: LocalFile, p: Partial<TempFileResult> = {}
     ) {
-        super(file.path, p.fileName ? p : (p.fileName = file.fileName, (p.headers ??={})["content-type"] = file.contentType, p));
+        super(
+            file.path,
+            { ... p, contentType: p.contentType ?? file.contentType});
         this.lastModified = false;
     }
 
@@ -219,98 +222,3 @@ export class Redirect extends Content {
     }
 
 }
-
-// export default class Content extends PageResult {
-
-//     // public static json(json: any, status = 200) {
-//     //     return new Content({
-//     //         body: JSON.stringify(json),
-//     //         contentType: "application/json",
-//     //         status,
-//     //         compress: "gzip"
-//     //     });
-//     // }
-
-//     // public static html(html, status = 200) {
-//     //     return new Content({
-//     //         body: html,
-//     //         contentType: "text/html",
-//     //         status,
-//     //         compress: "gzip"
-//     //     });
-//     // }
-
-//     public static create(
-//         body: Partial<Content>
-//     ) {
-//         return new Content(body);
-//     }
-
-
-//     public status: number;
-
-//     public contentType: string;
-
-//     public suppressLog: boolean;
-
-//     public body: string | Buffer | XNode;
-
-//     public headers: OutgoingHttpHeaders;
-
-//     public compress: "gzip" | "deflate" | null = null;
-
-//     private constructor(p: Partial<Content>) {
-//         super();
-//         Object.setPrototypeOf(p, Content.prototype);
-//         p.contentType ??= "text/plain";
-//         p.status ??= 200;
-//         if (p.body === void 0) {
-//             throw new Error(`Body cannot be undefined`);
-//         }
-//         return p as Content;
-//     }
-
-//     public async send(res: WrappedResponse, user?: SessionUser) {
-//         const { status, body, contentType } = this;
-//         const { headers } = this;
-//         if (headers) {
-//             for (const key in headers) {
-//                 if (Object.hasOwn(headers, key)) {
-//                     const element = headers[key];
-//                     res.setHeader(key, element);
-//                 }
-//             }
-//         }
-
-//         res.compress = this.compress;
-
-//         res.setHeader("content-type", contentType);
-//         res.statusCode = status;
-//         if (typeof body === "string") {
-//             if (status >= 300 && !this.suppressLog) {
-//                 const u = user ? `User: ${user.userID},${user.userName}` : "User: Anonymous";
-//                 console.error(`${res.req.method} ${res.req.url}\n${status}\n${u}\n${body}`);
-//             } else {
-//                 res.compress ||= "gzip";
-//             }
-//             res.sendReader(status, headers, Readable.from([  body ]));
-//             return;
-//         }
-//         if (body instanceof XNode) {
-//             const text = body.render();
-//             if (status >= 300 && !this.suppressLog) {
-//                 console.error(`${res.req.method} ${res.req.url}\n${status}\n${text}`);
-//             } else {
-//                 res.compress ||= "gzip";
-//             }
-//             res.send(text);
-//             return;
-//         }
-//         if (status >= 300 && !this.suppressLog) {
-//             console.error(`${res.req.method} ${res.req.url}\n${status}\nBINARY DATA`);
-//         }
-//         res.send(body);
-//         return;
-//     }
-
-// }
