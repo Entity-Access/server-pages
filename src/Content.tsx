@@ -39,7 +39,8 @@ export default class Content {
         (p as any).status ??= 200;
         (p as any).compress ??= true;
         if (p.contentType) {
-            const headers = ((p as any).headers ??= {}) as OutgoingHttpHeaders;
+            //@ts-expect-error readonly
+            const headers = p.headers = p.headers ? { ... p.headers } : {};
             headers["content-type"] = p.contentType;
         }
         return p as Content;
@@ -166,13 +167,12 @@ export class FileResult extends Content {
             contentType
         }: Partial<FileResult> = {}
     ) {
-        super({ contentType });
+        super({ contentType, headers });
         this.contentDisposition = contentDisposition;
         // this.cacheControl = cacheControl;
         this.maxAge = maxAge;
         this.etag = etag;
         this.immutable = immutable;
-        this.headers = headers ?? {};
         const parsed = parse(filePath);
         this.fileName = fileName || parsed.base;
     }
