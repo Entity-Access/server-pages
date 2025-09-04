@@ -162,10 +162,11 @@ export class FileResult extends Content {
             etag = false,
             immutable = false,
             fileName,
-            headers
+            headers,
+            contentType
         }: Partial<FileResult> = {}
     ) {
-        super({});
+        super({ contentType });
         this.contentDisposition = contentDisposition;
         // this.cacheControl = cacheControl;
         this.maxAge = maxAge;
@@ -181,7 +182,9 @@ export class FileResult extends Content {
         // if (this.cacheControl) {
         //     this.headers["cache-control"] = this.cacheControl;
         // }
-        this.headers["content-type"] ??= this.contentType;
+        if (this.contentType) {
+            this.headers["content-type"] ??= this.contentType;
+        }
         return res.sendFile(this.filePath,{
             acceptRanges: true,
             // cacheControl: this.cacheControl,
