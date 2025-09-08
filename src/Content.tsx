@@ -151,7 +151,6 @@ export class FileResult extends Content {
     public maxAge = 2592000;
     public etag = false;
     public immutable = false;
-    public headers = void 0 as OutgoingHttpHeaders;
     protected lastModified = false;
     public fileName;
     constructor(
@@ -168,6 +167,7 @@ export class FileResult extends Content {
         }: Partial<FileResult> = {}
     ) {
         super({ contentType, headers });
+        // @ts-expect-error readonly
         this.headers ??= {};
         this.contentDisposition = contentDisposition;
         // this.cacheControl = cacheControl;
