@@ -52,6 +52,13 @@ Query.asNumber = (page, name?) => {
     return query(page, name, name, (v) => Number(v));
 }
 
+Query.asBigInt = (page, name?) => {
+    if (name === void 0) {
+        return (p, n) => query(p, n, page, (v) => BigInt(v));
+    }
+    return query(page, name, name, (v) => BigInt(v));
+}
+
 Query.caseInsensitive = (page, name?) => {
 
     if (name === void 0) {

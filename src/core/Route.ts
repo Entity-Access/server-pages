@@ -35,3 +35,10 @@ Route.asNumber = (page, name?) => {
     }
     return route(page, name, name, (v) => Number(v));
 }
+
+Route.asBigInt = (page, name?) => {
+    if (name === void 0) {
+        return (p, n) => route(p, n, page, (v) => BigInt(v));
+    }
+    return route(page, name, name, (v) => BigInt(v));
+}
