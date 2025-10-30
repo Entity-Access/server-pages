@@ -134,7 +134,7 @@ export default abstract class Page<TInput = any, TQuery = any> {
         });
     }
 
-    protected redirect(location: string, { status = 200, headers = void 0 } = {}) {
+    protected redirect(location: string, { status = 301, headers = void 0 } = {}) {
         return new Redirect(location, status, headers);
     }
 
