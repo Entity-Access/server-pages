@@ -134,8 +134,8 @@ export default abstract class Page<TInput = any, TQuery = any> {
         });
     }
 
-    protected redirect(location: string) {
-        return new Redirect(location);
+    protected redirect(location: string, { status = 200, headers = void 0 } = {}) {
+        return new Redirect(location, status, headers);
     }
 
     protected notFound(suppressLog = true): Content | Promise<Content> {
