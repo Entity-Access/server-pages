@@ -437,14 +437,14 @@ export default class ServerPages {
                             details: error.stack ?? error,
                             ... error.errorModel ?? {},
                             message: error.message ?? error,
-                        }, { status: error.errorModel?.status ?? 500}).send(resp);
+                        }, { status: error.errorModel?.status ?? 500}).send(resp, user);
 
                         return;
                     }
 
                     const content = Content.html(`<!DOCTYPE html>\n<html><body><pre>Server Error for ${req.url}\r\n${error?.stack ?? error}</pre></body></html>`,
                         { status: 500});
-                    await content.send(resp);
+                    await content.send(resp, user);
                 } catch (e1) {
                     e1 = e1.stack ?? e1.toString();
                     console.error(e1);
