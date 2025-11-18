@@ -4,7 +4,7 @@ import DateTime from "@entity-access/entity-access/dist/types/DateTime.js";
 import type { IAuthorizationCookie } from "./IAuthorizationCookie.js";
 import type { SerializeOptions } from "cookie";
 import KeyProvider, { IAuthKey } from "./KeyProvider.js";
-import { createCipheriv, privateDecrypt, publicEncrypt } from "node:crypto";
+import { createCipheriv, createDecipheriv, privateDecrypt, publicEncrypt } from "node:crypto";
 
 const secure = (process.env["SOCIAL_MAIL_AUTH_COOKIE_SECURE"] ?? "true") === "true";
 
@@ -85,7 +85,7 @@ export default class AuthorizationService {
     private decrypt(text: string, authKey: IAuthKey) {
         const { key, iv }  = authKey;
         text = text.replaceAll("*", "=");
-        const decipher = createCipheriv("aes-256-cbc", Buffer.from(key, "hex"), Buffer.from(iv, "hex"));
+        const decipher = createDecipheriv("aes-256-cbc", Buffer.from(key, "hex"), Buffer.from(iv, "hex"));
         return (decipher.update( text , "base64url", "utf-8") + decipher.final("utf-8"));
     }
 }
