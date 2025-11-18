@@ -7,8 +7,8 @@ import { randomBytes } from "node:crypto";
 
 export interface IAuthKey {
     id: number,
-    publicKey: string,
-    privateKey: string,
+    key: string,
+    iv: string,
     expires: DateTime
 }
 
@@ -39,12 +39,12 @@ export default class KeyProvider {
     }
 
     protected generateKey(expires: DateTime) {
-        const publicKey = randomBytes(16).toString("hex");
-        const privateKey = randomBytes(32).toString("hex");
+        const iv = randomBytes(16).toString("hex");
+        const key = randomBytes(32).toString("hex");
         return {
             id: 1,
-            publicKey,
-            privateKey,
+            iv,
+            key,
             expires: DateTime.now.addYears(1)
         }
     }
