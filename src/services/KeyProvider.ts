@@ -5,6 +5,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 export interface IAuthKey {
+    id: number,
     publicKey: string,
     privateKey: string,
     expires: DateTime
@@ -51,6 +52,7 @@ export default class KeyProvider {
             },
                (error, publicKey, privateKey) => {
                 resolve({
+                    id: 1,
                     publicKey,
                     privateKey,
                     expires

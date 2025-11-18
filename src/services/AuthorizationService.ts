@@ -55,9 +55,9 @@ export default class AuthorizationService {
     async decode(cookie: string) {
         this.keyProvider ??= ServiceProvider.resolve(this, KeyProvider, true) ?? new KeyProvider();
         const keys = await this.keyProvider.getKeys();
-        const[pk, value] = cookie.split(":")
+        const[id, value] = cookie.split(":")
         for (const key of keys) {
-            if(key.publicKey == pk) {
+            if(key.id == id) {
                 return privateDecrypt(key.privateKey, value) as any as number;
             }
         }
@@ -67,7 +67,7 @@ export default class AuthorizationService {
     async encode(sessionID) {
         this.keyProvider ??= ServiceProvider.resolve(this, KeyProvider, true) ?? new KeyProvider();
         const [key] = await this.keyProvider.getKeys();
-        return key.publicKey + ":" + publicEncrypt(key.publicKey, sessionID.toString()).toString("base64url");
+        return key.id + ":" + publicEncrypt(key.publicKey, sessionID.toString()).toString("base64url");
     }
 
 }
