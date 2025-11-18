@@ -14,7 +14,7 @@ export interface ICookie {
     options?: SerializeOptions
 }
 @RegisterSingleton
-export default class AuthenticationService {
+export default class AuthorizationService {
 
     authCookieName = "ec-1";
     keyProvider: any;

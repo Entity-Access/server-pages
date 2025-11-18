@@ -3,7 +3,7 @@ import Inject, { RegisterScoped, ServiceProvider } from "@entity-access/entity-a
 import DateTime from "@entity-access/entity-access/dist/types/DateTime.js";
 import { WrappedResponse } from "./Wrapped.js";
 import { CacheProperty } from "./CacheProperty.js";
-import AuthenticationService from "../services/AuthenticationService.js";
+import AuthorizationService from "../services/AuthorizationService.js";
 import { IAuthorizationCookie } from "../services/IAuthorizationCookie.js";
 
 const secure = (process.env["SOCIAL_MAIL_AUTH_COOKIE_SECURE"] ?? "true") === "true";
@@ -113,14 +113,14 @@ export class SessionUser {
     }
 
     async setAuthCookie(authCookie: IAuthorizationCookie) {
-        const authService = ServiceProvider.resolve(this, AuthenticationService);
+        const authService = ServiceProvider.resolve(this, AuthorizationService);
         const cookie = await authService.setAuthCookie(this, authCookie);
         (cookie.options ??= {} as any).httpOnly = true;
         this.resp?.cookie(cookie.name, cookie.value, cookie.options);
     }
 
     async clearAuthCookie() {
-        const authService = ServiceProvider.resolve(this, AuthenticationService);
+        const authService = ServiceProvider.resolve(this, AuthorizationService);
         const cookie = await authService.setAuthCookie(this, null);
         (cookie.options ??= {} as any).httpOnly = true;
         this.resp?.cookie(cookie.name, cookie.value, cookie.options);

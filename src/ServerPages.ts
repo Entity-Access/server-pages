@@ -20,7 +20,7 @@ import { UrlParser } from "./core/UrlParser.js";
 import Http2IPCProxyReceiver from "./core/Http2IPCProxyReceiver.js";
 import { Readable } from "node:stream";
 import SecureContextService from "./ssl/SecureContextService.js";
-import AuthenticationService from "./services/AuthenticationService.js";
+import AuthorizationService from "./services/AuthorizationService.js";
 import TimeoutTracker from "./core/TimeoutTracker.js";
 import { Http2SecureServer, Http2ServerRequest, Http2ServerResponse } from "node:http2";
 import { Socket } from "node:net";
@@ -377,7 +377,7 @@ export default class ServerPages {
         user.resp = resp;
         user.ipAddress = req.remoteIPAddress;
 
-        const authService = scope.resolve(AuthenticationService);
+        const authService = scope.resolve(AuthorizationService);
 
         user.authorize = () => authService.authorizeRequest(user, { ip: req.remoteIPAddress, cookies: req.cookies });
         const acceptJson = req.accepts("json");
