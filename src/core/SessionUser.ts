@@ -69,7 +69,7 @@ export class SessionUser {
     }
 
     set expiry(value: string | Date) {
-        CacheProperty.value(this, "sessionID", DateTime.from(value));
+        CacheProperty.value(this, "expiry", DateTime.from(value));
     }
 
     /**
