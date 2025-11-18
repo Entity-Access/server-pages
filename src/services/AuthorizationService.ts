@@ -24,7 +24,12 @@ export default class AuthorizationService {
         if (!cookie) {
             return;
         }
-        await this.loadUserSessionFromCookie(cookie, user);
+        try {
+            await this.loadUserSessionFromCookie(cookie, user);
+        } catch (error) {
+            console.error(error);
+            (user as any).isAuthorized = false;
+        }
     }
 
     async loadUserSessionFromCookie(cookie: string, user: SessionUser) {
