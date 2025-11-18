@@ -1,22 +1,14 @@
 /* eslint-disable no-console */
-import Inject, { RegisterSingleton, ServiceProvider, injectServiceKeysSymbol } from "@entity-access/entity-access/dist/di/di.js";
-import { Http2SecureServer } from "http2";
-import { Server as HttpServer } from "http";
-import { Server as HttpsServer } from "https";
+import { ServiceProvider, injectServiceKeysSymbol } from "@entity-access/entity-access/dist/di/di.js";
 import { parse } from "cookie";
 
 import { Server, Socket } from "socket.io";
-import CookieService from "../services/CookieService.js";
-import TokenService from "../services/TokenService.js";
 import SocketNamespace, { SocketNamespaceClient } from "./SocketNamespace.js";
 import { camelToChain } from "../core/camelToChain.js";
 import AuthorizationService from "../services/AuthorizationService.js";
 import { SessionUser } from "../core/SessionUser.js";
 
 export default abstract class SocketService {
-
-    @Inject
-    private tokenService: TokenService;
 
     protected server: Server;
 
