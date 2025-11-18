@@ -1,10 +1,10 @@
 import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAccessError.js";
 import Inject, { RegisterScoped, ServiceProvider } from "@entity-access/entity-access/dist/di/di.js";
 import DateTime from "@entity-access/entity-access/dist/types/DateTime.js";
-import TokenService, { IAuthCookie } from "../services/TokenService.js";
 import { WrappedResponse } from "./Wrapped.js";
 import { CacheProperty } from "./CacheProperty.js";
 import AuthenticationService from "../services/AuthenticationService.js";
+import { IAuthorizationCookie } from "../services/IAuthorizationCookie.js";
 
 const secure = (process.env["SOCIAL_MAIL_AUTH_COOKIE_SECURE"] ?? "true") === "true";
 
@@ -87,9 +87,6 @@ export class SessionUser {
 
     private isAuthorized = false;
 
-    @Inject
-    protected tokenService: TokenService;
-
     public async authorize() {
         this.isAuthorized = true;
     }
@@ -115,7 +112,7 @@ export class SessionUser {
         return this.ensureRole("Administrator", error);
     }
 
-    async setAuthCookie(authCookie: Omit<IAuthCookie, "sign">) {
+    async setAuthCookie(authCookie: IAuthorizationCookie) {
         const authService = ServiceProvider.resolve(this, AuthenticationService);
         const cookie = await authService.setAuthCookie(this, authCookie);
         (cookie.options ??= {} as any).httpOnly = true;

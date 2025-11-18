@@ -1,7 +1,5 @@
 export interface IAuthorizationCookie {
-    id: number;
-    userID: number;
+    sessionID: number;
+    userID: any;
     expiry: Date;
-    version: string;
-    active?: boolean;
 }
