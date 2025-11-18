@@ -72,7 +72,7 @@ export default class AuthorizationService {
     async encode(sessionID) {
         this.keyProvider ??= ServiceProvider.resolve(this, KeyProvider, true) ?? new KeyProvider();
         const [key] = await this.keyProvider.getKeys();
-        return key.id + ":" + this.encrypt(sessionID, key);
+        return key.id + ":" + this.encrypt(sessionID.toString(), key);
     }
 
     private encrypt(text: string, authKey: IAuthKey) {
