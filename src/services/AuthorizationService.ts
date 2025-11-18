@@ -84,8 +84,8 @@ export default class AuthorizationService {
 
     private decrypt(text: string, authKey: IAuthKey) {
         const { key, iv }  = authKey;
-        const cipher = createCipheriv("aes-256-cbc",Buffer.from(key, "hex"), Buffer.from(iv, "hex"));
+        text = text.replaceAll("*", "=");
         const decipher = createCipheriv("aes-256-cbc", Buffer.from(key, "hex"), Buffer.from(iv, "hex"));
-        return (decipher.update(text.replaceAll("*", "="), "base64url", "utf-8") + decipher.final("utf-8"));
+        return (decipher.update( text , "base64url", "utf-8") + decipher.final("utf-8"));
     }
 }
