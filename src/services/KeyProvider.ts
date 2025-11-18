@@ -3,6 +3,7 @@ import DateTime from "@entity-access/entity-access/dist/types/DateTime.js";
 import { generateKeyPair } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { randomBytes } from "node:crypto";
 
 export interface IAuthKey {
     id: number,
@@ -38,26 +39,13 @@ export default class KeyProvider {
     }
 
     protected generateKey(expires: DateTime) {
-        return new Promise<IAuthKey>((resolve, reject) => {
-            generateKeyPair('rsa', {
-                modulusLength: 2048,
-                publicKeyEncoding: {
-                  type: 'spki',
-                  format: 'pem'
-                },
-                privateKeyEncoding: {
-                  type: 'pkcs8',
-                  format: 'pem'
-                }
-            },
-               (error, publicKey, privateKey) => {
-                resolve({
-                    id: 1,
-                    publicKey,
-                    privateKey,
-                    expires
-                });
-            });
-        });
+        const publicKey = randomBytes(16).toString("hex");
+        const privateKey = randomBytes(32).toString("hex");
+        return {
+            id: 1,
+            publicKey,
+            privateKey,
+            expires: DateTime.now.addYears(1)
+        }
     }
 }

@@ -3,8 +3,8 @@ import { SessionUser } from "../core/SessionUser.js";
 import DateTime from "@entity-access/entity-access/dist/types/DateTime.js";
 import type { IAuthorizationCookie } from "./IAuthorizationCookie.js";
 import type { SerializeOptions } from "cookie";
-import KeyProvider from "./KeyProvider.js";
-import { privateDecrypt, publicEncrypt } from "node:crypto";
+import KeyProvider, { IAuthKey } from "./KeyProvider.js";
+import { createCipheriv, privateDecrypt, publicEncrypt } from "node:crypto";
 
 const secure = (process.env["SOCIAL_MAIL_AUTH_COOKIE_SECURE"] ?? "true") === "true";
 
@@ -58,7 +58,7 @@ export default class AuthorizationService {
         const[id, value] = cookie.split(":")
         for (const key of keys) {
             if(key.id == id) {
-                return privateDecrypt(key.privateKey, value) as any as number;
+                return this.decrypt(value, key);
             }
         }
         throw new Error("no suitable key found");
@@ -67,7 +67,19 @@ export default class AuthorizationService {
     async encode(sessionID) {
         this.keyProvider ??= ServiceProvider.resolve(this, KeyProvider, true) ?? new KeyProvider();
         const [key] = await this.keyProvider.getKeys();
-        return key.id + ":" + publicEncrypt(key.publicKey, sessionID.toString()).toString("base64url");
+        return key.id + ":" + this.encrypt(sessionID, key);
     }
 
+    private encrypt(text: string, authKey: IAuthKey) {
+        const { privateKey: key, publicKey: encryptionIV}  = authKey;
+        const cipher = createCipheriv("aes-256-cbc", key, encryptionIV);
+        return (cipher.update(text, "utf-8", "base64url")
+                + cipher.final("base64url")).replaceAll("=", "*");
+    }
+
+    private decrypt(text: string, authKey: IAuthKey) {
+        const { privateKey: key, publicKey: encryptionIV}  = authKey;
+        const decipher = createCipheriv("aes-256-cbc", Buffer.from(key, "hex"), Buffer.from(encryptionIV, "hex"));
+        return (decipher.update(text.replaceAll("*", "="), "base64url", "utf-8") + decipher.final("utf-8"));
+    }
 }
