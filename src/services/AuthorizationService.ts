@@ -16,7 +16,7 @@ export interface ICookie {
 @RegisterSingleton
 export default class AuthorizationService {
 
-    authCookieName = "ec-1";
+    authCookieName = "ea-c1";
     keyProvider: any;
 
     async authorizeRequest(user: SessionUser, { ip, cookies }: { ip: string, cookies: Record<string, string>}) {
