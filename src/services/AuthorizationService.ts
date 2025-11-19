@@ -34,6 +34,9 @@ export default class AuthorizationService {
 
     async loadUserSessionFromCookie(cookie: string, user: SessionUser) {
         const sessionID = await this.decode(cookie);
+        if (!sessionID) {
+            return;
+        }
         user.sessionID = sessionID;
         // load session... 
         await this.loadSession(sessionID, user);
@@ -66,7 +69,6 @@ export default class AuthorizationService {
                 return this.decrypt(value, key);
             }
         }
-        throw new Error("no suitable key found");
     }
 
     async encode(sessionID) {
