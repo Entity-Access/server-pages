@@ -29,7 +29,16 @@ export default class ServerLogger {
             }
             return obj.stack;
         })();
-        console.error(JSON.stringify({ url, serverID, error: error.stack ?? error.toString(), cause, info, at }));
+        console.error(JSON.stringify({
+            url,
+            serverID,
+            error: error.stack ?? error.toString(),
+            cause,
+            info,
+            at,
+            userAgent,
+            ip
+        }));
     }
 
 }
