@@ -3,6 +3,7 @@ import { createServer, Socket, Server as SocketServer } from "net";
 import { remoteAddressSymbol } from "./remoteAddressSymbol.js";
 import { Readable } from "stream";
 import EventEmitterPromise from "./EventEmitterPromise.js";
+import ServerLogger from "./ServerLogger.js";
 
 const endSocket = (s: Socket) => {
     try {
@@ -52,7 +53,7 @@ export default class Http2IPCProxyReceiver {
             socket.setKeepAlive(false);
 
             socket.on("error", (error) => {
-                console.error(error);
+                ServerLogger.error(error);
                 endSocket(socket);
             });
 

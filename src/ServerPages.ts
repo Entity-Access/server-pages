@@ -26,6 +26,7 @@ import { Http2SecureServer, Http2ServerRequest, Http2ServerResponse } from "node
 import { Socket } from "node:net";
 import { IncomingMessage, ServerResponse } from "node:http";
 import sleep from "./sleep.js";
+import ServerLogger from "./core/ServerLogger.js";
 
 export const wsData = Symbol("wsData");
 
@@ -47,6 +48,7 @@ const sensitiveRoutes = (name: string) => name;
 export default class ServerPages {
 
     serverID: any;
+    logger: ServerLogger;
 
 
     public static create(globalServiceProvider: ServiceProvider = new ServiceProvider()) {
@@ -195,7 +197,7 @@ export default class ServerPages {
                     });
 
                     httpServer.on("clientError", (err, socket: Socket) => {
-                        console.error(err);
+                        this.reportError({ error: err });
                         // if (err.code === "ERR_HTTP_REQUEST_TIMEOUT") {
                         //     try {
                         //         if (!socket.destroyed) {
@@ -219,11 +221,14 @@ export default class ServerPages {
                     throw new Error(`Unknown protocol ${protocol}`);
             }
 
-            httpServer.on("error", console.error);
-            httpServer.on("sessionError" ,console.error);
-
-            // http1Server?.on("error", console.error);
-            // http1Server?.on("sessionError" ,console.error);
+            httpServer.on("error", (error: any) => this.reportError({
+                url: "error",
+                error
+            }));
+            httpServer.on("sessionError" ,(error: any) => this.reportError({
+                url: "error",
+                error
+            }));
 
             await new Promise<void>((resolve, reject) => {
 
@@ -273,9 +278,11 @@ export default class ServerPages {
                 }
             }
 
+            this.logger = ServiceProvider.resolve(this, ServerLogger);
+
             return httpServer;
         } catch (error) {
-            console.error(error);
+            this.reportError(error);
         }
         return null;
     }
@@ -337,7 +344,7 @@ export default class ServerPages {
             //     ":status": 200
             // });
         } catch (error) {
-            console.error(error);
+            this.reportError(error);
         }
     }
 
@@ -375,7 +382,7 @@ export default class ServerPages {
         let sent = false;
         const user = scope.resolve(SessionUser);
         user.resp = resp;
-        user.ipAddress = req.remoteIPAddress;
+        const ip = user.ipAddress = req.remoteIPAddress;
 
         const authService = scope.resolve(AuthorizationService);
 
@@ -383,6 +390,9 @@ export default class ServerPages {
         const acceptJson = req.accepts("json");
 
         const hostName = req.hostName;
+
+        const userAgent = req.headers["user-agent"];
+
 
 
         try {
@@ -423,11 +433,7 @@ export default class ServerPages {
                 // we will not log this error
                 return;
             }
-            if (this.serverID) {
-                console.error(`Failed: ${this.serverID}:  ${req.URL}`);
-            } else {
-                console.error(`Failed: ${req.URL}`);
-            }
+            const { serverID } = this;
             if (!sent) {
                 try {
 
@@ -447,7 +453,7 @@ export default class ServerPages {
                     await content.send(resp, user);
                 } catch (e1) {
                     e1 = e1.stack ?? e1.toString();
-                    console.error(e1);
+                    this.reportError({ url, error: e1, userAgent, ip });
                     try {
                         await resp.sendReader(500, {}, Readable.from([ e1]), true);
                     } catch {
@@ -456,9 +462,14 @@ export default class ServerPages {
                 }
                 return;
             }
-            console.error(error.stack ?? error.toString());
+            this.reportError({ url, error, userAgent, ip });
         }
 
+    }
+
+    reportError({ url = void 0, error = void 0, info = void 0, userAgent = void 0, ip = void 0}) {
+
+        this.logger.reportError({ url, serverID: this.serverID, error, info, userAgent, ip });
     }
 
 }

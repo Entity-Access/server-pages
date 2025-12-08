@@ -2,6 +2,7 @@
 import { ServiceProvider, injectServiceKeysSymbol } from "@entity-access/entity-access/dist/di/di.js";
 import { Namespace, Socket } from "socket.io";
 import { IClassOf } from "@entity-access/entity-access/dist/decorators/IClassOf.js";
+import ServerLogger from "../core/ServerLogger.js";
 
 
 export function Receive(target, key) {
@@ -23,11 +24,11 @@ export function Send(target: SocketNamespace, key) {
         try {
             const socketRoom = this.server.to(room);
             if (!socketRoom) {
-                console.error(`No room for ${room}`);
+                ServerLogger.error(`No room for ${room}`);
             }
             return socketRoom.emit(key, ... args);
         } catch (error) {
-            console.error(error);
+            ServerLogger.error(error);
         }
     };
     return {

@@ -1,3 +1,5 @@
+import ServerLogger from "./ServerLogger.js";
+
 export default class TimeoutTracker implements Disposable {
 
     static create(fx: () => any) {
@@ -11,7 +13,7 @@ export default class TimeoutTracker implements Disposable {
             this.timer = void 0;
             const p = tracker();
             if (p?.catch) {
-                p.catch(console.error);
+                p.catch(ServerLogger.error);
             }
         }, time);
     }

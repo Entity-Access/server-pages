@@ -1,6 +1,7 @@
 import * as http from "node:http";
 import Inject, { RegisterSingleton } from "@entity-access/entity-access/dist/di/di.js";
 import AcmeChallengeStore from "./AcmeChallengeStore.js";
+import ServerLogger from "../core/ServerLogger.js";
 
 @RegisterSingleton
 export default class ChallengeServer {
@@ -24,7 +25,7 @@ export default class ChallengeServer {
                 await new Promise<void>((resolve) => res.end(resolve));
                 
             } catch (error) {
-                console.error(error);
+                ServerLogger.error(error);
             }
         });
 

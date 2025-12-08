@@ -4,6 +4,7 @@ import { existsSync, mkdirSync, openSync, constants, writeSync, closeSync, unlin
 import { createHash, randomUUID } from "node:crypto";
 import * as os from "node:os";
 import sleep from "../sleep.js";
+import ServerLogger from "./ServerLogger.js";
 
 const tmpdir = process.env.SOCIAL_MAIL_TMP_PATH || os.tmpdir();
 
@@ -86,7 +87,7 @@ class LockFile implements Disposable {
             unlinkSync(this.lockFile);
         } catch (error) {
             // ignore error...
-            console.error(error);
+            ServerLogger.reportError({ error });
         }
     }
 

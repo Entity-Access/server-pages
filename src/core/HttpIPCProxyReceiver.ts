@@ -4,6 +4,7 @@ import { createServer, Socket, Server as SocketServer } from "net";
 import { remoteAddressSymbol } from "./remoteAddressSymbol.js";
 import { Readable, Stream } from "stream";
 import EventEmitterPromise from "./EventEmitterPromise.js";
+import ServerLogger from "./ServerLogger.js";
 
 const endSocket = (s: Socket) => {
     try {
@@ -68,7 +69,7 @@ export default class HttpIPCProxyReceiver {
         try {
 
             socket.on("error", (error) => {
-                console.error(error);
+                ServerLogger.error(error);
                 endSocket(socket);
             });
 
@@ -102,7 +103,7 @@ export default class HttpIPCProxyReceiver {
         private forward1: http.Server
     ) {
         this.server = createServer({ keepAlive: true, keepAliveInitialDelay: 5000, noDelay: true }, this.onConnection);
-        this.server.on("error", console.error);
+        this.server.on("error", ServerLogger.error);
     }
 
     listen(port, listener?: any) {

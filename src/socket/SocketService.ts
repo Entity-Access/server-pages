@@ -7,6 +7,7 @@ import SocketNamespace, { SocketNamespaceClient } from "./SocketNamespace.js";
 import { camelToChain } from "../core/camelToChain.js";
 import AuthorizationService from "../services/AuthorizationService.js";
 import { SessionUser } from "../core/SessionUser.js";
+import ServerLogger from "../core/ServerLogger.js";
 
 export default abstract class SocketService {
 
@@ -85,7 +86,7 @@ export default abstract class SocketService {
                     }
                     await c[methodName](... args);
                 } catch (error) {
-                    console.error(error);
+                    ServerLogger.error(error);
                 } finally {
                     scope.dispose();
                 }

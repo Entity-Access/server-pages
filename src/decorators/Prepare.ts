@@ -7,6 +7,7 @@ import { ServiceProvider } from "@entity-access/entity-access/dist/di/di.js";
 import { SessionUser } from "../core/SessionUser.js";
 import Content, { StatusResult } from "../Content.js";
 import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAccessError.js";
+import ServerLogger from "../core/ServerLogger.js";
 
 export const prepareSymbol = Symbol("Parse");
 
@@ -150,7 +151,7 @@ const parseForm = (page?): any => {
                 }
             });
             const tasks = [];
-            bb.on("error", console.error);
+            bb.on("error", ServerLogger.error);
             await new Promise((resolve, reject) => {
 
                 bb.on("field", (name, value) => {
@@ -166,7 +167,7 @@ const parseForm = (page?): any => {
                     file.on("limit", () => lastError = new EntityAccessError(`File size exceeded`));
                     tasks.push(tf.writeAll(file).then(() => {
                         result.files.push(tf);
-                    }, console.error));
+                    }, ServerLogger.error));
                 });
                 bb.on("filesLimit", () => lastError = new EntityAccessError(`File size exceeded`) );
                 bb.on("error", reject);
@@ -186,7 +187,7 @@ const parseForm = (page?): any => {
                 tempFolder[Symbol.dispose]();
             } catch (error) {
                 // delete folder
-                console.error(error);
+                ServerLogger.error(error);
             }
 
             return Content.text(lastError.stack ?? lastError, { status: 500, contentType: "text/plain"})

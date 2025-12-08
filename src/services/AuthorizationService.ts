@@ -5,6 +5,7 @@ import type { IAuthorizationCookie } from "./IAuthorizationCookie.js";
 import type { SerializeOptions } from "cookie";
 import KeyProvider, { IAuthKey } from "./KeyProvider.js";
 import { createCipheriv, createDecipheriv, privateDecrypt, publicEncrypt } from "node:crypto";
+import ServerLogger from "../core/ServerLogger.js";
 
 const secure = (process.env["SOCIAL_MAIL_AUTH_COOKIE_SECURE"] ?? "true") === "true";
 
@@ -27,7 +28,7 @@ export default class AuthorizationService {
         try {
             await this.loadUserSessionFromCookie(cookie, user);
         } catch (error) {
-            console.error(error);
+            ServerLogger.error(error);
             (user as any).isAuthorized = false;
         }
     }

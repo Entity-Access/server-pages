@@ -1,6 +1,7 @@
 import Inject, { RegisterSingleton } from "@entity-access/entity-access/dist/di/di.js";
 import { createSecureContext, SecureContext } from "tls";
 import AcmeCertificateService, { IAcmeOptions } from "./AcmeCertificateService.js";
+import ServerLogger from "../core/ServerLogger.js";
 
 @RegisterSingleton
 export default class SecureContextService {
@@ -18,7 +19,7 @@ export default class SecureContextService {
         this.getSecureContext(servername)
             .then((c) => cb(null, c))
             .catch((error) => {
-                console.error(error);
+                ServerLogger.error(error);
                 cb(error);
             });
 

@@ -9,6 +9,7 @@ import { IClassOf } from "@entity-access/entity-access/dist/decorators/IClassOf.
 import { OutgoingHttpHeaders } from "http";
 import Content, { IContent, Redirect } from "./Content.js";
 import JsonGenerator from "@entity-access/entity-access/dist/common/JsonGenerator.js";
+import ServerLogger from "./core/ServerLogger.js";
 
 export const isPage = Symbol("isPage");
 
@@ -105,7 +106,10 @@ export default abstract class Page<TInput = any, TQuery = any> {
     }
 
     reportError(error) {
-        console.error(error);
+        ServerLogger.reportError({
+            url: this.url,
+            error
+        });
     }
 
     protected content(h: IContent): Content;

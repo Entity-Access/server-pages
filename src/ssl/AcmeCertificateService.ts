@@ -8,6 +8,7 @@ import Inject, { RegisterSingleton } from "@entity-access/entity-access/dist/di/
 import ChallengeStore from "./AcmeChallengeStore.js";
 import CertificateStore from "./CertificateStore.js";
 import { FileLock } from "../core/FileLock.js";
+import ServerLogger from "../core/ServerLogger.js";
 
 export interface IAcmeOptions {
     sslMode?: string,
@@ -116,8 +117,7 @@ export default class AcmeCertificateService {
 
             return { cert, key };
         } catch (error) {
-            console.log(logs.join("\n"));
-            console.error(error);
+            ServerLogger.reportError({ error, info: logs.join("\n") });
             throw error;
         }
     }

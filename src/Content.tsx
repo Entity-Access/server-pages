@@ -9,6 +9,7 @@ import { OutgoingHttpHeaders } from "http";
 import { Readable } from "stream";
 import Utf8Readable from "./core/Utf8Readable.js";
 import LogReadable from "./core/LogReadable.js";
+import ServerLogger from "./core/ServerLogger.js";
 
 const EmptyReader = () => Readable.from([]);
 
@@ -49,8 +50,7 @@ export default class Content {
     send(res: WrappedResponse, user?: SessionUser): Promise<any> {
         let reader = this.reader;
         if (this.status >= 400 && !this.suppressLog) {
-            console.error(`${res.req.method} ${res.req.url}\n${this.status}-User-${user?.userID}`);
-            reader = LogReadable.from(reader, console.error);
+            reader = LogReadable.from(reader, (error) => ServerLogger.reportError({ error }));
         }
         return res.sendReader(this.status, this.headers, reader, this.compress);
     }

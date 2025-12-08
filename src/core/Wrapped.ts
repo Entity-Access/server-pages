@@ -10,6 +10,7 @@ import { CacheProperty } from "./CacheProperty.js";
 import Compression from "./Compression.js";
 import { remoteAddressSymbol } from "./remoteAddressSymbol.js";
 import { pipeline } from "stream/promises";
+import ServerLogger from "./ServerLogger.js";
 
 
 type UnwrappedRequest = IncomingMessage | Http2ServerRequest;
@@ -387,7 +388,7 @@ const extendResponse = (A: (new() => ServerResponse) | (new () => Http2ServerRes
                     await lf.writeTo(this, start, end);
                     return;
                 } catch (error) {
-                    console.error(error);
+                    ServerLogger.reportError({ error });
                     if (sent) {
                         return;
                     }
