@@ -445,7 +445,7 @@ export default class ServerPages {
                         }, { status: error.errorModel?.status ?? 500});
                         jsonError.suppressLog = true;
                         await jsonError.send(resp, user);
-                    this.reportError({ url, error, info: error.errorModel, userAgent, ip });
+                        this.reportError({ url, error, info: error.errorModel, userAgent, ip });
                         return;
                     }
 

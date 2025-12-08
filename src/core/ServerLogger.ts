@@ -22,7 +22,14 @@ export default class ServerLogger {
 
     reportError({ url, serverID = void 0, error = void 0, info = void 0, userAgent = void 0, ip = void 0}) {
         const cause = error.cause?.stack ?? error.cause?.toString();
-        console.error(JSON.stringify({ url, serverID, error: error.stack ?? error.toString(), cause, info }));
+        const at = (function getStack() {
+            const obj = {};
+            if ("captureStackTrace" in Error) {
+                Error.captureStackTrace(obj, getStack); // Exclude getStack from the trace
+            }
+            return obj?.stack;
+        })();
+        console.error(JSON.stringify({ url, serverID, error: error.stack ?? error.toString(), cause, info, at }));
     }
 
 }
