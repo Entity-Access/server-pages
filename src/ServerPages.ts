@@ -433,24 +433,27 @@ export default class ServerPages {
                 // we will not log this error
                 return;
             }
-            const { serverID } = this;
             if (!sent) {
                 try {
 
                     if (acceptJson || error.errorModel) {
 
-                        await Content.nativeJson({
+                        const jsonError = await Content.nativeJson({
                             details: error.stack ?? error,
                             ... error.errorModel ?? {},
                             message: error.message ?? error,
-                        }, { status: error.errorModel?.status ?? 500}).send(resp, user);
-
+                        }, { status: error.errorModel?.status ?? 500});
+                        jsonError.suppressLog = true;
+                        await jsonError.send(resp, user);
+                    this.reportError({ url, error, info: error.errorModel, userAgent, ip });
                         return;
                     }
 
                     const content = Content.html(`<!DOCTYPE html>\n<html><body><pre>Server Error for ${req.url}\r\n${error?.stack ?? error}</pre></body></html>`,
                         { status: 500});
+                    content.suppressLog = true;
                     await content.send(resp, user);
+                    this.reportError({ url, error, userAgent, ip });
                 } catch (e1) {
                     e1 = e1.stack ?? e1.toString();
                     this.reportError({ url, error: e1, userAgent, ip });
