@@ -11,7 +11,14 @@ export default class ServerLogger {
             return instance.reportError({ url, serverID, error, info });
         }
         const cause = error.cause?.stack ?? error.cause?.toString();
-        console.error(JSON.stringify({ url, serverID, error, cause, info }));
+        const at = (function getStack() {
+            const obj = { stack : void 0};
+            if ("captureStackTrace" in Error) {
+                Error.captureStackTrace(obj, getStack); // Exclude getStack from the trace
+            }
+            return obj.stack;
+        })();
+        console.error(JSON.stringify({ url, serverID, error, cause, info, at }));
     }
 
     private static instance: ServerLogger;
@@ -30,15 +37,15 @@ export default class ServerLogger {
             return obj.stack;
         })();
         console.error(JSON.stringify({
-            url,
             serverID,
+            url,
+            userAgent,
+            referrer,
+            ip,
             error: error.stack ?? error.toString(),
             cause,
             info,
             at,
-            userAgent,
-            referrer,
-            ip
         }));
     }
 
