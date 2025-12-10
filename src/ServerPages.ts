@@ -127,6 +127,7 @@ export default class ServerPages {
         let listeningServer = null as http.Server | http2.Http2Server | http2.Http2SecureServer | Http2IPCProxyReceiver;
 
         // let http1Server = null as http.Server;
+        this.logger = ServiceProvider.resolve(this, ServerLogger);
 
         let acme = ServiceProvider.resolve(this, SecureContextService);
         acme.options = acmeOptions ?? {};
@@ -277,9 +278,6 @@ export default class ServerPages {
                     httpServer.prependListener("stream", (stream, headers) => this.forwardConnect(socketServer, stream, headers));
                 }
             }
-
-            this.logger = ServiceProvider.resolve(this, ServerLogger);
-
             return httpServer;
         } catch (error) {
             this.reportError(error);
