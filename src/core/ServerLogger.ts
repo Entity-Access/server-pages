@@ -5,10 +5,10 @@ export default class ServerLogger {
 
     static error = (error) => ServerLogger.reportError({ error });
 
-    static reportError({ url = void 0, serverID = void 0, error = void 0, info = void 0, ip = void 0, referrer = void 0, userAgent = void 0}) {
+    static reportError({ url = void 0, serverID = void 0, error = void 0, info = void 0, ip = void 0, referrer = void 0, userAgent = void 0, status = void 0}) {
         const { instance } = ServerLogger;
         if (instance) {
-            return instance.reportError({ url, serverID, error, info, ip, referrer, userAgent });
+            return instance.reportError({ url, status, serverID, error, info, ip, referrer, userAgent });
         }
         const cause = error.cause?.stack ?? error.cause?.toString();
         const at = (function getStack() {
@@ -18,7 +18,7 @@ export default class ServerLogger {
             }
             return obj.stack;
         })();
-        console.error(JSON.stringify({ url, serverID, error, cause, info, ip, referrer, userAgent, at }));
+        console.error(JSON.stringify({ url, status, serverID, error, cause, info, ip, referrer, userAgent, at }));
     }
 
     private static instance: ServerLogger;
@@ -27,7 +27,7 @@ export default class ServerLogger {
         ServerLogger.instance = this;
     }
 
-    reportError({ url, serverID = void 0, error = void 0, info = void 0, userAgent = void 0, referrer = void 0, ip = void 0}) {
+    reportError({ url, serverID = void 0, error = void 0, info = void 0, userAgent = void 0, referrer = void 0, ip = void 0, status = void 0}) {
         const cause = error.cause?.stack ?? error.cause?.toString();
         const at = (function getStack() {
             const obj = { stack : void 0};
@@ -39,6 +39,7 @@ export default class ServerLogger {
         console.error(JSON.stringify({
             serverID,
             url,
+            status,
             userAgent,
             referrer,
             ip,
