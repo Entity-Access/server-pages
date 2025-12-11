@@ -5,10 +5,10 @@ export default class ServerLogger {
 
     static error = (error) => ServerLogger.reportError({ error });
 
-    static reportError({ url = void 0, serverID = void 0, error = void 0, info = void 0}) {
+    static reportError({ url = void 0, serverID = void 0, error = void 0, info = void 0, ip = void 0, referrer = void 0, userAgent = void 0}) {
         const { instance } = ServerLogger;
         if (instance) {
-            return instance.reportError({ url, serverID, error, info });
+            return instance.reportError({ url, serverID, error, info, ip, referrer, userAgent });
         }
         const cause = error.cause?.stack ?? error.cause?.toString();
         const at = (function getStack() {
@@ -18,7 +18,7 @@ export default class ServerLogger {
             }
             return obj.stack;
         })();
-        console.error(JSON.stringify({ url, serverID, error, cause, info, at }));
+        console.error(JSON.stringify({ url, serverID, error, cause, info, ip, referrer, userAgent, at }));
     }
 
     private static instance: ServerLogger;
