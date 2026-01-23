@@ -112,6 +112,20 @@ export default abstract class Page<TInput = any, TQuery = any> {
         });
     }
 
+    protected registerDisposable(d: Disposable | AsyncDisposable) {
+        if (d[Symbol.asyncDispose]) {
+            this.disposables.push({
+                [Symbol.dispose]() {
+                    d[Symbol.asyncDispose]().catch(ServerLogger.error);
+                }
+            });
+            return;
+        }
+        if (d[Symbol.dispose]) {
+            this.disposables.push(d as any);
+        }
+    }
+
     protected content(h: IContent): Content;
     protected content(body: string, status?: number, contentType?: string, headers?: OutgoingHttpHeaders): Content;
     protected content(body: string | Partial<IContent>, status?: number, contentType?: string, headers?: OutgoingHttpHeaders) {

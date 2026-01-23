@@ -419,6 +419,7 @@ export default class ServerPages {
             page.childPath = childPath;
             page.request = req;
             page.response = resp;
+            page.disposables = req.disposables;
             page.route = route;
             page.signal = req.signal;
             scope.add(Page, page);
