@@ -429,7 +429,7 @@ export default class ServerPages {
             sent = true;
             await content.send(resp, user);
         } catch (error) {
-            if(/(^Abort)|(ERR_STREAM_PREMATURE_CLOSE)/.test(error?.stack)) {
+            if(/(^Abort)|(ERR_STREAM_PREMATURE_CLOSE)|(ERR_STREAM_UNABLE_TO_PIPE)/.test(error?.stack)) {
                 // we will not log this error
                 return;
             }
@@ -471,9 +471,6 @@ export default class ServerPages {
     }
 
     reportError({ url = void 0, error = void 0, info = void 0, userAgent = void 0, ip = void 0, referrer = void 0 }) {
-        if (/ERR_STREAM_UNABLE_TO_PIPE/i.test(error) && /Cannot\s+pipe\s+to\s+a\s+closed\s+or\s+destroyed\s+stream/i.test(error)) {
-            return;
-        }
         this.logger.reportError({ url, serverID: this.serverID, error, info, userAgent, ip, referrer });
     }
 
