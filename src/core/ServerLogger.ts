@@ -28,6 +28,12 @@ export default class ServerLogger {
     }
 
     reportError({ url, serverID = void 0, error = void 0, info = void 0, userAgent = void 0, referrer = void 0, ip = void 0, status = void 0}) {
+
+        // we will ignore stream closure errors
+        if (/(ERR_STREAM_PREMATURE_CLOSE)|(ERR_STREAM_UNABLE_TO_PIPE)/.test(error)) {
+            return;
+        }
+
         const cause = error.cause?.stack ?? error.cause?.toString();
         const at = (function getStack() {
             const obj = { stack : void 0};
