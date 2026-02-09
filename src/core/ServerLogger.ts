@@ -10,7 +10,10 @@ export default class ServerLogger {
         if (instance) {
             return instance.reportError({ url, status, serverID, route, host, error, info, ip, referrer, userAgent });
         }
-        const cause = error.cause?.stack ?? error.cause?.toString();
+        let cause = error?.cause;
+        if (cause) {
+            cause = cause.stack ?? cause.toString();
+        }
         const at = (function getStack() {
             const obj = { stack : void 0};
             if ("captureStackTrace" in Error) {
@@ -33,8 +36,10 @@ export default class ServerLogger {
         if (/(ERR_STREAM_PREMATURE_CLOSE)|(ERR_STREAM_UNABLE_TO_PIPE)/.test(error)) {
             return;
         }
-
-        const cause = error.cause?.stack ?? error.cause?.toString();
+        let cause = error?.cause;
+        if (cause) {
+            cause = cause.stack ?? cause.toString();
+        }
         const at = (function getStack() {
             const obj = { stack : void 0};
             if ("captureStackTrace" in Error) {
@@ -51,7 +56,7 @@ export default class ServerLogger {
             userAgent,
             referrer,
             ip,
-            error: error.stack ?? error.toString(),
+            error: error?.stack ?? error,
             cause,
             info,
             at,
