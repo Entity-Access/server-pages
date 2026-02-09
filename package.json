@@ -11,6 +11,9 @@
     "postversion": "git push --follow-tags"
   },
   "author": "",
+  "repository": {
+    "url": "https://github.com/Entity-Access/server-pages"
+  },
   "license": "ISC",
   "dependencies": {
     "@entity-access/entity-access": "^1.0.534",
