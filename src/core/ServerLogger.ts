@@ -8,7 +8,7 @@ export default class ServerLogger {
     static reportError({ url = void 0, serverID = void 0, host = void 0, route = void 0, error = void 0, info = void 0, ip = void 0, referrer = void 0, userAgent = void 0, status = void 0}) {
         const { instance } = ServerLogger;
         if (instance) {
-            return instance.reportError({ url, status, serverID, host, error, info, ip, referrer, userAgent });
+            return instance.reportError({ url, status, serverID, route, host, error, info, ip, referrer, userAgent });
         }
         const cause = error.cause?.stack ?? error.cause?.toString();
         const at = (function getStack() {

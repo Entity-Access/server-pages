@@ -13,7 +13,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@entity-access/entity-access": "^1.0.531",
+    "@entity-access/entity-access": "^1.0.534",
     "@peculiar/asn1-schema": "^2.3.15",
     "acme-client": "^5.4.0",
     "busboy": "^1.6.0",
