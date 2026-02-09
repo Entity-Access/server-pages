@@ -392,7 +392,7 @@ export default class ServerPages {
 
         const userAgent = req.headers["user-agent"];
 
-
+        let routeName = void 0;
 
         try {
 
@@ -415,6 +415,7 @@ export default class ServerPages {
                 pageClass: Page,
                 childPath: path
             };
+            routeName = pageClass.name;
             const page = scope.create(pageClass as any) as Page;
             page.childPath = childPath;
             page.request = req;
@@ -445,7 +446,7 @@ export default class ServerPages {
                         }, { status: error.errorModel?.status ?? 500});
                         jsonError.suppressLog = true;
                         await jsonError.send(resp, user);
-                        this.reportError({ url, error, info: error.errorModel, userAgent, ip, referrer });
+                        this.reportError({ url, error, route: routeName, info: error.errorModel, userAgent, ip, referrer });
                         return;
                     }
 
@@ -453,10 +454,10 @@ export default class ServerPages {
                         { status: 500});
                     content.suppressLog = true;
                     await content.send(resp, user);
-                    this.reportError({ url, error, userAgent, ip, referrer });
+                    this.reportError({ url, route: routeName, error, userAgent, ip, referrer });
                 } catch (e1) {
                     e1 = e1.stack ?? e1.toString();
-                    this.reportError({ url, error: e1, userAgent, ip, referrer });
+                    this.reportError({ url, route: routeName, error: e1, userAgent, ip, referrer });
                     try {
                         await resp.sendReader(500, {}, Readable.from([ e1]), true);
                     } catch {
@@ -465,13 +466,13 @@ export default class ServerPages {
                 }
                 return;
             }
-            this.reportError({ url, error, userAgent, ip, referrer });
+            this.reportError({ url, route: routeName, error, userAgent, ip, referrer });
         }
 
     }
 
-    reportError({ url = void 0, error = void 0, info = void 0, userAgent = void 0, ip = void 0, referrer = void 0 }) {
-        this.logger.reportError({ url, serverID: this.serverID, error, info, userAgent, ip, referrer });
+    reportError({ url = void 0, error = void 0, host = void 0, route = void 0, info = void 0, userAgent = void 0, ip = void 0, referrer = void 0 }) {
+        this.logger.reportError({ url, host, route, serverID: this.serverID, error, info, userAgent, ip, referrer });
     }
 
 }
