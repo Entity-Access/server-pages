@@ -50,16 +50,7 @@ export class RecycledWorker<T = any> {
         if(!currentWorker) {
             return;
         }
-        currentWorker.destroy();
-        setTimeout(() => {
-            try {
-                if(!currentWorker.exitedAfterDisconnect) {
-                    currentWorker.destroy("SIGINT");
-                }
-            } catch {
-                // ignore this..
-            }
-        }, 1000);
+        currentWorker.kill();
     }
 
 }
