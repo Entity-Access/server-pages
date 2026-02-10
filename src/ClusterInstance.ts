@@ -47,7 +47,19 @@ export class RecycledWorker<T = any> {
         this.destroyed = true;
         const { currentWorker } = this;
         this.currentWorker = null;
-        currentWorker?.destroy();
+        if(!currentWorker) {
+            return;
+        }
+        currentWorker.destroy();
+        setTimeout(() => {
+            try {
+                if(!currentWorker.exitedAfterDisconnect) {
+                    currentWorker.destroy("SIGINT");
+                }
+            } catch {
+                // ignore this..
+            }
+        }, 1000);
     }
 
 }
