@@ -50,7 +50,14 @@ export class RecycledWorker<T = any> {
         if(!currentWorker) {
             return;
         }
-        currentWorker.kill();
+        currentWorker.destroy();
+        setTimeout(() => {
+            try {
+                currentWorker.kill("SIGTERM");
+            } catch {
+                // do nothing
+            }
+        }, 1000);
     }
 
 }
