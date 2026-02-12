@@ -47,7 +47,17 @@ export class RecycledWorker<T = any> {
         this.destroyed = true;
         const { currentWorker } = this;
         this.currentWorker = null;
-        currentWorker?.destroy();
+        if(!currentWorker) {
+            return;
+        }
+        currentWorker.destroy();
+        setTimeout(() => {
+            try {
+                currentWorker.kill("SIGTERM");
+            } catch {
+                // do nothing
+            }
+        }, 1000);
     }
 
 }
