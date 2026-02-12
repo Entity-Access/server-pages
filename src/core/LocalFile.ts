@@ -79,11 +79,14 @@ export class LocalFile implements AsyncDisposable {
     }
 
     public writeAllText(text: string) {
-        return writeFile(this.path, text);
+        return writeFile(this.path, text, "utf-8");
     }
 
     public writeAll(buffer: string | Buffer | internal.Readable) {
-        if (buffer instanceof Buffer || typeof buffer === "string") {
+        if (typeof buffer === "string") {
+            return writeFile(this.path, buffer, "utf-8");
+        }
+        if (buffer instanceof Buffer) {
             return writeFile(this.path, buffer);
         }
         const writable = createWriteStream(this.path);
