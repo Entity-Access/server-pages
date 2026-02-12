@@ -67,7 +67,7 @@ export default abstract class SocketService {
                 try {
                     const user = scope.resolve(SessionUser);
                     const ip = socket.conn.remoteAddress;
-                    await authService.authorizeRequest(user, { ip, cookies });
+                    await authService.authorizeRequest(user, { ip, cookies, authorization: socket.request?.headers?.authorization });
                     scope.add(Socket, socket);
                     const clientClass = sns.clientClass ?? SocketNamespaceClient;
                     let c = scope.resolve(clientClass, true);
