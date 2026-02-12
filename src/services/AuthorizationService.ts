@@ -20,7 +20,11 @@ export default class AuthorizationService {
     authCookieName = "ea-c1";
     keyProvider: any;
 
-    async authorizeRequest(user: SessionUser, { ip, cookies }: { ip: string, cookies: Record<string, string>}) {
+    async authorizeRequest(user: SessionUser, { ip, cookies, authorization }: {
+        ip: string,
+        cookies: Record<string, string>,
+        authorization: string
+    }) {
         const cookie = cookies[this.authCookieName];
         if (!cookie) {
             return;

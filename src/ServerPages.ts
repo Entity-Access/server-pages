@@ -385,7 +385,11 @@ export default class ServerPages {
 
         const authService = scope.resolve(AuthorizationService);
 
-        user.authorize = () => authService.authorizeRequest(user, { ip: req.remoteIPAddress, cookies: req.cookies });
+        user.authorize = () => authService.authorizeRequest(user, {
+            ip: req.remoteIPAddress,
+            cookies: req.cookies,
+            authorization: req.headers.authorization
+        });
         const acceptJson = req.accepts("json");
 
         const hostName = req.hostName;
