@@ -305,7 +305,7 @@ const extendResponse = (A: (new() => ServerResponse) | (new () => Http2ServerRes
                 // await new Promise<void>((resolve) => this.end(resolve));
             }
         
-            cookie(this: UnwrappedResponse, name: string, value: string, options: SerializeOptions = {}, override = false) {
+            cookie(this: UnwrappedResponse, name: string, value: string, options: SerializeOptions = {}, override = true) {
                 const headers = this.getHeaders();
                 const cv = headers["set-cookie"];
                 let cookies = Array.isArray(cv)
