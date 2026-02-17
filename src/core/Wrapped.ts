@@ -85,7 +85,7 @@ export interface IWrappedResponse extends Disposable {
 
     sendRedirect(url: string, status?: number, headers?: OutgoingHttpHeaders): void;
 
-    cookie(name: string, value: string, options?: { secure?: boolean, httpOnly?: boolean, maxAge?: number });
+    cookie(name: string, value: string, options?: SerializeOptions, override?: boolean);
 
     // https://github.com/phoenixinfotech1984/node-content-range
     sendFile(filePath: string, options?: {
@@ -305,13 +305,16 @@ const extendResponse = (A: (new() => ServerResponse) | (new () => Http2ServerRes
                 // await new Promise<void>((resolve) => this.end(resolve));
             }
         
-            cookie(this: UnwrappedResponse, name: string, value: string, options: SerializeOptions = {}) {
+            cookie(this: UnwrappedResponse, name: string, value: string, options: SerializeOptions = {}, override = false) {
                 const headers = this.getHeaders();
                 const cv = headers["set-cookie"];
-                const cookies = Array.isArray(cv)
+                let cookies = Array.isArray(cv)
                     ? cv
                     : (cv ? [cv] : []);
                 options.path ||= "/";
+                if (override) {
+                    cookies = cookies.filter((x) => !x.startsWith(name + "="));
+                }
                 cookies.push(serialize(name, value, options));
                 this.setHeader("set-cookie",cookies);
             }
