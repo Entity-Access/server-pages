@@ -311,10 +311,9 @@ const extendResponse = (A: (new() => ServerResponse) | (new () => Http2ServerRes
                 const cookies = Array.isArray(cv)
                     ? cv
                     : (cv ? [cv] : []);
-                const nk = cookies.filter((x) => !x.startsWith(name + "="));
                 options.path ||= "/";
-                nk.push(serialize(name, value, options));
-                this.setHeader("set-cookie",nk);
+                cookies.push(serialize(name, value, options));
+                this.setHeader("set-cookie",cookies);
             }
 
             async sendRedirect(this: UnwrappedResponse, location: string, status = 301, headers: OutgoingHttpHeaders = {}) {
