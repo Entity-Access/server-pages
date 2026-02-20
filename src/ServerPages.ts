@@ -410,7 +410,7 @@ export default class ServerPages {
             const route = {};
             const { pageClass, childPath } = (await root.getRoute({
                 scope,
-                method,
+                method: method.toLowerCase(),
                 current: "",
                 path,
                 route,

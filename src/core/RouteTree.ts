@@ -6,14 +6,15 @@ import { pathToFileURL } from "url";
 import Content from "../Content.js";
 import { prepareSymbol } from "../decorators/Prepare.js";
 
+type PromisePageFactory = Promise<typeof Page> | (() => Promise<typeof Page>);
 export interface IRouteHandler {
-    get?: Promise<typeof Page>;
-    post?: Promise<typeof Page>;
-    put?: Promise<typeof Page>;
-    patch?: Promise<typeof Page>;
-    delete?: Promise<typeof Page>;
-    head?: Promise<typeof Page>;
-    index?: Promise<typeof Page>;
+    get?: PromisePageFactory;
+    post?: PromisePageFactory;
+    put?: PromisePageFactory;
+    patch?: PromisePageFactory;
+    delete?: PromisePageFactory;
+    head?: PromisePageFactory;
+    index?: PromisePageFactory;
 }
 
 type IPageRoute = { default: typeof Page };
@@ -110,7 +111,7 @@ export default class RouteTree {
 
         const { method } = rc;
 
-        const pageClassPromise = (this.handler[method] ??= this.handler[method.toLowerCase()]) ?? this.handler["index"];
+        const pageClassPromise = this.getHandler(method);
         if (pageClassPromise) {
             const pageClass = await pageClassPromise;
             if(await pageClass.canHandle(rc)) {
@@ -183,10 +184,26 @@ export default class RouteTree {
                     }
                 }
                 return c;
-            })();
+            });
 
             (this.handler ??= {})[name] = promise;
         }
+
+    }
+
+    private getHandler(method: string, loadIndex = true) {
+        let classType = this.handler[method];
+        if(!classType) {
+            if(loadIndex) {
+                classType = this.handler[method] ??= this.getHandler("index", false);
+            }
+        }
+
+        if (typeof classType === "function") {
+            classType = classType();
+            this.handler[method] = classType;
+        }
+        return classType;
 
     }
 
