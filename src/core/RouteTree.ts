@@ -194,9 +194,14 @@ export default class RouteTree {
     private getHandler(method: string, loadIndex = true) {
         let classType = this.handler[method];
         if(!classType) {
-            if(loadIndex) {
-                classType = this.handler[method] ??= this.getHandler("index", false);
+            if(!loadIndex) {
+                return;
             }
+            classType = this.handler[method] ??= this.getHandler("index", false);
+        }
+
+        if(!classType) {
+            return classType;
         }
 
         if (typeof classType === "function") {
