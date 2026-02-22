@@ -8,7 +8,7 @@ const query = (page, name, routeName = name, vc?: (v) => any): any => {
             if (value !== void 0 && vc) {
                 value = vc(value);
             }
-            Object.defineProperty(this, name, { value });
+            Object.defineProperty(this, name, { value, configurable: true });
             return value;
         }
     })
@@ -22,7 +22,7 @@ const queryCI = (page, name, routeName = name, vc?: (v) => any): any => {
             if (value !== void 0 && vc) {
                 value = vc(value);
             }
-            Object.defineProperty(this, name, { value });
+            Object.defineProperty(this, name, { value , configurable: true });
             return value;
         }
     })
