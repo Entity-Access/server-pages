@@ -1,28 +1,29 @@
 import type Page from "../Page.js";
+import { Decorators } from "./Decorators.js";
 
-const query = (page, name, routeName = name, vc?: (v) => any): any => {
-    Object.defineProperty(page, name, {
-        enumerable: true,
+const query = (target, name, routeName = name, vc?: (v) => any): any => {
+    Decorators.property({
+        target,
+        name,
         get() {
             let value = this.query[routeName];
             if (value !== void 0 && vc) {
                 value = vc(value);
             }
-            Object.defineProperty(this, name, { value, configurable: true });
             return value;
         }
     })
 }
 
-const queryCI = (page, name, routeName = name, vc?: (v) => any): any => {
-    Object.defineProperty(page, name, {
-        enumerable: true,
+const queryCI = (target, name, routeName = name, vc?: (v) => any): any => {
+    Decorators.property({
+        target,
+        name,
         get(this: Page) {
             let value = this.request.queryCaseInsensitive[routeName];
             if (value !== void 0 && vc) {
                 value = vc(value);
             }
-            Object.defineProperty(this, name, { value , configurable: true });
             return value;
         }
     })
