@@ -81,10 +81,10 @@ Query.asBigInt = (page, name?) => {
 Query.caseInsensitive = (page, name?) => {
 
     if (name === void 0) {
-        return (p, n) => queryCI(p, n, page);
+        return (p, n) => queryCI(p, n);
     }
 
-    return queryCI(page, name, name);
+    return queryCI(page, name);
 };
 
 Query.caseInsensitiveAsBoolean = (page, name?) => {
