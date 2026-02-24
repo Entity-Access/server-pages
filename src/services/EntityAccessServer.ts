@@ -177,7 +177,7 @@ export default class EntityAccessServer {
         }
 
         if (hasMore) {
-            hasMore = await oq.offset((start || 0)+size)
+            hasMore = await oq.offset(Number(start || 0)+Number(size))
                 .limit(1)
                 .some();
         }
