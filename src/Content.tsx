@@ -29,8 +29,6 @@ export default class Content {
     public readonly contentType: string = "plain/text";
     public readonly headers: OutgoingHttpHeaders;
 
-    public readonly compress: boolean;
-
     public suppressLog: boolean;
 
     constructor(
@@ -52,7 +50,7 @@ export default class Content {
         if (this.status >= 400 && !this.suppressLog) {
             reader = LogReadable.from(reader, (error) => ServerLogger.reportError({ error }));
         }
-        return res.sendReader(this.status, this.headers, reader, this.compress);
+        return res.sendReader(this.status, this.headers, reader);
     }
 
     static readable(readable: Readable, { status = 200, headers = void 0 as OutgoingHttpHeaders }) {
@@ -75,7 +73,6 @@ export default class Content {
             status,
             contentType,
             headers,
-            compress,
             suppressLog
         })
     }
@@ -100,7 +97,6 @@ export default class Content {
             status = 200,
             headers = void 0 as OutgoingHttpHeaders,
             contentType = void 0 as string,
-            compress = true,
             suppressLog = false
         } = {
         }) {
@@ -127,7 +123,6 @@ export default class Content {
             status,
             headers,
             contentType,
-            compress,
             suppressLog
         });
     }

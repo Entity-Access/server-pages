@@ -73,9 +73,9 @@ export interface IWrappedResponse extends Disposable {
 
     request?: WrappedRequest;
 
-    compress?: "gzip" | "deflate" | null;
+    compress?: boolean;
 
-    sendReader(status: number, headers: OutgoingHttpHeaders, readable: Readable, compressible: boolean): Promise<void>;
+    sendReader(status: number, headers: OutgoingHttpHeaders, readable: Readable): Promise<void>;
 
     // sendGenerator(data: Iterable<Buffer> | AsyncIterable<Buffer>, status: number, headers?: OutgoingHttpHeaders): Promise<void>;
 
@@ -268,7 +268,7 @@ const extendResponse = (A: (new() => ServerResponse) | (new () => Http2ServerRes
             statusCode: number;
             disposed = null;
 
-            compress?: "gzip" | "deflate" | null;
+            compress?: boolean;
 
             [Symbol.dispose](this: UnwrappedResponse) {
                 if ((this as any as WrappedResponse).disposed) {
@@ -278,16 +278,21 @@ const extendResponse = (A: (new() => ServerResponse) | (new () => Http2ServerRes
                 return this.end();
             }
 
-            async sendReader(this: UnwrappedResponse, status: number, headers: OutgoingHttpHeaders, readable: Readable, compressible: boolean = true) {
-                const signal = (this.req as WrappedRequest).signal;
-                if (compressible) {
-                    const encodings = (this.req as WrappedRequest).acceptEncodings;
-                    if (encodings.includes("gzip")) {
-                        this.setHeader("content-encoding", "gzip");
-                        readable = Compression.gzip(readable);
-                    } else if (encodings.includes("deflate")) {
-                        this.setHeader("content-encoding", "deflate");
-                        readable = Compression.deflate(readable);
+            async sendReader(this: UnwrappedResponse, status: number, headers: OutgoingHttpHeaders, readable: Readable) {
+                const wrapped = (this as any as WrappedResponse);
+                const req = (this.req as WrappedRequest);
+                const signal = req.signal;
+                if (wrapped.compress) {
+                    // check if we can compress...
+                    if(/(^text\/)|(application\/json)|(svg$)/i.test(req.headers["content-type"])) {
+                        const encodings = req.acceptEncodings;
+                        if (encodings.includes("gzip")) {
+                            this.setHeader("content-encoding", "gzip");
+                            readable = Compression.gzip(readable);
+                        } else if (encodings.includes("deflate")) {
+                            this.setHeader("content-encoding", "deflate");
+                            readable = Compression.deflate(readable);
+                        }
                     }
                 }
                 this.writeHead(status, headers);

@@ -11,8 +11,7 @@ export default class DbJsonReadable extends JsonGenerator {
             reader,
             headers: {
                 "content-type": "application/json; charset=utf8"
-            },
-            compress: true
+            }
         });
     }
 

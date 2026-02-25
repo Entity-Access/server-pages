@@ -50,6 +50,8 @@ export default class ServerPages {
     serverID: any;
     logger: ServerLogger;
 
+    static enableResponseCompression = true;
+
 
     public static create(globalServiceProvider: ServiceProvider = new ServiceProvider()) {
         const sp = globalServiceProvider.create(ServerPages);
@@ -350,6 +352,8 @@ export default class ServerPages {
 
         using req = Wrapped.request(rIn);
         using resp = Wrapped.response(req, resp1) as WrappedResponse;
+
+        resp.compress = ServerPages.enableResponseCompression;
         
         const url = rIn.url;
         if (/\%00/.test(url)) {
@@ -463,7 +467,7 @@ export default class ServerPages {
                     e1 = e1.stack ?? e1.toString();
                     this.reportError({ url, route: routeName, error: e1, userAgent, ip, referrer });
                     try {
-                        await resp.sendReader(500, {}, Readable.from([ e1]), true);
+                        await resp.sendReader(500, {}, Readable.from([ e1]));
                     } catch {
                         // do nothing
                     }
