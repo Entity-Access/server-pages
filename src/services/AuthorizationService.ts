@@ -57,9 +57,10 @@ export default class AuthorizationService {
         const maxAge = ((authCookie?.expiry ?  DateTime.from(authCookie.expiry) : null) ?? DateTime.now.addDays(30)).diff(DateTime.now).totalMilliseconds;
         const name = this.authCookieName;
         const value = await this.encode(authCookie?.sessionID ?? authCookie?.userID ?? "0");
-        const options = {
+        const options: SerializeOptions = {
             secure,
             httpOnly: true,
+            sameSite: "strict",
             maxAge
         };
         return { name, value, options };
