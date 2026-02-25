@@ -27,7 +27,7 @@ import { Socket } from "node:net";
 import { IncomingMessage, ServerResponse } from "node:http";
 import sleep from "./sleep.js";
 import ServerLogger from "./core/ServerLogger.js";
-
+import { performance } from "node:perf_hooks";
 export const wsData = Symbol("wsData");
 
 const isNotConnect = (req: http.IncomingMessage) => {
@@ -350,6 +350,9 @@ export default class ServerPages {
 
     protected async process(rIn: IncomingMessage | Http2ServerRequest, resp1: ServerResponse | Http2ServerResponse, trustProxy: boolean) {
 
+
+        const start = performance.now();
+
         using req = Wrapped.request(rIn);
         using resp = Wrapped.response(req, resp1) as WrappedResponse;
 
@@ -432,9 +435,16 @@ export default class ServerPages {
             page.route = route;
             page.signal = req.signal;
             scope.add(Page, page);
+
+            const beforeRun = performance.now();
+            const resolve = beforeRun - start;
             const content = await Executor.run(page);
             resp.setHeader("cache-control", page.cacheControl);
             resp.removeHeader("etag");
+
+            const total = performance.now() - beforeRun;
+            resp.setHeader("server-timing", `resolve;dur=${resolve},exec;dur=${total.toFixed(2)}`);
+
             sent = true;
             await content.send(resp, user);
         } catch (error) {
