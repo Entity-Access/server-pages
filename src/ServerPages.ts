@@ -443,7 +443,7 @@ export default class ServerPages {
             resp.removeHeader("etag");
 
             const total = performance.now() - beforeRun;
-            resp.setHeader("server-timing", `resolve;dur=${resolve},exec;dur=${total.toFixed(2)}`);
+            resp.setHeader("server-timing", `resolve;dur=${resolve.toFixed(2)},exec;dur=${total.toFixed(2)}`);
 
             sent = true;
             await content.send(resp, user);
