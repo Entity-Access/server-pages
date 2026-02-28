@@ -205,6 +205,7 @@ export default class RouteTree {
         }
 
         if(!classType) {
+            console.log(`No handler for ${method} in ${this.path}`);
             return classType;
         }
 
