@@ -283,7 +283,7 @@ const extendResponse = (A: (new() => ServerResponse) | (new () => Http2ServerRes
                 const req = (this.req as WrappedRequest);
                 const signal = req.signal;
                 if (wrapped.compress) {
-                    const contentType = this.getHeaders()["content-type"];
+                    const contentType = headers["content-type"];
                     // check if we can compress...
                     if(/(^text\/)|(application\/json)|(svg$)/i.test(contentType)) {
                         const encodings = req.acceptEncodings;
