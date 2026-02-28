@@ -6,6 +6,8 @@ import { pathToFileURL } from "url";
 import Content from "../Content.js";
 import { prepareSymbol } from "../decorators/Prepare.js";
 
+const pageResolverFactory = Symbol.for("pageResolverFactory");
+
 type PromisePageFactory = Promise<typeof Page> | (() => Promise<typeof Page>);
 export interface IRouteHandler {
     get?: PromisePageFactory;
@@ -186,6 +188,8 @@ export default class RouteTree {
                 return c;
             });
 
+            promise[pageResolverFactory] = true;
+
             (this.handler ??= {})[name] = promise;
         }
 
@@ -204,7 +208,7 @@ export default class RouteTree {
             return classType;
         }
 
-        if (typeof classType === "function") {
+        if (classType[pageResolverFactory]) {
             classType = classType();
             this.handler[method] = classType;
         }
