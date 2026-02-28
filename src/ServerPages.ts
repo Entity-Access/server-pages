@@ -52,6 +52,8 @@ export default class ServerPages {
 
     static enableResponseCompression = true;
 
+    static log = void 0 as (text: string) => void;
+
 
     public static create(globalServiceProvider: ServiceProvider = new ServiceProvider()) {
         const sp = globalServiceProvider.create(ServerPages);
@@ -356,6 +358,9 @@ export default class ServerPages {
 
 
         const start = performance.now();
+        const { log } = ServerPages;
+
+        log?.(`GET ${rIn.url}`);
 
         using req = Wrapped.request(rIn);
         using resp = Wrapped.response(req, resp1) as WrappedResponse;
@@ -431,6 +436,9 @@ export default class ServerPages {
                 childPath: path
             };
             routeName = pageClass.name;
+
+            log?.(`GET ${rIn.url} Route Resolved ${routeName}`);
+
             const page = scope.create(pageClass as any) as Page;
             page.childPath = childPath;
             page.request = req;
@@ -442,10 +450,15 @@ export default class ServerPages {
 
             const beforeRun = performance.now();
             const resolve = beforeRun - start;
+
+            log?.(`GET ${rIn.url} Executing`);
+
+
             const content = await Executor.run(page);
             resp.setHeader("cache-control", page.cacheControl);
             resp.removeHeader("etag");
 
+            log?.(`GET ${rIn.url} Sending`);
             const total = performance.now() - beforeRun;
             resp.setHeader("server-timing", `resolve;dur=${resolve.toFixed(2)},exec;dur=${total.toFixed(2)}`);
 
