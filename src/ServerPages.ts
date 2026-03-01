@@ -145,9 +145,9 @@ export default class ServerPages {
             switch(protocol) {
                 case "http":
                     httpServer = http.createServer({
-                        // keepAlive: true,
-                        // keepAliveInitialDelay: 15000,
-                        // keepAliveTimeout:60000
+                        keepAlive: true,
+                        keepAliveInitialDelay: 15000,
+                        keepAliveTimeout:60000
                     },(req, res) => isNotConnect(req) && this.process(req, res, trustProxy));
                     listeningServer = httpServer;
                     break;
