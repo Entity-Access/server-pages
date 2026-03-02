@@ -163,6 +163,9 @@ export default class EntityAccessServer {
 
         let items;
 
+        if (trace) {
+            q = q.trace(console.log);
+        }
 
         if (count) {
             const total = await oq.slice().count();
@@ -182,9 +185,6 @@ export default class EntityAccessServer {
                 .some();
         }
 
-        if (trace) {
-            q = q.trace(console.log);
-        }
         items = await q.toArray();
         return DbJsonService.toJson(db, {
             total: 0,
