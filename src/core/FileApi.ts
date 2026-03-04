@@ -2,6 +2,7 @@ import { existsSync, unlinkSync, mkdirSync } from "fs";
 
 import { dirname } from "path";
 import { AsyncFileStream } from "./AsyncStream.js";
+import { stat } from "fs/promises";
 
 export function ensureParentFolder(filePath: string) {
     ensureDir(dirname(filePath));
@@ -22,6 +23,17 @@ export default function ensureDir(folder: string) {
     }
 
 }
+
+export const fileInfo = async (filePath: string) => {
+    try {
+        return await stat(filePath);
+    } catch (error) {
+        if (error.code === "ENOENT") {
+            return null;
+        }
+        throw error;
+    }
+};
 
 export const deleteIfExists = (path) => existsSync(path) ? unlinkSync(path) : void 0;
 
