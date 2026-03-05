@@ -69,11 +69,15 @@ export class LocalFile implements AsyncDisposable {
         return await readFile(this.path, { flag: "r" });
     }
 
-    public async writeTo(writable: Writable, start?: number, end?: number) {
+    public async writeTo(writable: Writable, {
+        start = void 0 as number,
+        end = void 0 as number,
+        signal = void 0
+    } = {}) {
         const readable = createReadStream(this.path, { start, end });
         // ignore...
         readable.on("error", () => void 0);
-        return pipeline(readable, writable, { end: true });
+        return pipeline(readable, writable, { end: true, signal });
     }
 
     public async delete() {

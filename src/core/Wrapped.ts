@@ -11,6 +11,7 @@ import Compression from "./Compression.js";
 import { remoteAddressSymbol } from "./remoteAddressSymbol.js";
 import { pipeline } from "stream/promises";
 import ServerLogger from "./ServerLogger.js";
+import TimedAbortController from "./TimedAbortController.js";
 
 
 type UnwrappedRequest = IncomingMessage | Http2ServerRequest;
@@ -340,9 +341,17 @@ const extendResponse = (A: (new() => ServerResponse) | (new () => Http2ServerRes
                     headers?: { [key: string]: string},
                     lastModified?: boolean
                 }) {
+
                 let sent = false;
 
+                using abort = new TimedAbortController();
                 try {
+
+                    const signal = abort.signal;
+                    this.req.on("aborted", () => {
+                        abort.abort("aborted");
+                    });
+
                     /** Calculate Size of file */
                     const { size } = await stat(filePath);
                     const range = (this as any as IWrappedResponse).request.headers.range;
@@ -365,7 +374,7 @@ const extendResponse = (A: (new() => ServerResponse) | (new () => Http2ServerRes
                         headers["content-length"] = size;
                         this.writeHead(200, headers);
                         sent = true;
-                        await lf.writeTo(this);
+                        await lf.writeTo(this, { signal });
                         return;
                     }
         
@@ -398,7 +407,7 @@ const extendResponse = (A: (new() => ServerResponse) | (new () => Http2ServerRes
                     headers["content-length"] = end - start + 1;
                     this.writeHead(206, headers);
                     sent = true;
-                    await lf.writeTo(this, start, end);
+                    await lf.writeTo(this, { start, end, signal });
                     return;
                 } catch (error) {
                     ServerLogger.reportError({ error });
