@@ -5,11 +5,14 @@ export default class TimedAbortController implements Disposable {
     public readonly signal: AbortSignal;
     private timeout: NodeJS.Timeout;
 
-    constructor(timeout = 5*60*1000) {
+    constructor(timeout = 5*60*1000, msg = "Aborting..") {
         this.ac = new AbortController();
         this.signal = this.ac.signal;
 
-        this.timeout = setTimeout(() => this.ac.abort("timedout"), timeout);
+        this.timeout = setTimeout(() => {
+            console.log(msg);
+            this.ac.abort("timedout");
+        }, timeout);
     }
 
     abort(reason = "aborted") {
