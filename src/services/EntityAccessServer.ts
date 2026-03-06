@@ -179,7 +179,7 @@ export default class EntityAccessServer {
         let items;
 
         if (count) {
-            console.warn(`Count method is an expensive method, please use more alternative`);
+            // console.warn(`Count method is an expensive method, please use more alternative`);
             const total = await oq.slice().count();
             items = await q.toArray();
             return DbJsonService.toJson(db, {
