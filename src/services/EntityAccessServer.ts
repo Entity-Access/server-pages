@@ -169,7 +169,8 @@ export default class EntityAccessServer {
 
         if (start > 0) {
             q = q.offset(start);
-            count = true;
+            // Count must be explicitly specified
+            // count ||= true;
         }
         if (size > 0) {
             q = q.limit(size);
@@ -178,10 +179,8 @@ export default class EntityAccessServer {
         let items;
 
         if (count) {
+            console.warn(`Count method is an expensive method, please use more alternative`);
             const total = await oq.slice().count();
-            if (trace) {
-                q = q.trace(console.log);
-            }
             items = await q.toArray();
             return DbJsonService.toJson(db, {
                 total,
