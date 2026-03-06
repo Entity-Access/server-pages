@@ -153,19 +153,29 @@ export default class EntityAccessServer {
 
         const oq = q;
 
+        if (trace) {
+            q = q.trace(console.log);
+        }
+
+        if (hasMore) {
+            const r = await oq.toPage(Number(start || 0), size);
+            return DbJsonService.toJson(db, {
+                items: r.items,
+                total: 0,
+                hasMore: r.more
+            });
+        }
+
+
         if (start > 0) {
             q = q.offset(start);
-            count = !hasMore && true;
+            count = true;
         }
         if (size > 0) {
             q = q.limit(size);
         }
 
         let items;
-
-        if (trace) {
-            q = q.trace(console.log);
-        }
 
         if (count) {
             const total = await oq.slice().count();
@@ -177,12 +187,6 @@ export default class EntityAccessServer {
                 total,
                 items
             });
-        }
-
-        if (hasMore) {
-            hasMore = await oq.offset(Number(start || 0)+Number(size))
-                .limit(1)
-                .some();
         }
 
         items = await q.toArray();
