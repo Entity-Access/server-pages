@@ -34,7 +34,7 @@ export interface IEntityQueryOptions {
     trace: boolean;
     cache: number;
     count: boolean;
-    hasMore: boolean;
+    more: boolean;
     expandable?: boolean;
     function: string;
     args: string | any[];
@@ -75,7 +75,7 @@ export default class EntityAccessServer {
         } = options;
         let {
             count = false,
-            hasMore = false,
+            more = false,
             methods,
             args = "[]"
         } = options;
@@ -97,8 +97,8 @@ export default class EntityAccessServer {
             count = count === "true";
         }
 
-        if (typeof hasMore === "string") {
-            hasMore = hasMore === "true";
+        if (typeof more === "string") {
+            more = more === "true";
         }
 
         const events = db.eventsFor(entityClass, true);
@@ -157,12 +157,12 @@ export default class EntityAccessServer {
             q = q.trace(console.log);
         }
 
-        if (hasMore) {
+        if (more) {
             const r = await oq.toPage(Number(start || 0), size);
             return DbJsonService.toJson(db, {
                 items: r.items,
                 total: 0,
-                hasMore: r.more
+                more: r.more
             });
         }
 
@@ -191,7 +191,7 @@ export default class EntityAccessServer {
         items = await q.toArray();
         return DbJsonService.toJson(db, {
             total: 0,
-            hasMore,
+            more,
             items
         });
 
