@@ -410,7 +410,10 @@ const extendResponse = (A: (new() => ServerResponse) | (new () => Http2ServerRes
                     await lf.writeTo(this, { start, end, signal });
                     return;
                 } catch (error) {
-                    ServerLogger.reportError({ error });
+
+                    if(!/(^Abort)|(ERR_STREAM_PREMATURE_CLOSE)|(ERR_STREAM_UNABLE_TO_PIPE)/.test(error?.stack)) {
+                        ServerLogger.reportError({ error });
+                    }
                     if (sent) {
                         return;
                     }
