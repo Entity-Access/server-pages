@@ -254,9 +254,9 @@ export default class ModelService {
 
     public static getModelDeclaration(context: AppDbContext) {
         const writer = new IndentedStringWriter("\t");
-        writer.writeLine(`import DateTime from "@web-atoms/date-time/dist/DateTime";
-            import type IClrEntity from "@web-atoms/entity/dist/models/IClrEntity";
-            import { ICollection, IGeometry, IModel, Model, DefaultFactory } from "@web-atoms/entity/dist/services/BaseEntityService";
+        writer.writeLine(`import DateTime from "@web-atoms/date-time/dist/DateTime.js";
+            import type IClrEntity from "@web-atoms/entity/dist/models/IClrEntity.js";
+            import { ICollection, IGeometry, IModel, Model, DefaultFactory } from "@web-atoms/entity/dist/services/BaseEntityService.js";
             export type IGeometryType = IGeometry;
         `);
 
