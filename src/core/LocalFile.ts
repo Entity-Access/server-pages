@@ -99,7 +99,7 @@ export class LocalFile implements AsyncDisposable {
         return pipeline(buffer, writable, { end: true });
     }
 
-    public async *lines() {
+    public async *lines(bufferLength = 4 * 1024 * 1024) {
         let line = "";
         const trimEndR = (t: string) => {
             if (t.endsWith("\r")) {
@@ -107,7 +107,7 @@ export class LocalFile implements AsyncDisposable {
             }
             return t;
         };
-        for await(const buffer of this.readBuffers(4 * 1024 * 1024)) {
+        for await(const buffer of this.readBuffers(bufferLength)) {
             let start = 0;
             do {
 
