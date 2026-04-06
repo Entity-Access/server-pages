@@ -19,7 +19,7 @@ const typeFor = (dataType: ISqlType) => {
         case "DateTime":
         case "DateTimeOffset":
             return "DateTime";
-        case "Geometry":
+        case "Geography":
             return "string";
         case "ByteArray":
             return "any";
