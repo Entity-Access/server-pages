@@ -1,8 +1,8 @@
 /* eslint-disable no-console */
 import fsp, { opendir, rm, rmdir, stat, unlink } from "node:fs/promises";
-import { existsSync } from "node:fs";
+import { existsSync, mkdirSync } from "node:fs";
 import { join, parse } from "node:path";
-import { randomUUID } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAccessError.js";
 import ensureDir from "../core/FileApi.js";
 import TempFolder from "../core/TempFolder.js";
@@ -14,6 +14,16 @@ import RunOnce from "../core/RunOnce.js";
 import { toKMBString } from "../core/NumberFormats.js";
 
 const doNothing = () => void 0;
+
+const newFolder = (root) => {
+    for(;;) {
+        const f = join(root, Date.now().toString(36) + "-" + randomBytes(8).readBigUInt64BE().toString(36));
+        if(!existsSync(f)) {
+            mkdirSync(f, { recursive: true});
+            return f;
+        }
+    }
+};
 
 export interface IDiskCacheContainer {
     cache: BaseDiskCache;
@@ -55,14 +65,10 @@ export default class BaseDiskCache {
         setTimeout(() => this.clean().catch(console.error), 1000);
     }
 
-    newFolder(suffix = "") {
-        return new TempFolder(suffix, this.root);
-    }
-
     createTempFile(fileName: string, mimeType?: string) {
-        const folder = this.newFolder(this.root);
-        const path = join(folder.folder, fileName);
-        return new LocalFile(path, fileName, mimeType, () => folder[Symbol.dispose]());
+        const folder = newFolder(this.root);
+        const path = join(folder, fileName);
+        return new LocalFile(path, fileName, mimeType, () => this.deleteFolder(folder));
     }
 
    
@@ -218,6 +224,10 @@ export default class BaseDiskCache {
             // Adjust error handling as needed for your specific use case.
             return true;
         }
+    }
+
+    protected async deleteFolder(folder) {
+        await spawnPromise("rm", ["-rf", folder]);
     }
 
     protected async clean() {
