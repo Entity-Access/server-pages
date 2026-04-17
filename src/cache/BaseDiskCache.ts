@@ -71,6 +71,9 @@ export default class BaseDiskCache {
         return new LocalFile(path, fileName, mimeType, () => this.deleteFolder(folder));
     }
 
+    newFolder(suffix = "") {
+        return new TempFolder(suffix, this.root);
+    }
    
     async get(path: string) {
         path = join(this.root, path);
