@@ -59,6 +59,13 @@ export default class BaseDiskCache {
         return new TempFolder(suffix, this.root);
     }
 
+    createTempFile(fileName: string, mimeType?: string) {
+        const folder = this.newFolder(this.root);
+        const path = join(folder.folder, fileName);
+        return new LocalFile(path, fileName, mimeType, () => folder[Symbol.dispose]());
+    }
+
+   
     async get(path: string) {
         path = join(this.root, path);
         if (existsSync(path)) {
