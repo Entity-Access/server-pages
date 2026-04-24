@@ -111,6 +111,9 @@ const getJSType = (column: { type?: any, enum?: readonly string[], dataType?: st
     if (dataType === "Geometry") {
         return "IGeometry";
     }
+    if (dataType === "Geography") {
+        return "IGeometry";
+    }
     if (typeof type == "function") {
         const mps = type.prototype[modelProperties];
         if (mps) {
