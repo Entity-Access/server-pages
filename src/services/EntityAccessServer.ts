@@ -158,7 +158,7 @@ export default class EntityAccessServer {
         }
 
         if (more) {
-            const r = await oq.toPage(Number(start || 0), size);
+            const r = await q.toPage(Number(start || 0), size);
             return DbJsonService.toJson(db, {
                 items: r.items,
                 total: 0,
