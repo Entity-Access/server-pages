@@ -42,6 +42,16 @@ export default class TempFolder implements Disposable {
         }
     }
 
+    async *read() {
+        for(const f of await fsp.readdir(this.folder, { recursive: true, withFileTypes: true })) {
+            if (f.isDirectory()) {
+                continue;
+            }
+            const lf = new LocalFile(join(f.parentPath, f.name), void 0, void 0, doNothing);
+            yield lf;
+        }
+    }
+
     get(name: string, mimeType?: string, keep = false, useSafeFileName = true) {
         let fileName = name;
         if (useSafeFileName) {
