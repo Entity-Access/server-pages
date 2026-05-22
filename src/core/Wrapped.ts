@@ -27,7 +27,7 @@ const extendedSymbol = Symbol("extended");
 
 export interface IWrappedRequest extends Disposable {
 
-    signal?: AbortSignal;
+    get signal(): AbortSignal;
 
     headers?: IncomingHttpHeaders;
 
@@ -116,7 +116,10 @@ const extendRequest = (A: typeof IncomingMessage | typeof Http2ServerRequest) =>
 
             trustProxy: boolean;
 
-            signal?: AbortSignal;
+            // signal?: AbortSignal;
+            get signal() {
+                return super.signal;
+            }
 
             get hostName(): string {
                 let host = this.host;
@@ -297,7 +300,7 @@ const extendResponse = (A: (new() => ServerResponse) | (new () => Http2ServerRes
                         }
                     }
                 }
-                this.writeHead(status, headers);
+                (this as ServerResponse<IncomingMessage>).writeHead(status, headers);
                 await pipeline(readable, this, { end: true, signal });
                 return;
                 // return new Promise<void>((resolve, reject) => {
@@ -329,7 +332,7 @@ const extendResponse = (A: (new() => ServerResponse) | (new () => Http2ServerRes
             async sendRedirect(this: UnwrappedResponse, location: string, status = 301, headers: OutgoingHttpHeaders = {}) {
                 this.statusCode = status;
                 headers.location = location;
-                this.writeHead(this.statusCode, headers);
+                (this as ServerResponse<IncomingMessage>).writeHead(this.statusCode, headers);
             }
 
             async sendFile(this: UnwrappedResponse, filePath: string, options?: {
@@ -372,7 +375,7 @@ const extendResponse = (A: (new() => ServerResponse) | (new () => Http2ServerRes
                     /** Check for Range header */
                     if (!range) {
                         headers["content-length"] = size;
-                        this.writeHead(200, headers);
+                        (this as ServerResponse<IncomingMessage>).writeHead(200, headers);
                         sent = true;
                         await lf.writeTo(this, { signal });
                         return;
@@ -396,7 +399,7 @@ const extendResponse = (A: (new() => ServerResponse) | (new () => Http2ServerRes
                     if (start >= size || end >= size) {
                         // Return the 416 Range Not Satisfiable.
                         headers["content-range"] = `bytes */${size}`;
-                        this.writeHead(416, headers);
+                        (this as ServerResponse<IncomingMessage>).writeHead(416, headers);
                         sent = true;
                         return;
                     }
@@ -405,7 +408,7 @@ const extendResponse = (A: (new() => ServerResponse) | (new () => Http2ServerRes
                     headers["accept-ranges"] = "bytes";
                     headers["content-range"] = `bytes ${start}-${end}/${size}`;
                     headers["content-length"] = end - start + 1;
-                    this.writeHead(206, headers);
+                    (this as ServerResponse<IncomingMessage>).writeHead(206, headers);
                     sent = true;
                     await lf.writeTo(this, { start, end, signal });
                     return;

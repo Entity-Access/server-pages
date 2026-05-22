@@ -5,7 +5,7 @@ import { parse } from "path";
 import { LocalFile } from "./core/LocalFile.js";
 import { SessionUser } from "./core/SessionUser.js";
 import { WrappedResponse } from "./core/Wrapped.js";
-import { OutgoingHttpHeaders } from "http";
+import { IncomingMessage, OutgoingHttpHeaders, ServerResponse } from "http";
 import { Readable } from "stream";
 import Utf8Readable from "./core/Utf8Readable.js";
 import LogReadable from "./core/LogReadable.js";
@@ -134,7 +134,7 @@ export class StatusResult extends Content {
     }
 
     send(res: WrappedResponse, user?: SessionUser): Promise<any> {
-        res.writeHead(this.status, this.headers);
+        (res as ServerResponse<IncomingMessage>).writeHead(this.status, this.headers);
         return Promise.resolve();
     }
 }
