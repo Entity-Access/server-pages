@@ -434,12 +434,17 @@ export const Wrapped = {
         Object.setPrototypeOf(req, prototype);
         const wr = req as WrappedRequest;
         wr.disposables = [];
-        const ac = new AbortController();
-        wr.signal = ac.signal;
-        req.once("close", () => req.complete
-            ? void 0
-            : ac.abort("aborted")
-        );
+        // (wr as IncomingMessage).signal
+        // Incoming message already has a signal now?
+        // const ac = new AbortController();
+        // wr.signal = ac.signal;
+        // req.once("close", () => {
+        //     if(req.complete) {
+        //         return;
+        //     }
+        //     // (wr as IncomingMessage)
+        //     ac.abort("aborted");
+        // });
         return req as any;
     },
 
