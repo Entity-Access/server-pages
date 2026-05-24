@@ -27,7 +27,7 @@ const extendedSymbol = Symbol("extended");
 
 export interface IWrappedRequest extends Disposable {
 
-    get signal(): AbortSignal;
+    signal?: AbortSignal;
 
     headers?: IncomingHttpHeaders;
 
@@ -116,10 +116,8 @@ const extendRequest = (A: typeof IncomingMessage | typeof Http2ServerRequest) =>
 
             trustProxy: boolean;
 
-            // signal?: AbortSignal;
-            get signal() {
-                return super.signal;
-            }
+            declare signal?: AbortSignal;
+
 
             get hostName(): string {
                 let host = this.host;
