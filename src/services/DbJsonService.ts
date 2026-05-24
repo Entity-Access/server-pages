@@ -10,7 +10,7 @@ export default class DbJsonReadable extends JsonGenerator {
         return  new Content({
             reader,
             headers: {
-                "content-type": "application/json; charset=utf8"
+                "content-type": "application/json; charset=utf-8"
             }
         });
     }
