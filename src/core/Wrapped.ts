@@ -277,7 +277,11 @@ const extendResponse = (A: (new() => ServerResponse) | (new () => Http2ServerRes
                     return true;
                 }
                 (this as any as WrappedResponse).disposed = true;
-                return this.end();
+                if (this.writableEnded) {
+                    return;
+                }
+                this.end();
+                return;
             }
 
             async sendReader(this: UnwrappedResponse, status: number, headers: OutgoingHttpHeaders, readable: Readable) {
