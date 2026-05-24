@@ -441,15 +441,16 @@ export const Wrapped = {
         wr.disposables = [];
         // (wr as IncomingMessage).signal
         // Incoming message already has a signal now?
-        // const ac = new AbortController();
+        const ac = new AbortController();
         // wr.signal = ac.signal;
-        // req.once("close", () => {
-        //     if(req.complete) {
-        //         return;
-        //     }
-        //     // (wr as IncomingMessage)
-        //     ac.abort("aborted");
-        // });
+        Object.defineProperty(wr, "signal", { value: ac.signal, configurable: true, writable: true  });
+        req.once("close", () => {
+            if(req.complete) {
+                return;
+            }
+            // (wr as IncomingMessage)
+            ac.abort("aborted");
+        });
         return req as any;
     },
 
