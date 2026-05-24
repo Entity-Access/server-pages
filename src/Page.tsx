@@ -146,7 +146,7 @@ export default abstract class Page<TInput = any, TQuery = any> {
         //     : JSON.stringify(o);
         const jsr = new JsonGenerator(this);
         headers ??= {};
-        headers["content-type"] = "application/json; charset=utf8";
+        headers["content-type"] = "application/json; charset=utf-8";
         return Content.readable(jsr.reader(o), {
             headers
         });
