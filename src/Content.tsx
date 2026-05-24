@@ -104,7 +104,7 @@ export default class Content {
         let reader: Readable;
 
         contentType ??= "text/plain";
-        if (!contentType.includes(":")) {
+        if (!contentType.includes(";")) {
             contentType += "; charset=utf-8";
         }
 
