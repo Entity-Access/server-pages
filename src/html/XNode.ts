@@ -1,4 +1,5 @@
 // use parse5 to serialize html correctly
+import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAccessError.js";
 import { escapeText, escapeAttribute } from "entities";
 
 type INodeToken = {
@@ -113,6 +114,9 @@ export default class XNode {
                     continue;
                 }
                 yield `\n`;
+                if(!child.readable) {
+                    throw new EntityAccessError(`Invalid node type ${child}`);
+                }
                 yield child.readable(nest + "\t");
             }
         }
