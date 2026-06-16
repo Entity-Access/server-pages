@@ -101,22 +101,26 @@ export default class XNode {
 
         if (children) {
             for (const child of children) {
-                if (typeof child === "string") {
-                    if (/^(script|style)$/i.test(name)) {
-                        /** script and style are not escaped */
-                        yield child;
-                    } else {
-                        yield escapeText(child);
-                    }
+                if (child === null
+                    || child === undefined
+                    || (child as any) === false
+                ) {
                     continue;
                 }
-                if (!child) {
-                    continue;
+                switch(typeof child) {
+                    case "string":
+                        if (/^(script|style)$/i.test(name)) {
+                            /** script and style are not escaped */
+                            yield child;
+                        } else {
+                            yield escapeText(child);
+                        }
+                        continue;
+                    case "number":
+                        yield (child as any).toString();
+                        continue;
                 }
                 yield `\n`;
-                if(!child.readable) {
-                    throw new EntityAccessError(`Invalid node type ${child}`);
-                }
                 yield child.readable(nest + "\t");
             }
         }
