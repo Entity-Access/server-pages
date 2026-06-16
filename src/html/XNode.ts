@@ -121,6 +121,9 @@ export default class XNode {
                         continue;
                 }
                 yield `\n`;
+                if(!child.readable) {
+                    throw new EntityAccessError("Invalid node type " + child);
+                }
                 yield child.readable(nest + "\t");
             }
         }
