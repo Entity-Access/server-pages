@@ -116,15 +116,14 @@ export default class XNode {
                             yield escapeText(child);
                         }
                         continue;
-                    case "number":
+                    case "object":
+                        yield `\n`;
+                        yield child.readable(nest + "\t");
+                        continue;
+                    default:
                         yield (child as any).toString();
                         continue;
                 }
-                yield `\n`;
-                if(!child.readable) {
-                    throw new EntityAccessError("Invalid node type " + child);
-                }
-                yield child.readable(nest + "\t");
             }
         }
 
