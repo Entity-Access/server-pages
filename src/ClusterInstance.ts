@@ -17,7 +17,10 @@ export class RecycledWorker<T = any> {
 
     constructor(env?) {
         this.currentWorker = cluster.fork(env);
-        this.currentWorker.on("exit" , () => {
+        cluster.on("exit" , (worker) => {
+            if (worker !== this.currentWorker) {
+                return;
+            }
             if (this.destroyed) {
                 return;
             }
