@@ -15,20 +15,23 @@ export class RecycledWorker<T = any> {
 
     private eventMap: Map<string,any> = new Map();
 
-    constructor(env?) {
+    private onExit = (worker) => {
+        if (worker !== this.currentWorker) {
+            return;
+        }
+        if (this.destroyed) {
+            return;
+        }
+        this.currentWorker = cluster.fork(this.env);
+        for (const [msg, handler] of this.eventMap) {
+            this.currentWorker.on(msg, handler);
+        }
+
+    };
+
+    constructor(private readonly env?) {
         this.currentWorker = cluster.fork(env);
-        cluster.on("exit" , (worker) => {
-            if (worker !== this.currentWorker) {
-                return;
-            }
-            if (this.destroyed) {
-                return;
-            }
-            this.currentWorker = cluster.fork(env);
-            for (const [msg, handler] of this.eventMap) {
-                this.currentWorker.on(msg, handler);
-            }
-        });
+        cluster.on("exit" , this.onExit);
     }
 
     public on(msg: string, handler) {
@@ -48,6 +51,7 @@ export class RecycledWorker<T = any> {
 
     public destroy() {
         this.destroyed = true;
+        cluster.off("exit", this.onExit);
         const { currentWorker } = this;
         this.currentWorker = null;
         if(!currentWorker) {
