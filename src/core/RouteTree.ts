@@ -17,6 +17,7 @@ export interface IRouteHandler {
     delete?: PromisePageFactory;
     head?: PromisePageFactory;
     index?: PromisePageFactory;
+    options?: PromisePageFactory;
 }
 
 type IPageRoute = { default: typeof Page };
@@ -155,6 +156,9 @@ export default class RouteTree {
                     break;
                 case "head.js":
                     name = "head";
+                    break;
+                case "options.js":
+                    name = "options";
                     break;
                 case "delete.js":
                     name = "delete";
