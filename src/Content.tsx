@@ -194,15 +194,19 @@ export class FileResult extends Content {
 
 }
 
-export class TempFileResult extends FileResult {
+export class TempFileResult extends FileResult implements Disposable {
 
     constructor(
-        file: LocalFile, p: Partial<TempFileResult> = {}
+        private file: LocalFile, p: Partial<TempFileResult> = {}
     ) {
         super(
             file.path,
             { ... p, contentType: p.contentType ?? file.contentType});
         this.lastModified = false;
+    }
+
+    [Symbol.dispose]() {
+        this.file[Symbol.asyncDispose]()?.catch(ServerLogger.error);
     }
 
 }

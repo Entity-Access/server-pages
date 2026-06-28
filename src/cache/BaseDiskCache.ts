@@ -213,8 +213,12 @@ export default class BaseDiskCache {
         Error.captureStackTrace(nd);
         const tf = new LocalFile(path, name, contentType, () => {
             fr.unregister(nd);
-            unlink(path)
-                .then(() => folder ? rmdir(folder).catch(console.error) : void 0 , console.error)
+            try {
+                unlink(path)
+                    .then(() => folder ? rmdir(folder).catch(console.error) : void 0 , console.error)
+            } catch {
+                // ignore error...
+            }
         });
         fr.register(tf, nd, nd);
         return tf;

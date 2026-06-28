@@ -457,6 +457,9 @@ export default class ServerPages {
 
 
             const content = await Executor.run(page);
+            if (content[Symbol.dispose]) {
+                req.disposables.push(content as any);
+            }
             resp.setHeader("cache-control", page.cacheControl);
             resp.removeHeader("etag");
 
