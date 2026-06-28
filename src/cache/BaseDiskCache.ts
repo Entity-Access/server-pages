@@ -214,6 +214,9 @@ export default class BaseDiskCache {
         const tf = new LocalFile(path, name, contentType, () => {
             // fr.unregister(nd);
             try {
+                if (!existsSync(path)) {
+                    return;
+                }
                 unlink(path)
                     .then(() => folder ? rmdir(folder).catch(console.error) : void 0 , console.error)
             } catch {
