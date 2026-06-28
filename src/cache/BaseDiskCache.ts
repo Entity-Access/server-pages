@@ -29,6 +29,28 @@ export interface IDiskCacheContainer {
     cache: BaseDiskCache;
 }
 
+const fr = new FinalizationRegistry((heldValue) => {
+    console.log(heldValue);
+});
+
+class NotDeletedWarning {
+    
+    public stack: string;
+
+    constructor(public file: string) {
+
+    }
+
+    toString() {
+        return JSON.stringify({
+            warning: `Temporary File left undeleted`,
+            file: this.file,
+            at: this.stack
+        });
+    }
+
+}
+
 export default class BaseDiskCache {
 
     protected readonly root: string;
@@ -178,6 +200,7 @@ export default class BaseDiskCache {
     }
 
     createTempFileDeleteOnExit(pathFragments: string[], name: string, contentType: string) {
+
         const fileName = pathFragments.pop();
         let folder = void 0;
         if (pathFragments.length) {
@@ -185,7 +208,16 @@ export default class BaseDiskCache {
             ensureDir(folder);
         }
         const path = join(this.root, ... pathFragments, fileName);
-        return new LocalFile(path, name, contentType, () => unlink(path).then(() => folder ? rmdir(folder).catch(console.error) : void 0 , console.error));
+
+        const nd = new NotDeletedWarning(path);
+        Error.captureStackTrace(nd);
+        const tf = new LocalFile(path, name, contentType, () => {
+            fr.unregister(nd);
+            unlink(path)
+                .then(() => folder ? rmdir(folder).catch(console.error) : void 0 , console.error)
+        });
+        fr.register(tf, nd, nd);
+        return tf;
     }
 
     protected async deleteFile(path: string) {
