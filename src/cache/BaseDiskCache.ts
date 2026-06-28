@@ -29,27 +29,27 @@ export interface IDiskCacheContainer {
     cache: BaseDiskCache;
 }
 
-const fr = new FinalizationRegistry((heldValue) => {
-    console.log(heldValue);
-});
+// const fr = new FinalizationRegistry((heldValue) => {
+//     console.log(heldValue);
+// });
 
-class NotDeletedWarning {
+// class NotDeletedWarning {
     
-    public stack: string;
+//     public stack: string;
 
-    constructor(public file: string) {
+//     constructor(public file: string) {
 
-    }
+//     }
 
-    toString() {
-        return JSON.stringify({
-            warning: `Temporary File left undeleted`,
-            file: this.file,
-            at: this.stack
-        });
-    }
+//     toString() {
+//         return JSON.stringify({
+//             warning: `Temporary File left undeleted`,
+//             file: this.file,
+//             at: this.stack
+//         });
+//     }
 
-}
+// }
 
 export default class BaseDiskCache {
 
@@ -209,10 +209,10 @@ export default class BaseDiskCache {
         }
         const path = join(this.root, ... pathFragments, fileName);
 
-        const nd = new NotDeletedWarning(path);
-        Error.captureStackTrace(nd);
+        // const nd = new NotDeletedWarning(path);
+        // Error.captureStackTrace(nd);
         const tf = new LocalFile(path, name, contentType, () => {
-            fr.unregister(nd);
+            // fr.unregister(nd);
             try {
                 unlink(path)
                     .then(() => folder ? rmdir(folder).catch(console.error) : void 0 , console.error)
@@ -220,7 +220,7 @@ export default class BaseDiskCache {
                 // ignore error...
             }
         });
-        fr.register(tf, nd, nd);
+        // fr.register(tf, nd, nd);
         return tf;
     }
 

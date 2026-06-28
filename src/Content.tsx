@@ -5,7 +5,7 @@ import { parse } from "path";
 import { LocalFile } from "./core/LocalFile.js";
 import { SessionUser } from "./core/SessionUser.js";
 import { WrappedResponse } from "./core/Wrapped.js";
-import { IncomingMessage, OutgoingHttpHeaders, ServerResponse } from "http";
+import { IncomingMessage, OutgoingHttpHeaders, Server, ServerResponse } from "http";
 import { Readable } from "stream";
 import Utf8Readable from "./core/Utf8Readable.js";
 import LogReadable from "./core/LogReadable.js";
@@ -206,7 +206,11 @@ export class TempFileResult extends FileResult implements Disposable {
     }
 
     [Symbol.dispose]() {
-        this.file[Symbol.asyncDispose]()?.catch(ServerLogger.error);
+        const { file } = this;
+        this.file = void 0;
+        if (file) {
+            file[Symbol.asyncDispose]?.().catch(ServerLogger.error);
+        }
     }
 
 }
