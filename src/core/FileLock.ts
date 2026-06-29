@@ -1,6 +1,6 @@
 import { Stream } from "node:stream";
 import { dirname, join } from "node:path";
-import { existsSync, mkdirSync, openSync, constants, writeSync, closeSync, unlinkSync, statSync } from "node:fs";
+import { existsSync, mkdirSync, openSync, constants, writeSync, closeSync, unlinkSync, statSync, futimesSync } from "node:fs";
 import { createHash, randomUUID } from "node:crypto";
 import * as os from "node:os";
 import sleep from "../sleep.js";
@@ -38,6 +38,7 @@ class LockFile implements Disposable {
         const lockFile = join(lockFolder, hash + ".lock");
 
         const till = Date.now() + timeout;
+        let attempt = 0;
 
         while(Date.now() < till) {
 
@@ -46,8 +47,9 @@ class LockFile implements Disposable {
                 if (!existsSync(lockFile)) {
                     // create and return..
                     const fd = openSync(lockFile, "wx", openMode);
-                    writeSync(fd, "1");
-                    return new LockFile(lockFile, fd);
+                    writeSync(fd, process.pid.toString());
+                    closeSync(fd);
+                    return new LockFile(lockFile);
                 }
 
                 const stat = statSync(lockFile);
@@ -62,7 +64,10 @@ class LockFile implements Disposable {
                 // do nothing
                 // console.error(error);
             }
-            await sleep(3000);
+
+            const delay = Math.min(1000 * Math.pow(2, attempt), 30000);
+            await sleep(delay);
+            attempt++;
         }
 
         throw new Error("Could not acquire lock");
@@ -70,21 +75,23 @@ class LockFile implements Disposable {
 
     timer: any;
 
-    private constructor(private readonly lockFile, private readonly fd) {
+    private constructor(private readonly lockFile) {
         this.timer = setInterval(() => {
+            const now = new Date();
             try {
-                writeSync(fd, "1");
+                futimesSync(this.lockFile, now, now);
             } catch {
                 // do nothing
             }
-        }, 1000);
+        }, 5000);
     }
 
     [Symbol.dispose]() {
+        clearInterval(this.timer);
         try {
-            clearInterval(this.timer);
-            closeSync(this.fd);
-            unlinkSync(this.lockFile);
+            if (existsSync(this.lockFile)) {
+                unlinkSync(this.lockFile);
+            }
         } catch (error) {
             // ignore error...
             ServerLogger.reportError({ error });
