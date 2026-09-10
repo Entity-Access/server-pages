@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import fsp, { opendir, rm, rmdir, stat, unlink } from "node:fs/promises";
-import { existsSync, mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, unlinkSync } from "node:fs";
 import { join, parse } from "node:path";
 import { randomBytes, randomUUID } from "node:crypto";
 import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAccessError.js";
@@ -197,6 +197,34 @@ export default class BaseDiskCache {
         }
 
         throw new EntityAccessError(`Failed to write file due to error ${error.stack ?? error}`);
+    }
+
+    
+    async getOrCreateWithMetadataAsync(path: string, factory: (fx: LocalFile, mx: LocalFile) => Promise<void>, ext = ".dat") {
+        const mPath = path + ".metadata";
+        const file = await this.getOrCreateAsync(path, async (fx) => {
+            const mExisting = join(this.root, mPath);
+            let lastError: Error;
+            for(let i = 0;i<5;i++) {
+                try {
+                    if (existsSync(mExisting)) {
+                        unlinkSync(mExisting);
+                    }
+                    lastError = null;
+                    break;
+                } catch (error) {
+                    lastError = error;
+                    await sleep(1000);
+                }
+            }
+            if (lastError) {
+                throw lastError;
+            }
+            const mf = new LocalFile(mExisting, void 0, void 0, doNothing);
+            await factory(fx, mf);
+        });
+        const metadataFile = await this.get(mPath);
+        return { file, metadataFile };
     }
 
     createTempFileDeleteOnExit(pathFragments: string[], name: string, contentType: string) {
