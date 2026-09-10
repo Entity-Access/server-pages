@@ -199,6 +199,35 @@ export default class BaseDiskCache {
         throw new EntityAccessError(`Failed to write file due to error ${error.stack ?? error}`);
     }
 
+    async getOrCreateWithJsonMetadataAsync<T>(path: string, factory: (fx: LocalFile) => Promise<T>, ext = ".dat")
+        : Promise<{ file: LocalFile, metadata: T}> {
+        const mPath = path + ".json";
+        const file = await this.getOrCreateAsync(path, async (fx) => {
+            const mExisting = join(this.root, mPath);
+            let lastError: Error;
+            for(let i = 0;i<5;i++) {
+                try {
+                    if (existsSync(mExisting)) {
+                        unlinkSync(mExisting);
+                    }
+                    lastError = null;
+                    break;
+                } catch (error) {
+                    lastError = error;
+                    await sleep(1000);
+                }
+            }
+            if (lastError) {
+                throw lastError;
+            }
+            const mf = new LocalFile(mExisting, void 0, void 0, doNothing);
+            const m = await factory(fx);
+            await mf.writeAllText(JSON.stringify(m));
+        });
+        const metadataFile = await this.get(mPath);
+        const metadata = JSON.parse(await metadataFile.readAsText()) as T;
+        return { file, metadata };
+    }
     
     async getOrCreateWithMetadataAsync(path: string, factory: (fx: LocalFile, mx: LocalFile) => Promise<void>, ext = ".dat") {
         const mPath = path + ".metadata";
