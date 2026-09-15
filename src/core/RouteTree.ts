@@ -75,6 +75,7 @@ export default class RouteTree {
             }
             tokens.push("(.+)")
             if (suffix) {
+                // this is positive look ahead
                 tokens.push("(?=" + escapeRegex(suffix) + ")")
             }
 
