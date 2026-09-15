@@ -31,7 +31,8 @@ export default class RouteTree {
     
     private children = new Map<string,RouteTree>();
 
-    private regexChild: { regex: RegExp , name: string, paramName: string, route: RouteTree};
+    // private regexChild: { regex: RegExp , name: string, paramName: string, route: RouteTree};
+    private regexChildren: { regex: RegExp, prefix: string, name: string, paramName: string, route: RouteTree } [];
 
     private handler: IRouteHandler;
 
@@ -45,15 +46,17 @@ export default class RouteTree {
 
         // if it has [ ]
 
-        const extractParams = /([^\[]+)?(\[[^\]]+\])(.+)?/.exec(name);
+        const extractParams = /(?<prefix>[^\[]+)?(?<paramName>\[[^\]]+\])(?<suffix>.+)?/.exec(name);
         if (extractParams) {
-            if (this.regexChild) {
-                if (this.regexChild.name !== name) {
-                    throw new Error("Multiple parameters not supported in same folder");
-                }
-                return this.regexChild.route;
+            const regList = (this.regexChildren ??= [])
+            const { prefix, paramName, suffix} = extractParams.groups;
+            if (regList.some((x) => x.prefix === prefix && x.paramName !== paramName)) {
+                throw new Error("Multiple parameters for same prefix not supported in same folder");
             }
-            const [text, prefix, paramName, suffix] = extractParams;
+            const r = regList.find((x) => x.prefix === prefix && x.paramName === paramName);
+            if (r) {
+                return r.route;
+            }
             const route = new RouteTree(this.path + name + "/");
             const tokens = [];
 
@@ -65,12 +68,13 @@ export default class RouteTree {
                 tokens.push("(?=" + escapeRegex(suffix) + ")")
             }
 
-            this.regexChild = {
+            regList.push({
+                prefix,
                 name,
                 paramName: paramName.substring(1, paramName.length-1),
                 regex: new RegExp(tokens.join("")),
                 route
-            };
+            });
             return route;
         }
 
@@ -95,14 +99,16 @@ export default class RouteTree {
                 }
             }
 
-            const { regexChild } = this;
+            const { regexChildren } = this;
 
-            if (regexChild) {
-                const m = regexChild.regex.exec(current);
-                if (m?.length) {
-                    const value = m[1];
-                    rc.route[regexChild.paramName] = value;
-                    return regexChild.route.getRoute(childRouteCheck, rewriteFileRoute);
+            if (regexChildren) {
+                for(const r of regexChildren) {
+                    const m = r.regex.exec(current);
+                    if (m?.length) {
+                        const value = m[1];
+                        rc.route[r.paramName] = value;
+                        return r.route.getRoute(childRouteCheck, rewriteFileRoute);
+                    }
                 }
             }
         }
