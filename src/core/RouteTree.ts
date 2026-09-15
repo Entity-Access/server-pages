@@ -34,6 +34,8 @@ export default class RouteTree {
     // private regexChild: { regex: RegExp , name: string, paramName: string, route: RouteTree};
     private regexChildren: { regex: RegExp, prefix: string, name: string, paramName: string, route: RouteTree } [];
 
+    private catchAll: { paramName: string, route: RouteTree };
+
     private handler: IRouteHandler;
 
     public log?: (text: string) => any;
@@ -44,7 +46,15 @@ export default class RouteTree {
 
     getOrCreate(name: string): RouteTree {
 
-        // if it has [ ]
+        // if it has [paramName]
+
+        if(/^\[[^\]]+\]$/.test(name)) {
+            const r = this.catchAll ??= {
+                paramName: name.substring(1, name.length-1),
+                route: new RouteTree(this.path + name + "/")
+            };
+            return r.route;
+        }
 
         const extractParams = /(?<prefix>[^\[]+)?(?<paramName>\[[^\]]+\])(?<suffix>.+)?/.exec(name);
         if (extractParams) {
@@ -99,7 +109,7 @@ export default class RouteTree {
                 }
             }
 
-            const { regexChildren } = this;
+            const { regexChildren, catchAll } = this;
 
             if (regexChildren) {
                 for(const r of regexChildren) {
@@ -110,6 +120,11 @@ export default class RouteTree {
                         return r.route.getRoute(childRouteCheck, rewriteFileRoute);
                     }
                 }
+            }
+
+            if(catchAll) {
+                rc.route[catchAll.paramName] = current;
+                return catchAll.route.getRoute(childRouteCheck, rewriteFileRoute);
             }
         }
 
