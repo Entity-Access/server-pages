@@ -11,19 +11,14 @@ import * as http2 from "http2";
 import SocketService from "./socket/SocketService.js";
 import { Wrapped, WrappedResponse } from "./core/Wrapped.js";
 import { SecureContext } from "node:tls";
-import  { IAcmeOptions } from "./ssl/AcmeCertificateService.js";
-import ChallengeServer from "./ssl/ChallengeServer.js";
 import { SessionUser } from "./core/SessionUser.js";
 import Executor from "./core/Executor.js";
 import { WebSocket } from "ws";
 import { UrlParser } from "./core/UrlParser.js";
 import Http2IPCProxyReceiver from "./core/Http2IPCProxyReceiver.js";
 import { Readable } from "node:stream";
-import SecureContextService from "./ssl/SecureContextService.js";
 import AuthorizationService from "./services/AuthorizationService.js";
 import TimeoutTracker from "./core/TimeoutTracker.js";
-import { Http2SecureServer, Http2ServerRequest, Http2ServerResponse } from "node:http2";
-import { Socket } from "node:net";
 import { IncomingMessage, ServerResponse } from "node:http";
 import sleep from "./sleep.js";
 import ServerLogger from "./core/ServerLogger.js";
@@ -108,10 +103,8 @@ export default class ServerPages {
     public async build({
         createSocketService = true,
         port = 8080,
-        http1Port = 8081,
         protocol = "http",
         SNICallback,
-        acmeOptions,
         host,
         trustProxy = false,
         allowHTTP1 = true
@@ -124,7 +117,6 @@ export default class ServerPages {
         protocol: "http" | "http2" | "http2NoTLS",
         host: string,
         SNICallback?: (servername: string, cb: (err: Error | null, ctx?: SecureContext) => void) => void,
-        acmeOptions?: IAcmeOptions,
         allowHTTP1?: boolean
     }) {
 
@@ -132,11 +124,6 @@ export default class ServerPages {
 
         // let http1Server = null as http.Server;
         this.logger = ServiceProvider.resolve(this, ServerLogger);
-
-        let acme = ServiceProvider.resolve(this, SecureContextService);
-        acme.options = acmeOptions ?? {};
-
-        acmeOptions ??= {};
 
         try {
 
@@ -150,81 +137,6 @@ export default class ServerPages {
                         keepAliveTimeout:60000
                     },(req, res) => isNotConnect(req) && this.process(req, res, trustProxy));
                     listeningServer = httpServer;
-                    break;
-                case "http2":
-                    let sc = null;
-                    SNICallback ??= acme.SNICallback;
-                    httpServer = http2.createSecureServer({
-                        SNICallback,
-                        allowHTTP1,
-                        keepAlive: true,
-                        keepAliveInitialDelay: 10000,
-                        settings: {
-                            enableConnectProtocol: createSocketService
-                        }
-                    }, (req, res) => this.process(req, res, trustProxy))
-
-                    if (acmeOptions) {
-                        const cs = ServiceProvider.resolve(this, ChallengeServer);
-                        cs.start();
-                    }
-                    httpServer.on("connect", () => {
-                        // undocumented and needed.
-                    });
-                    listeningServer = httpServer;
-                    break;
-                case "http2NoTLS":
-                    // httpServer = http2.createServer({
-                    //     settings: {
-                    //         enableConnectProtocol: createSocketService,
-                    //     }
-                    // },(req, res) => isNotConnect2(req) && this.process(req, res, trustProxy))
-                    // // if (!disableNoTlsWarning) {
-                    // //     console.warn("Http2 without SSL should not be used in production");
-                    // // }
-                    // httpServer.on("connect", () => {
-                    //     // undocumented and needed.
-                    // });
-                    // http1Server = http.createServer((req, res) => isNotConnect(req) && this.process(req, res, trustProxy));
-                    // listeningServer = new HttpIPCProxyReceiver(httpServer, http1Server);
-
-                    httpServer = http2.createSecureServer({
-                        SNICallback: null,
-                        allowHTTP1: true,
-                        // keepAlive: true,
-                        // keepAliveInitialDelay: 10000,
-                        settings: {
-                            enableConnectProtocol: createSocketService
-                        }
-                    }, (req, res) => isNotConnect2(req) && this.process(req, res, true))
-
-                    httpServer.on("connect", () => {
-                        // undocumented and needed.
-                    });
-                    httpServer.on("tlsClientError",() => {
-                        // ignore
-                    });
-
-                    httpServer.on("clientError", (err, socket: Socket) => {
-                        this.reportError({ error: err });
-                        // if (err.code === "ERR_HTTP_REQUEST_TIMEOUT") {
-                        //     try {
-                        //         if (!socket.destroyed) {
-                        //             socket.destroy(err);
-                        //         }
-                        //     } catch {
-                        //         // do nothing...
-                        //     }
-                        //     return;
-                        // }
-                    });
-
-                    listeningServer = new Http2IPCProxyReceiver(httpServer as Http2SecureServer);
-
-                    httpServer.listen(0, () => console.log(`Http2IPC Started`));
-
-                    // http1Server = http.createServer((req, res) => isNotConnect(req) && this.process(req, res, trustProxy));
-
                     break;
                 default:
                     throw new Error(`Unknown protocol ${protocol}`);
@@ -281,10 +193,6 @@ export default class ServerPages {
                     console.log(err.message);  // the error message, for example "Session ID unknown"
                     console.log(err.context);  // some additional error context                    
                 });
-
-                if (protocol === "http2" || protocol === "http2NoTLS") {
-                    httpServer.prependListener("stream", (stream, headers) => this.forwardConnect(socketServer, stream, headers));
-                }
             }
             return httpServer;
         } catch (error) {
@@ -293,68 +201,7 @@ export default class ServerPages {
         return null;
     }
 
-    private async forwardConnect(socketServer, stream: http2.ServerHttp2Stream, headers: http2.IncomingHttpHeaders) {
-        if (headers[":method"] !== "CONNECT") {
-            return;
-        }
-        try {
-            
-            // this keeps socket alive...
-            stream.setTimeout(0);
-            (stream as any).setKeepAlive?.(true, 0);
-            (stream as any).setNoDelay = function() {
-                // this will keep the stream open
-            };
-            const websocket = new WebSocket(null, void 0, {
-                headers
-            });
-
-            websocket.setSocket(stream, Buffer.alloc(0), {
-                maxPayload: 104857600,
-                skipUTF8Validation: false,
-                allowSynchronousEvents: false,
-                handshakeTimeout: 5000
-            });
-            const path = headers[":path"];
-            const url = new URL(path, `http://${headers[":authority"] ?? headers.host}`);
-            const _query = {};
-            for (const [key, value] of url.searchParams.entries()) {
-                _query[key] = value;
-            }
-            // forcing upgrade
-            headers["upgrade"] = "websocket";
-            headers["connection"] = "upgrade";
-            // fake build request
-            const req = {
-                url: path,
-                method: "GET",
-                headers,
-                websocket,
-                connection: {
-                    encrypted: true
-                },
-                _query
-            };
-            // (socketServer.engine as any)
-            //     .onWebSocket(req, stream, websocket);
-            stream.respond({ ":status": 200 }, { endStream: false });
-            // (socketServer.engine as any)
-            //     .handleUpgrade(req, stream, Buffer.from([]));
-            // (socketServer.engine as any)
-            //     .onWebSocket(req, stream, websocket);
-            (socketServer.engine as any)
-                .handshake("websocket", req, () => {
-                    try { stream.end(); } catch {}
-                });
-            // stream.respond({
-            //     ":status": 200
-            // });
-        } catch (error) {
-            this.reportError(error);
-        }
-    }
-
-    protected async process(rIn: IncomingMessage | Http2ServerRequest, resp1: ServerResponse | Http2ServerResponse, trustProxy: boolean) {
+    protected async process(rIn: IncomingMessage, resp1: ServerResponse, trustProxy: boolean) {
 
 
         const start = performance.now();
