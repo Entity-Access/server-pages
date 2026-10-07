@@ -21,7 +21,7 @@ export default class ServerLogger {
             }
             return obj.stack;
         })();
-        console.error(JSON.stringify({ url, status, serverID, host, route, error, cause, info, ip, referrer, userAgent, at }));
+        console.error(JSON.stringify({ url, status, serverID, host, route, error: error?.stack || error, cause, info, ip, referrer, userAgent, at }));
     }
 
     private static instance: ServerLogger;
