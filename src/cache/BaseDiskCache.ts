@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import fsp, { opendir, rm, rmdir, stat, unlink } from "node:fs/promises";
 import { existsSync, mkdirSync, unlinkSync } from "node:fs";
-import { join, parse } from "node:path";
+import { dirname, join, parse } from "node:path";
 import { randomBytes, randomUUID } from "node:crypto";
 import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAccessError.js";
 import ensureDir from "../core/FileApi.js";
@@ -90,13 +90,17 @@ export default class BaseDiskCache {
     createTempFile(fileName: string, mimeType?: string) {
         const folder = newFolder(this.root);
         const path = join(folder, fileName);
-        return new LocalFile(path, fileName, mimeType, () => this.deleteFolder(folder));
+        const lf = new LocalFile(path, fileName, mimeType, () => this.deleteFolder(folder));
+        ensureDir(dirname(lf.path));
+        return lf;
     }
 
     create(fileName: string, mimeType?: string) {
         const folder = newFolder(this.root);
         const path = join(folder, fileName);
-        return new LocalFile(path, fileName, mimeType, doNothing);
+        const lf = new LocalFile(path, fileName, mimeType, doNothing);
+        ensureDir(dirname(lf.path));
+        return lf;
     }
 
     newFolder(suffix = "") {
