@@ -93,6 +93,12 @@ export default class BaseDiskCache {
         return new LocalFile(path, fileName, mimeType, () => this.deleteFolder(folder));
     }
 
+    create(fileName: string, mimeType?: string) {
+        const folder = newFolder(this.root);
+        const path = join(folder, fileName);
+        return new LocalFile(path, fileName, mimeType, doNothing);
+    }
+
     newFolder(suffix = "") {
         return new TempFolder(suffix, this.root);
     }
