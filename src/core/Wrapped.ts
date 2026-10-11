@@ -359,6 +359,7 @@ const extendResponse = (A: (new() => ServerResponse) | (new () => Http2ServerRes
 
                     /** Calculate Size of file */
                     const { size } = await stat(filePath);
+
                     const range = (this as any as IWrappedResponse).request.headers.range;
         
                     const lf = new LocalFile(filePath);
@@ -380,6 +381,15 @@ const extendResponse = (A: (new() => ServerResponse) | (new () => Http2ServerRes
                         (this as ServerResponse<IncomingMessage>).writeHead(200, headers);
                         sent = true;
                         await lf.writeTo(this, { signal });
+                        return;
+                    }
+
+                    if(/^head$/i.test(this.req.method)) {
+                        const rs = (this as ServerResponse<IncomingMessage>);
+                        headers["accept-ranges"] = "bytes";
+                        headers["content-range"] = `bytes 0-1/${size}`;
+                        headers["content-length"] = `${size}`;
+                        rs.writeHead(206, headers);
                         return;
                     }
         
