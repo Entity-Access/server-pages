@@ -61,6 +61,11 @@ export class LocalFile implements AsyncDisposable {
         return this;
     }
 
+    public async append(line: string | Uint8Array) {
+        await appendFile(this.path, line);
+        return this;
+    }
+
     public async readAsText() {
         return await readFile(this.path, "utf-8");
     }
