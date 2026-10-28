@@ -126,6 +126,10 @@ export default abstract class Page<TInput = any, TQuery = any> {
         }
     }
 
+    protected html(node: string | XNode) {
+        return Content.html(node);
+    }
+
     protected content(h: IContent): Content;
     protected content(body: string, status?: number, contentType?: string, headers?: OutgoingHttpHeaders): Content;
     protected content(body: string | Partial<IContent>, status?: number, contentType?: string, headers?: OutgoingHttpHeaders) {
