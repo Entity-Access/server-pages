@@ -1,0 +1,1 @@
+export const isContent = Symbol.for("isContent");

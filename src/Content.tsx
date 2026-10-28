@@ -10,6 +10,7 @@ import { Readable } from "stream";
 import Utf8Readable from "./core/Utf8Readable.js";
 import LogReadable from "./core/LogReadable.js";
 import ServerLogger from "./core/ServerLogger.js";
+import { isContent } from "./core/isContent.js";
 
 const EmptyReader = () => Readable.from([]);
 
@@ -23,6 +24,8 @@ export interface IContent {
 }
 
 export default class Content {
+
+    public readonly [isContent] = true;
 
     public readonly reader: Readable;
     public readonly status: number = 200;

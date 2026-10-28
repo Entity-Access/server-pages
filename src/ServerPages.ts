@@ -23,6 +23,8 @@ import { IncomingMessage, ServerResponse } from "node:http";
 import sleep from "./sleep.js";
 import ServerLogger from "./core/ServerLogger.js";
 import { performance } from "node:perf_hooks";
+import XNode from "./html/XNode.js";
+import { isContent } from "./core/isContent.js";
 export const wsData = Symbol("wsData");
 
 const isNotConnect = (req: http.IncomingMessage) => {
@@ -303,7 +305,10 @@ export default class ServerPages {
             log?.(`${prefix} Executing`);
 
 
-            const content = await Executor.run(page);
+            let content = await Executor.run(page);
+            if(typeof content[isContent] === "undefined") {
+                content = Content.html(content as any);
+            }
             resp.setHeader("cache-control", page.cacheControl);
             resp.removeHeader("etag");
 
