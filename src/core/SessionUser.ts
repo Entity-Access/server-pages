@@ -117,6 +117,7 @@ export class SessionUser {
         const cookie = await authService.setAuthCookie(this, authCookie);
         (cookie.options ??= {} as any).httpOnly = true;
         this.resp?.cookie(cookie.name, cookie.value, cookie.options);
+        return cookie.value;
     }
 
     async clearAuthCookie() {
