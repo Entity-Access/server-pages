@@ -107,9 +107,10 @@ export default class XNode {
 
         if (children) {
             for (const child of children) {
-                if (child === null
-                    || child === undefined
+                if (child === void 0
+                    || child === null
                     || (child as any) === false
+                    || (child as any) === 0
                 ) {
                     continue;
                 }
