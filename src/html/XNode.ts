@@ -110,7 +110,6 @@ export default class XNode {
                 if (child === void 0
                     || child === null
                     || (child as any) === false
-                    || (child as any) === 0
                 ) {
                     continue;
                 }
