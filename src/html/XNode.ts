@@ -82,13 +82,19 @@ export default class XNode {
             for (const key in attributes) {
                 if (Object.hasOwn(attributes, key)) {
                     const element = attributes[key];
-
+                    if(element === void 0) {
+                        continue;
+                    }
                     if (nest) {
                         yield `\n${nest}\t`;
                     } else {
                         yield " ";
                     }
-                    yield `${escapeAttribute(key)}="${escapeAttribute(element)}"`;
+                    if(element === null) {
+                        yield `${escapeAttribute(key)}`;
+                    } else {
+                        yield `${escapeAttribute(key)}="${escapeAttribute(element)}"`;
+                    }
                 }
             }
         }
